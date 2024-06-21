@@ -33,3 +33,8 @@ const deleteVendor = (req, res) => {
     }
   });
 };
+
+module.exports = {
+  deleteVendor,
+  addVendor,
+};

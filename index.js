@@ -18,7 +18,7 @@ app.use(express.static("uploads"));
 app.use("/api", routes);
 
 // Start the server
-const port = process.env.PORT || 8898;
+const port = process.env.PORT;
 app.listen(port, () => {
   console.log(`Listening on http://localhost:${port}`);
 });
