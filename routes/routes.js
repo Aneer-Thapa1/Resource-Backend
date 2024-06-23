@@ -13,6 +13,9 @@ router.post("/login", authController.login);
 router.post("/addVendor", vendorController.addVendor);
 
 // Delete vendor route
-router.post("/deleteVendor", vendorController.deleteVendor);
+router.delete("/deleteVendor/:id", vendorController.deleteVendor);
+
+//Fatch all vendor
+router.get('/allVendor', vendorController.getAllVendors);
 
 module.exports = router;
