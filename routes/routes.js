@@ -15,6 +15,8 @@ router.post("/addVendor", vendorController.addVendor);
 // Delete vendor route
 router.delete("/deleteVendor/:id", vendorController.deleteVendor);
 
+router.get("/getVendor/:id", vendorController.getVendorsById);
+
 //Fatch all vendor
 router.get('/allVendor', vendorController.getAllVendors);
 
