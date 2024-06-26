@@ -2,12 +2,13 @@ const db = require("../config/dbConfig");
 
 // createing the vendor
 const addVendor = (req, res) => {
-  const { vendor_name, vat_number, vendor_number, category } = req.body;
-  if (!vendor_name || !vat_number || !vendor_number || !category) {
+  const { vendor_name, vendor_owner, vendor_contact } = req.body;
+  if (!vendor_name || !vendor_owner || !vendor_contact) {
     return res
       .status(400)
       .json({ error: "Please provide all the required fields!" });
   }
+
   const vendorData = {
     vendor_name: vendor_name,
     vendor_number: vendor_number,
@@ -16,6 +17,7 @@ const addVendor = (req, res) => {
   };
   const addVendorQuery = "INSERT INTO vendors SET ?";
   db.query(addVendorQuery, vendorData, (error, result) => {
+
     if (result) {
       return res.status(201).json({ message: "Vendor added successfully!" });
     } else { 
@@ -23,18 +25,7 @@ const addVendor = (req, res) => {
       return res.status(500).json({ error: "Failed adding vendor!" });
     }
   });
-};
 
-const getAllVendors = (req, res) => {
-  const getAllVendorsQuery = "SELECT * FROM vendors";
-  db.query(getAllVendorsQuery, (error, result) => {
-    if (error) {
-      console.log(error);
-      return res.status(500).json({ error: "Error Fetching Vendors" });
-    } else {
-      return res.status(200).json(result);
-    }
-  });
 };
 
 //update vendor
@@ -94,6 +85,18 @@ const updateVendor = async (req, res) => {
 };
 
 
+
+const getAllVendors = (req, res) => {
+  const getAllVendorsQuery = "SELECT * FROM vendors";
+  db.query(getAllVendorsQuery, (error, result) => {
+    if (error) {
+      console.log(error);
+      return res.status(500).json({ error: "Error Fetching Vendors" });
+    } else {
+      return res.status(200).json(result);
+    }
+  });
+};
 //get Vendor by Id
 const getVendorsById = (req, res) => {
   const vendorId = req.params.id;
@@ -127,9 +130,11 @@ const deleteVendor = (req, res) => {
 };
 
 module.exports = {
+  addVendor,
   getAllVendors,
   deleteVendor,
-  addVendor,
   getVendorsById,
-  updateVendor
+  updateVendor,
 };
+
+
