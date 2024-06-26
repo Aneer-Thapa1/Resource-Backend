@@ -2,23 +2,15 @@ const db = require("../config/dbConfig");
 
 // createing the vendor
 const addVendor = (req, res) => {
-  const { vendor_name, vat_number, vendor_number, category } = req.body;
-  if (!vendor_name || !vat_number || !vendor_number || !category) {
-    return res
-      .status(400)
-      .json({ error: "Please provide all the required fields!" });
+  const { vendor_name, vendor_owner, vendor_contact } = req.body;
+  if (!vendor_name || !vendor_owner || !vendor_contact) {
+    return res.status(400).json({ error: "Please provide all the required fields!" });
   }
-  const vendorData = {
-    vendor_name: vendor_name,
-    vendor_number: vendor_number,
-    vat_number: vat_number,
-    category: category,
-  };
-  const addVendorQuery = "INSERT INTO vendors SET ?";
-  db.query(addVendorQuery, vendorData, (error, result) => {
+  const addVendorQuery = "INSERT INTO vendors (vendor_name, vendor_owner, vendor_contact) VALUES (?, ?, ?)";
+  db.query(addVendorQuery, [vendor_name, vendor_owner, vendor_contact], (error, result) => {
     if (result) {
       return res.status(201).json({ message: "Vendor added successfully!" });
-    } else {
+    } else { 
       console.log(error);
       return res.status(500).json({ error: "Failed adding vendor!" });
     }
@@ -37,7 +29,7 @@ const getAllVendors = (req, res) => {
   });
 };
 
-// //update vendor
+//update vendor
 const updateVendor = async (req, res) => {
   const vendor_id = req.params.id;
   const {
@@ -73,7 +65,6 @@ const updateVendor = async (req, res) => {
       next_payment_date,
       vendor_id,
     ];
-
     db.query(query, values, (err, result) => {
       if (err) {
         console.error("Error updating vendor:", err);
@@ -93,6 +84,7 @@ const updateVendor = async (req, res) => {
     res.status(500).json({ error: "Error updating vendor" });
   }
 };
+
 
 //get Vendor by Id
 const getVendorsById = (req, res) => {
@@ -131,5 +123,5 @@ module.exports = {
   deleteVendor,
   addVendor,
   getVendorsById,
-  updateVendor,
+  updateVendor
 };
