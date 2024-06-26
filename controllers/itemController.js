@@ -17,10 +17,9 @@ const addItem = (req, res) => {
     measuring_unit: measuring_unit,
   };
 
-  const addVendorQuery = "INSERT INTO items SET ? ";
-
+  const addItemQuery = "INSERT INTO items SET ? ";
   try {
-    db.query(addVendorQuery, itemData, (error, result) => {
+    db.query(addItemQuery, itemData, (error, result) => {
       if (error) {
         console.log(error);
         return res.status(500).json({ error: "Failed adding vendor!" });
