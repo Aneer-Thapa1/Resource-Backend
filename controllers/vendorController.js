@@ -2,12 +2,20 @@ const db = require("../config/dbConfig");
 
 // createing the vendor
 const addVendor = (req, res) => {
-  const { vendor_name, vendor_owner, vendor_contact } = req.body;
-  if (!vendor_name || !vendor_owner || !vendor_contact) {
-    return res.status(400).json({ error: "Please provide all the required fields!" });
+  const { vendor_name, vat_number, vendor_number, category } = req.body;
+  if (!vendor_name || !vat_number || !vendor_number || !category) {
+    return res
+      .status(400)
+      .json({ error: "Please provide all the required fields!" });
   }
-  const addVendorQuery = "INSERT INTO vendors (vendor_name, vendor_owner, vendor_contact) VALUES (?, ?, ?)";
-  db.query(addVendorQuery, [vendor_name, vendor_owner, vendor_contact], (error, result) => {
+  const vendorData = {
+    vendor_name: vendor_name,
+    vendor_number: vendor_number,
+    vat_number: vat_number,
+    category: category,
+  };
+  const addVendorQuery = "INSERT INTO vendors SET ?";
+  db.query(addVendorQuery, vendorData, (error, result) => {
     if (result) {
       return res.status(201).json({ message: "Vendor added successfully!" });
     } else { 
