@@ -1,0 +1,56 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model bills {
+  bill_ID       Int       @id @default(autoincrement())
+  entry_date    DateTime? @db.Date
+  bill_no       String?   @db.VarChar(255)
+  bill_amount   Float?    @db.Float
+  TDS           Float?    @db.Float
+  bill_date     DateTime? @db.Date
+  vendor_ID     Int?
+  invoice_no    String?   @db.VarChar(255)
+  actual_amount Float?    @db.Float
+  paid_amount   Float?    @db.Float
+  left_amount   Float?    @db.Float
+  vendors       vendors?  @relation(fields: [vendor_ID], references: [vendor_id], onDelete: Restrict, onUpdate: Restrict, map: "bills_ibfk_1")
+
+  @@index([vendor_ID], map: "vendor_ID")
+}
+
+model items {
+  item_id         Int     @id
+  item_name       String? @db.VarChar(255)
+  measuring_unit  String? @db.VarChar(50)
+  total_purchased Int?
+  item_category   String? @db.VarChar(255)
+  category        String? @db.VarChar(255)
+  quantity        Int?
+  low_limit       Int?
+}
+
+model users {
+  user_id    Int    @id @default(autoincrement())
+  user_name  String @db.VarChar(95)
+  user_email String @db.VarChar(65)
+  password   String @db.VarChar(255)
+}
+
+model vendors {
+  vendor_id          Int       @id
+  vendor_name        String?   @db.VarChar(255)
+  vat_number         String?   @db.VarChar(255)
+  total_payment      Float?    @db.Float
+  pending_payment    Float?    @db.Float
+  last_purchase_date DateTime? @db.Date
+  last_paid          DateTime? @db.Date
+  payment_duration   Int?
+  next_payment_date  DateTime? @db.Date
+  bills              bills[]
+}
