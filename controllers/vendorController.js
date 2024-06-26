@@ -2,15 +2,23 @@ const db = require("../config/dbConfig");
 
 // createing the vendor
 const addVendor = (req, res) => {
-  const { vendor_name, vendor_owner, vendor_contact } = req.body;
-  if (!vendor_name || !vendor_owner || !vendor_contact) {
-    return res.status(400).json({ error: "Please provide all the required fields!" });
+  const { vendor_name, vat_number, vendor_number, category } = req.body;
+  if (!vendor_name || !vat_number || !vendor_number || !category) {
+    return res
+      .status(400)
+      .json({ error: "Please provide all the required fields!" });
   }
-  const addVendorQuery = "INSERT INTO vendors (vendor_name, vendor_owner, vendor_contact) VALUES (?, ?, ?)";
-  db.query(addVendorQuery, [vendor_name, vendor_owner, vendor_contact], (error, result) => {
+  const vendorData = {
+    vendor_name: vendor_name,
+    vendor_number: vendor_number,
+    vat_number: vat_number,
+    category: category,
+  };
+  const addVendorQuery = "INSERT INTO vendors SET ?";
+  db.query(addVendorQuery, vendorData, (error, result) => {
     if (result) {
       return res.status(201).json({ message: "Vendor added successfully!" });
-    } else { 
+    } else {
       console.log(error);
       return res.status(500).json({ error: "Failed adding vendor!" });
     }
@@ -29,13 +37,62 @@ const getAllVendors = (req, res) => {
   });
 };
 
-// //update vendor 
-// const updateVendor = (req,res)=>{
-//   const vendorId = req.params.id;
-//   const { name, email, phone } = req.body;
-//   const updateVendor = db.query
-// }
+// //update vendor
+const updateVendor = async (req, res) => {
+  const vendor_id = req.params.id;
+  const {
+    vendor_name,
+    vat_number,
+    vendor_number,
+    category,
+    total_payment,
+    pending_payment,
+    last_purchase_date,
+    last_paid,
+    payment_duration,
+    next_payment_date,
+  } = req.body;
 
+  try {
+    // Update the vendor in the database
+    const query = `
+      UPDATE vendors
+      SET vendor_name = ?, vat_number = ?, vendor_number = ?, category = ?, total_payment = ?, pending_payment = ?, last_purchase_date = ?, last_paid = ?, payment_duration = ?, next_payment_date = ?
+      WHERE vendor_id = ?`;
+
+    const values = [
+      vendor_name,
+      vat_number,
+      vendor_number,
+      category,
+      total_payment,
+      pending_payment,
+      last_purchase_date,
+      last_paid,
+      payment_duration,
+      next_payment_date,
+      vendor_id,
+    ];
+
+    db.query(query, values, (err, result) => {
+      if (err) {
+        console.error("Error updating vendor:", err);
+        return res.status(500).json({ error: "Error updating vendor" });
+      }
+    
+      // Check if any rows were affected
+      if (result.affectedRows === 0) {
+        return res.status(404).json({ error: "Vendor not found!" });
+      }
+
+      // Return success response with updated vendor information
+      return res.status(200).json({message:"successfully updated the vendors."});
+    });
+  } catch (error) {
+    console.error("Error updating vendor:", error);
+    res.status(500).json({ error: "Error updating vendor" });
+  }
+};
 
 //get Vendor by Id
 const getVendorsById = (req, res) => {
@@ -73,5 +130,6 @@ module.exports = {
   getAllVendors,
   deleteVendor,
   addVendor,
-  getVendorsById
+  getVendorsById,
+  updateVendor,
 };
