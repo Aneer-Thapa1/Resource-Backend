@@ -20,4 +20,7 @@ router.get("/getVendor/:id", vendorController.getVendorsById);
 //Fatch all vendor
 router.get('/allVendor', vendorController.getAllVendors);
 
+//update vendor 
+router.put('/updateVendor/:id', vendorController.updateVendor);
+
 module.exports = router;
