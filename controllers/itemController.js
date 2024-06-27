@@ -10,12 +10,7 @@ const addItem = async (req, res) => {
 
   try {
     const newItem = await prisma.items.create({
-      data: {
-        item_name,
-        category,
-        item_category,
-        measuring_unit,
-      },
+      data: req.body,
     });
 
     return res
