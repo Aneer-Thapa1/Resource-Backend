@@ -3,6 +3,7 @@ const router = express.Router();
 const authController = require("../controllers/authController");
 const vendorController = require("../controllers/vendorController");
 const itemController = require("../controllers/itemController");
+const prisma = require("../prismaClient");
 
 // Signup route
 router.post("/signup", authController.signup);
@@ -24,8 +25,6 @@ router.get("/getVendor", vendorController.getAllVendors);
 router.post("/addItem", itemController.addItem);
 
 router.get("/getVendor/:id", vendorController.getVendorsById);
-
-
 
 //update vendor 
 router.put('/updateVendor/:id', vendorController.updateVendor);

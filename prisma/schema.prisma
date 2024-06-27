@@ -43,9 +43,10 @@ model users {
 }
 
 model vendors {
-  vendor_id          Int       @id
+  vendor_id          Int       @id @default(autoincrement())
   vendor_name        String?   @db.VarChar(255)
   vat_number         String?   @db.VarChar(255)
+  vendor_contact     Int?
   total_payment      Float?    @db.Float
   pending_payment    Float?    @db.Float
   last_purchase_date DateTime? @db.Date
