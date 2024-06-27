@@ -26,7 +26,7 @@ model bills {
 }
 
 model items {
-  item_id         Int     @id
+  item_id         Int     @id @default(autoincrement())
   item_name       String? @db.VarChar(255)
   measuring_unit  String? @db.VarChar(50)
   total_purchased Int?

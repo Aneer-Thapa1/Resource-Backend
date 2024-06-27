@@ -1,7 +1,5 @@
-const db = require("../config/dbConfig");
-
-// createing the vendor
-const addItem = (req, res) => {
+const prisma = require("../prismaClient");
+const addItem = async (req, res) => {
   const { item_name, category, item_category, measuring_unit } = req.body;
 
   if (!item_name || !category || !item_category || !measuring_unit) {
@@ -10,25 +8,22 @@ const addItem = (req, res) => {
       .json({ error: "Please provide all the required fields!" });
   }
 
-  const itemData = {
-    item_name: item_name,
-    category: category,
-    item_category: item_category,
-    measuring_unit: measuring_unit,
-  };
-
-  const addItemQuery = "INSERT INTO items SET ? ";
   try {
-    db.query(addItemQuery, itemData, (error, result) => {
-      if (error) {
-        console.log(error);
-        return res.status(500).json({ error: "Failed adding vendor!" });
-      } else {
-        return res.status(201).json({ message: "Item added successfully!" });
-      }
+    const newItem = await prisma.items.create({
+      data: {
+        item_name,
+        category,
+        item_category,
+        measuring_unit,
+      },
     });
+
+    return res
+      .status(201)
+      .json({ message: "Item added successfully!", newItem });
   } catch (error) {
-    console.log(error);
+    console.error(error);
+    return res.status(500).json({ error: "Failed adding item!" });
   }
 };
 
