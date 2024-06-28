@@ -19,12 +19,12 @@ router.delete("/deleteVendor/:id", vendorController.deleteVendor);
 
 
 //Fetch all vendor
-router.get("/getVendor", vendorController.getAllVendors);
+router.get("/vendor", vendorController.getAllVendors);
 
-//
+//add item route
 router.post("/addItem", itemController.addItem);
 
-router.get("/getVendor/:id", vendorController.getVendorsById);
+router.get("/vendor/:id", vendorController.getVendorsById);
 
 //update vendor 
 router.put('/updateVendor/:id', vendorController.updateVendor);
