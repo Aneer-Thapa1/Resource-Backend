@@ -10,7 +10,9 @@ const addVendor = async (req, res) => {
       .json({ error: "Please provide all the required fields!" });
   }
   try {
-    const vendorData = await prisma.vendors.create({
+    // #create# function is called from the ORM package, it is used to crate the vendor with out the query
+    // query is create in the migration file.... 
+    const vendorData = await prisma.vendors.create({    
       data: req.body,
     });
     return res
@@ -24,57 +26,16 @@ const addVendor = async (req, res) => {
 
 //update vendor
 const updateVendor = async (req, res) => {
+  try{
   const vendor_id = req.params.id;
-  const {
-    vendor_name,
-    vat_number,
-    vendor_number,
-    category,
-    total_payment,
-    pending_payment,
-    last_purchase_date,
-    last_paid,
-    payment_duration,
-    next_payment_date,
-  } = req.body;
-
-  try {
-    // Update the vendor in the database
-    const query = `
-      UPDATE vendors
-      SET vendor_name = ?, vat_number = ?, vendor_number = ?, category = ?, total_payment = ?, pending_payment = ?, last_purchase_date = ?, last_paid = ?, payment_duration = ?, next_payment_date = ?
-      WHERE vendor_id = ?`;
-
-    const values = [
-      vendor_name,
-      vat_number,
-      vendor_number,
-      category,
-      total_payment,
-      pending_payment,
-      last_purchase_date,
-      last_paid,
-      payment_duration,
-      next_payment_date,
-      vendor_id,
-    ];
-    db.query(query, values, (err, result) => {
-      if (err) {
-        console.error("Error updating vendor:", err);
-        return res.status(500).json({ error: "Error updating vendor" });
-      }
-
-      // Check if any rows were affected
-      if (result.affectedRows === 0) {
-        return res.status(404).json({ error: "Vendor not found!" });
-      }
-
-      // Return success response with updated vendor information
-      return res
-        .status(200)
-        .json({ message: "successfully updated the vendors." });
-    });
-  } catch (error) {
+    const updateData = await prisma.vendors.update({
+      where:{
+        vendor_id: Number(vendor_id)
+      },
+      data: req.body,
+    })
+    return res.status(201).json({message:"Vendor update successfully !", updateData});
+  }catch(error){
     console.error("Error updating vendor:", error);
     res.status(500).json({ error: "Error updating vendor" });
   }
@@ -82,6 +43,7 @@ const updateVendor = async (req, res) => {
 
 const getAllVendors = async (req, res) => {
   try {
+    // #findMany# function is called from the ORM package, it is used to fetch the vendor from the database with out the query
     const getVendor = await prisma.vendors.findMany({});
     return res.status(201).json({ getVendor });
   } catch (error) {
@@ -92,12 +54,16 @@ const getAllVendors = async (req, res) => {
 //get by ID
 const getVendorsById = async (req, res) => {
   try {
-    const vendor_id = req.params.id;
+    
+    const vendor_id = req.params.id;   //req.paramas.id get the vendor_id fromo the URL  
+    // #findUnique#, it is used to fetch the vendor by the id
     const VendorById = await prisma.vendors.findUnique({
       where: {
         vendor_id: Number(vendor_id),
       },
     });
+
+    //if vendor is not found this condition is called    
     if (!VendorById) {
       return res.status(404).json({ error: "Vendor not found !" });
     }
@@ -112,6 +78,7 @@ const deleteVendor = async (req, res) => {
   try {
     const vendorId = req.params.id;
     console.log(vendorId);
+    // #create# function is used to delete the vendor
     const deleteVendor = await prisma.vendors.delete({
       where: {
         vendor_id: Number(vendorId),
