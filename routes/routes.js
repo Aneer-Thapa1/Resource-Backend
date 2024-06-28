@@ -29,4 +29,7 @@ router.get("/vendor/:id", vendorController.getVendorsById);
 //update vendor 
 router.put('/updateVendor/:id', vendorController.updateVendor);
 
-module.exports = router;
+//fetch items
+router.get('/items',itemController.getItems);
+
+module.exports = router;                   

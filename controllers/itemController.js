@@ -18,6 +18,19 @@ const addItem = async (req, res) => {
   }
 };
 
+//funtion for getting the items 
+const getItems = async (req,res) => {
+  try{
+    const getItems = await prisma.items.findMany({});
+    return res.status(200).json({getItems});
+  }
+  catch(error){
+    return res.status(500).json({error: "failed to get all the items !"});
+  }
+}
+
+
 module.exports = {
   addItem,
+  getItems
 };
