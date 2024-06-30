@@ -24,17 +24,6 @@ model bills {
   @@index([vendor_ID], map: "vendor_ID")
 }
 
-model items {
-  item_id         Int     @id @default(autoincrement())
-  item_name       String? @db.VarChar(255)
-  measuring_unit  String? @db.VarChar(50)
-  total_purchased Int?
-  item_category   String? @db.VarChar(255)
-  category        String? @db.VarChar(255)
-  quantity        Int?
-  low_limit       Int?
-}
-
 model users {
   user_id    Int    @id @default(autoincrement())
   user_name  String @db.VarChar(95)
@@ -54,4 +43,23 @@ model vendors {
   payment_duration   Int?
   next_payment_date  DateTime? @db.Date
   bills              bills[]
+}
+
+model items {
+  item_id         Int       @id @default(autoincrement())
+  item_name       String?   @db.VarChar(255)
+  measuring_unit  String?   @db.VarChar(50)
+  total_purchased Int?
+  item_category   String?   @db.VarChar(255)
+  category        String?   @db.VarChar(255)
+  quantity        Int?
+  low_limit       Int?
+  categry         category? @relation(fields: [category_id], references: [category_id])
+  category_id     Int?
+}
+
+model category {
+  category_id   Int     @id @default(autoincrement())
+  category_name String  @unique
+  items         items[]
 }

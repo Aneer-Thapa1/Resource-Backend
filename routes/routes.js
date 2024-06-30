@@ -3,6 +3,7 @@ const router = express.Router();
 const authController = require("../controllers/authController");
 const vendorController = require("../controllers/vendorController");
 const itemController = require("../controllers/itemController");
+const categoryController = require("../controllers/categoryController");
 const prisma = require("../prismaClient");
 
 // Signup route
@@ -17,7 +18,6 @@ router.post("/addVendor", vendorController.addVendor);
 // Delete vendor route
 router.delete("/deleteVendor/:id", vendorController.deleteVendor);
 
-
 //Fetch all vendor
 router.get("/vendor", vendorController.getAllVendors);
 
@@ -30,6 +30,20 @@ router.get("/vendor/:id", vendorController.getVendorsById);
 router.put('/updateVendor/:id', vendorController.updateVendor);
 
 //fetch items
-router.get('/items',itemController.getItems);
+router.get('/items', itemController.getItems);
 
+//items by id 
+router.get("/items/:id", itemController.getItemsById);
+
+//update items 
+router.put('/updateItem/:id', itemController.updateItem);
+
+//detele item
+router.delete('/deleteItem/:id', itemController.deleteItem);
+
+router.get('/category',categoryController.getCategories);
+
+router.post('/addCategory',categoryController.addCategory);
+
+router.delete("/deleteCategory/:id", categoryController.deleteCategory);
 module.exports = router;                   
