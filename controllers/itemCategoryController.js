@@ -27,7 +27,25 @@ const getItemCategory = async(req, res)=>{
 } 
 }
 
+const deleteItemCategory = async(req,res)=>{
+    try{
+        const cate_id = req.params.id;
+        console.log(cate_id);
+        const deleteData = await prisma.itemCategory.delete({
+            where:{
+                item_category_id : Number(cate_id)
+            }
+        })
+        return  res.status(201).json({message:"successfully deleted the item category !"});
+    }
+    catch(error){
+        return res.status(503).json({error:"failed to delete the category !"});
+    }
+}
+
+
 module.exports={
     addItemCategory,
-    getItemCategory
+    getItemCategory,
+    deleteItemCategory
 }
