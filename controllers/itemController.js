@@ -2,17 +2,39 @@ const prisma = require("../prismaClient");
 
 //adding the vendor
 const addItem = async (req, res) => {
-  const { item_name, category, item_category, measuring_unit } = req.body;
-
-  if (!item_name || !category || !item_category || !measuring_unit) {
-    return res
-      .status(400)
-      .json({ error: "Please provide all the required fields!" });
-  }
   try {
-    const newItem = await prisma.items.create({
-      data: req.body,
+    const { item_name, measuring_unit, category, itemCategory } = req.body;
+
+    // Find the category by name
+    const categoryRecord = await prisma.category.findUnique({
+      where: { category_name: category },
     });
+
+    // Log the category record
+    console.log("Category Record:", categoryRecord);
+
+    // Find the item category by name
+    const itemCategoryRecord = await prisma.itemCategory.findUnique({
+      where: { item_category_name: itemCategory },
+    });
+
+    // Log the item category record
+    console.log("Item Category Record:", itemCategoryRecord);
+
+    if (!categoryRecord || !itemCategoryRecord) {
+      return res.status(400).json({ error: "Invalid category or item category name!" });
+    }
+
+    // Create the new item with the retrieved category and item category IDs
+    const newItem = await prisma.items.create({
+      data: {
+        item_name,
+        measuring_unit,
+        category_id: categoryRecord.category_id,
+        item_category_id: itemCategoryRecord.item_category_id,
+      },
+    });
+
     return res
       .status(201)
       .json({ message: "Item added successfully!", newItem });
@@ -22,19 +44,21 @@ const addItem = async (req, res) => {
   }
 };
 
+
 //funtion for getting the items
 const getItems = async (req, res) => {
   try {
     const items = await prisma.items.findMany({
       include: {
-        categry: true
+        categry: true,
+        itemCategory:true,
       },
     });
     return res.status(200).json({items});
   } catch (error) {
     console.error(error); // Log the error to the console
     return res.status(500).json({ error: "Failed to get all the items!" });
-  }
+  }  
 };
 
 //function to get all the items by id
