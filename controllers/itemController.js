@@ -27,10 +27,10 @@ const getItems = async (req, res) => {
   try {
     const items = await prisma.items.findMany({
       include: {
-        categry: true,
+        categry: true
       },
     });
-    return res.status(200).json({ items });
+    return res.status(200).json({items});
   } catch (error) {
     console.error(error); // Log the error to the console
     return res.status(500).json({ error: "Failed to get all the items!" });
