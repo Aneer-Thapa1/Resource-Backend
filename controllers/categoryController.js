@@ -15,6 +15,10 @@ const getCategories = async (req , res)=>{
 
 const addCategory = async (req,res)=>{
 try{
+    const {category_name} = req.body;
+    if(!category_name){
+    return res.status(501).json({error:"provide the necessary data!"});
+    }
     const addData = await prisma.category.create({
         data: req.body
     })

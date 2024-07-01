@@ -4,6 +4,7 @@ const authController = require("../controllers/authController");
 const vendorController = require("../controllers/vendorController");
 const itemController = require("../controllers/itemController");
 const categoryController = require("../controllers/categoryController");
+const itemCategoryController = require("../controllers/itemCategoryController");
 const prisma = require("../prismaClient");
 
 // Signup route
@@ -46,4 +47,13 @@ router.get('/category',categoryController.getCategories);
 router.post('/addCategory',categoryController.addCategory);
 
 router.delete("/deleteCategory/:id", categoryController.deleteCategory);
+
+//add Item Category
+router.post('/addItemCategory',itemCategoryController.addItemCategory); 
+
+//fetch itemCategoey
+router.get('/itemCategory',itemCategoryController.getItemCategory); 
+
+
+
 module.exports = router;                   
