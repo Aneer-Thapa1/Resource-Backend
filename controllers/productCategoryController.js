@@ -18,7 +18,7 @@ const addProductCategory = async(req,res)=>{
 
 const getProductCategory = async(req,res)=>{
     try{
-        const proCategory = await prisma.productCategory.findMany({});
+        const proCategory = await prisma.productCategory.findMany({  include:{items:true}});
         return res.status(200).json({proCategory});
     }catch(error){
         return res.status(501).json({error:"Failed to get the productCategory !"});
