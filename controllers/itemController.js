@@ -52,7 +52,7 @@ const getItems = async (req, res) => {
   try {
     const items = await prisma.items.findMany({
       include: {
-        categry: true,
+        category: true,
         itemCategory:true,
         productCategory:true
       },
