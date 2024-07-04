@@ -46,17 +46,17 @@ model vendors {
 }
 
 model items {
-  item_id         Int       @id @default(autoincrement())
-  item_name       String?   @db.VarChar(255)
-  measuring_unit  String?   @db.VarChar(50)
-  total_purchased Int?
-  quantity        Int?
-  low_limit       Int?
-  categry         category? @relation(fields: [category_id], references: [category_id])
-  category_id     Int?
-  itemCategory    itemCategory? @relation(fields: [item_category_id], references: [item_category_id])
-  item_category_id  Int? 
-  productCategory    productCategory? @relation(fields: [product_category_id], references: [product_category_id])
+  item_id             Int              @id @default(autoincrement())
+  item_name           String?          @db.VarChar(255)
+  measuring_unit      String?          @db.VarChar(50)
+  total_purchased     Int?
+  quantity            Int?
+  low_limit           Int?
+  categry             category?        @relation(fields: [category_id], references: [category_id])
+  category_id         Int?
+  itemCategory        itemCategory?    @relation(fields: [item_category_id], references: [item_category_id])
+  item_category_id    Int?
+  productCategory     productCategory? @relation(fields: [product_category_id], references: [product_category_id])
   product_category_id Int?
 }
 
@@ -66,14 +66,14 @@ model category {
   items         items[]
 }
 
-model itemCategory{
-  item_category_id Int @id @default(autoincrement())
-  item_category_name String @unique
-  items items[]
+model itemCategory {
+  item_category_id   Int     @id @default(autoincrement())
+  item_category_name String  @unique
+  items              items[]
 }
 
-model productCategory{
-  product_category_id Int @id @default(autoincrement())
-  product_category_name String @unique
-  items items[]
+model productCategory {
+  product_category_id   Int     @id @default(autoincrement())
+  product_category_name String  @unique
+  items                 items[]
 }
