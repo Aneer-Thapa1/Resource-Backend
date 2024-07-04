@@ -60,13 +60,19 @@ const getItems = async (req, res) => {
     const items = await prisma.items.findMany({
       include: {
         categry: true,
-        itemCategory: true,
-        productCategory: true,
+
+        itemCategory:true,
+        productCategory:true
       },
     });
+    if(req.query.search){
+      const filterItem = items.filter(items=>items. item_name.includes(req.query.search));
+      return res
+      .status(201)
+      .json({ filterItem });
+    }
+    return res.status(200).json({items});
 
-    console.log("item");
-    return res.status(200).json({ items });
   } catch (error) {
     console.error(error); // Log the error to the console
     return res.status(500).json({ error: "Failed to get all the items!" });
