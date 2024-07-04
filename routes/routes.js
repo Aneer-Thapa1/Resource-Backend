@@ -60,6 +60,7 @@ router.delete('/deleteItemCategory/:id',itemCategoryController.deleteItemCategor
 router.post('/addProductCategory',productCategoryController.addProductCategory); 
 
 router.get('/productCategory',productCategoryController.getProductCategory); 
+
 router.delete('/deleteProductCategory/:id',productCategoryController.deleteProductCategory); 
 
 
