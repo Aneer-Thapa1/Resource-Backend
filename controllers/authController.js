@@ -53,44 +53,60 @@ const signup = (req, res) => {
 const login = (req, res) => {
   const { user_email, password } = req.body;
 
-  // Validate user input
-  if (!user_email || !password) {
-    return res.status(400).json({ error: "Please fill all the fields!" });
-  }
-
-  // Check if user exists
-  const checkUserQuery = "SELECT * FROM users WHERE user_email = ?";
-  db.query(checkUserQuery, [user_email], (error, result) => {
-    if (error) {
-      return res.status(500).json({ error: "Internal Server Error" });
-    }
-    if (result.length === 0) {
-      return res
-        .status(404)
-        .json({ error: "User with that email does not exist!" });
+  try {
+    // check if any field is empty
+    if (!user_email || !password) {
+      return res.status(400).json({ error: "Please fill all the fields!" });
     }
 
-    const user = result[0];
+    // Check if user exists
+    const checkUserQuery = "SELECT * FROM users WHERE user_email = ?";
+    db.query(checkUserQuery, [user_email], (error, result) => {
+      if (error) {
+        return res.status(500).json({ error: "Internal Server Error!" });
+      }
 
-    // Verify password
-    const isMatched = bcrypt.compareSync(password, user.password);
-    if (!isMatched) {
-      return res.status(401).json({ error: "Invalid password" });
-    }
+      if (result.length === 0) {
+        return res.status(404).json({ error: "Please provide valid emai!" });
+      }
 
-    // Generate JWT token
-    const token = jwt.sign({ id: user.user_id }, process.env.SECRETKEY, {
-      expiresIn: "20d",
+      const user = result[0];
+
+      // Verify password
+      const isMatched = bcrypt.compareSync(password, user.password);
+      if (!isMatched) {
+        return res.status(401).json({ error: "Invalid password!" });
+      }
+
+      const age = 1000 * 60 * 60 * 24 * 7;
+
+      // Generate JWT token
+      const token = jwt.sign({ id: user.user_id }, process.env.SECRETKEY, {
+        expiresIn: age,
+      });
+
+      // Send token in response
+      res
+        .cookie("token", token, {
+          httpOnly: true,
+          // secure: ture,
+          maxAge: age,
+        })
+        .status(200)
+        .json({ message: "User logged in successfully" });
     });
+  } catch (error) {
+    console.log(error);
+    return res.status().json({ error: "Login failed!" });
+  }
+};
 
-    // Send token in response
-    res.cookie("token", token);
-
-    return res.status(200).json({ message: "Login Successful!" });
-  });
+const logout = async (req, res) => {
+  res.clearCookie("token").status(200).json({ message: "Log out successful" });
 };
 
 module.exports = {
   signup,
   login,
+  logout,
 };
