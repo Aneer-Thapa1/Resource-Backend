@@ -20,7 +20,9 @@ const addItemCategory = async (req,res)=>{
 
 const getItemCategory = async(req, res)=>{
     try{
-        const allData = await prisma.itemCategory.findMany({});
+        const allData = await prisma.itemCategory.findMany({
+            include: {items:true}
+        });
         return res.status(201).json({allData});
     }catch(error){
         return res.status(501).josn({error:"failed to fetch all itemsCategories !"});
