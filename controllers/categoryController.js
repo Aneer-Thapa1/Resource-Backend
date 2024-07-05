@@ -7,12 +7,12 @@ const getCategories = async (req , res)=>{
             include:{items:true},
         
         })
-        if(req.query.search){
-            const filterItem = category.filter(category=>category. category_name.includes(req.query.search));
-            return res
-            .status(201)
-            .json({ filterItem });
-          }
+        // if(req.query.search){
+        //     const filterItem = category.filter(category=>category. category_name.includes(req.query.search));
+        //     return res
+        //     .status(201)
+        //     .json({ filterItem });
+        //   }
         return res.status(201).json({message:"fetched all categories.",category});
     }
     catch(error){
