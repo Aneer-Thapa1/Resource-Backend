@@ -12,7 +12,6 @@ const getCategories = async (req, res) => {
     //     .json({ filterItem });
     //   }
 
-    console.log(category);
     return res.status(201).json({ category });
   } catch (error) {
     return res.status(500).json({ error: "Failed to fetch the items !" });

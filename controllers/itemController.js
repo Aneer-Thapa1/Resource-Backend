@@ -80,7 +80,6 @@ const getItems = async (req, res) => {
       return res.status(201).json({ filterItem });
     }
 
-    console.log(itemsWithStockStatus);
     return res.status(200).json({ items: itemsWithStockStatus });
   } catch (error) {
     console.error(error);

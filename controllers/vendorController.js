@@ -3,17 +3,22 @@ const prisma = require("../prismaClient");
 
 // createing the vendor
 const addVendor = async (req, res) => {
-  const { vendor_name, vat_number, vendor_contact } = req.body;
+  const { vendor_name, vat_number, vendor_contact, payment_duration } =
+    req.body;
   if (!vendor_name || !vat_number || !vendor_contact) {
     return res
       .status(400)
       .json({ error: "Please provide all the required fields!" });
   }
+
   try {
-    // #create# function is called from the ORM package, it is used to crate the vendor with out the query
-    // query is create in the migration file....
     const vendorData = await prisma.vendors.create({
-      data: req.body,
+      data: {
+        vendor_name,
+        vat_number,
+        vendor_contact: parseInt(vendor_contact, 10),
+        payment_duration: parseInt("69", 10),
+      },
     });
     return res
       .status(201)
@@ -49,6 +54,7 @@ const getAllVendors = async (req, res) => {
     const getVendor = await prisma.vendors.findMany({});
     return res.status(201).json({ getVendor });
   } catch (error) {
+    console.log(error);
     return res.status(500).json({ error: "failed to get all vendors!" });
   }
 };
