@@ -1,25 +1,23 @@
 const prisma = require("../prismaClient");
 
+const getCategories = async (req, res) => {
+  try {
+    const category = await prisma.category.findMany({
+      include: { items: true },
+    });
+    // if(req.query.search){
+    //     const filterItem = category.filter(category=>category. category_name.includes(req.query.search));
+    //     return res
+    //     .status(201)
+    //     .json({ filterItem });
+    //   }
 
-const getCategories = async (req , res)=>{
-    try{
-        const category = await prisma.category.findMany({
-            include:{items:true},
-        
-        })
-        // if(req.query.search){
-        //     const filterItem = category.filter(category=>category. category_name.includes(req.query.search));
-        //     return res
-        //     .status(201)
-        //     .json({ filterItem });
-        //   }
-        return res.status(201).json({message:"fetched all categories.",category});
-    }
-    catch(error){
-        return res.status(500).json({error:"Failed to fetch the items !"});
-    }
-}
-
+    console.log(category);
+    return res.status(201).json({ category });
+  } catch (error) {
+    return res.status(500).json({ error: "Failed to fetch the items !" });
+  }
+};
 
 const addCategory = async (req, res) => {
   try {
