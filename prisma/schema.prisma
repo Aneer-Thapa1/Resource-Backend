@@ -52,7 +52,7 @@ model items {
   total_purchased     Int?
   quantity            Int?
   low_limit           Int?
-  categry             category?        @relation(fields: [category_id], references: [category_id])
+  category            category?        @relation(fields: [category_id], references: [category_id])
   category_id         Int?
   itemCategory        itemCategory?    @relation(fields: [item_category_id], references: [item_category_id])
   item_category_id    Int?
