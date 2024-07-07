@@ -58,21 +58,12 @@ router.post("/addItemCategory", itemCategoryController.addItemCategory);
 //fetch itemCategoey
 router.get("/itemCategory", itemCategoryController.getItemCategory);
 
+router.delete("/deleteItemCategory/:id", itemCategoryController.deleteItemCategory);
 
 router.get('/productCategory',productCategoryController.getProductCategory); 
 
-router.delete('/deleteProductCategory/:id',productCategoryController.deleteProductCategory); 
+router.post("/addProductCategory",productCategoryController.addProductCategory);
 
-
-router.post(
-  "/addProductCategory",
-  productCategoryController.addProductCategory
-);
-
-router.get("/productCategory", productCategoryController.getProductCategory);
-router.delete(
-  "/deleteProductCategory/:id",
-  productCategoryController.deleteProductCategory
-);
+router.delete("/deleteProductCategory/:id",productCategoryController.deleteProductCategory);
 
 module.exports = router;
