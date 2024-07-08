@@ -64,7 +64,9 @@ const getItems = async (req, res) => {
         category: true,
         itemCategory: true,
         productCategory: true,
+        bills:true
       },
+
     });
 
     const itemsWithStockStatus = items.map((item) => {

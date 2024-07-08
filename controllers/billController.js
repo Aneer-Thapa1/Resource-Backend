@@ -5,13 +5,14 @@ const addBill = async (req, res) => {
     const {
       bill_no,
       bill_amount,
+      bill_date,
       TDS,
       invoice_no,
       actual_amount,
       paid_amount,
       vendor_name,
       quantity,
-      item_name
+      item_name,
     } = req.body;
 
     // Find the vendor by name
@@ -20,22 +21,20 @@ const addBill = async (req, res) => {
         vendor_name: vendor_name,
       },
     });
-    
+
     // Find the item by name
     const item = await prisma.items.findFirst({
-        where:{
-            item_name:item_name
-        }
+      where: {
+        item_name: item_name,
+      },
     });
-    if(!item){
-        return res.staus(404).json({error:"items not found !"});
+    if (!item) {
+      return res.staus(404).json({ error: "items not found !" });
     }
-    console.log(item);
 
     if (!vendor) {
       return res.status(404).json({ error: "Vendor not found!" });
     }
-    console.log(vendor);
     // Calculate left_amount
     const left_amount = actual_amount - paid_amount;
 
@@ -46,6 +45,7 @@ const addBill = async (req, res) => {
         data: {
           bill_no,
           bill_amount,
+          bill_date,
           TDS,
           invoice_no,
           actual_amount,
@@ -53,7 +53,7 @@ const addBill = async (req, res) => {
           quantity,
           left_amount, // Assigning calculated left_amount
           vendor_ID: vendor.vendor_id,
-          item_id:item.item_id
+          item_id: item.item_id,
         },
       });
 
@@ -64,8 +64,8 @@ const addBill = async (req, res) => {
         },
         data: {
           total_payment:
-            vendor.total_payment !== null? 
-                {
+            vendor.total_payment !== null
+              ? {
                   increment: actual_amount,
                 }
               : actual_amount,
@@ -78,16 +78,22 @@ const addBill = async (req, res) => {
         },
       });
       const updateItem = await prisma.items.update({
-        where:{
-            item_id : item.item_id
+        where: {
+          item_id: item.item_id,
         },
-        data:{
-            quantity: item.quantity !==null ?{
-                    increment:quantity
-            }:quantity,
-            total_purchased: item.total_purchased !==null ?{
-                    increment:actual_amount
-            }:actual_amount,
+        data: {
+          quantity:
+            item.quantity !== null
+              ? {
+                  increment: quantity,
+                }
+              : quantity,
+          total_purchased:
+            item.total_purchased !== null
+              ? {
+                  increment: actual_amount,
+                }
+              : actual_amount,
         },
       });
       return { newBill, updatedVendor, updateItem };
@@ -100,6 +106,46 @@ const addBill = async (req, res) => {
   }
 };
 
+const getBill = async (req, res) => {
+  const allData = await prisma.bills.findMany({
+    include: {
+      vendors: true,
+      items: true,
+    },
+  });
+  return res.status(500).json({ allData });
+};
+
+const updateBill = async (req, res) => {
+    try {
+        const billId = req.params.id;
+        console.log(billId);
+        const billData = await prisma.bills.findUnique({
+            where:{
+                bill_ID: Number(billId)
+            }
+        });
+        
+        const result = await prisma.$transaction(async (prisma) =>{
+            const updateBillData = await prisma.bills.update({
+              where: {
+                bill_ID: Number(billId),
+              },
+              data: req.body,
+            });
+            return{updateBillData};
+        });
+     
+      return res.status(200).json(result.updateBillData);
+
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ error: "Failed to update the bill!" });
+    }
+  };
+
 module.exports = {
   addBill,
+  getBill,
+  updateBill
 };
