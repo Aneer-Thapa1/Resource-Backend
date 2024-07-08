@@ -7,7 +7,6 @@ const categoryController = require("../controllers/categoryController");
 const itemCategoryController = require("../controllers/itemCategoryController");
 const productCategoryController = require("../controllers/productCategoryController");
 const billController = require("../controllers/billController");
-const prisma = require("../prismaClient");
 
 // Signup route
 router.post("/signup", authController.signup);
@@ -66,6 +65,11 @@ router.get('/productCategory',productCategoryController.getProductCategory);
 router.post("/addProductCategory",productCategoryController.addProductCategory);
 
 router.delete("/deleteProductCategory/:id",productCategoryController.deleteProductCategory);
+
 router.post("/addBill",billController.addBill);
+
+router.get("/bill",billController.getBill);
+
+router.put("/updateBill/:id",billController.updateBill);
 
 module.exports = router;
