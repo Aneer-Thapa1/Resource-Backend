@@ -13,6 +13,7 @@ const addBill = async (req, res) => {
       vendor_name,
       quantity,
       item_name,
+      unit_price
     } = req.body;
 
     // Find the vendor by name
@@ -51,6 +52,7 @@ const addBill = async (req, res) => {
           actual_amount,
           paid_amount,
           quantity,
+          unit_price,
           left_amount, // Assigning calculated left_amount
           vendor_ID: vendor.vendor_id,
           item_id: item.item_id,
@@ -110,6 +112,8 @@ const addBill = async (req, res) => {
                   increment: actual_amount,
                 }
               : actual_amount,
+          recent_purchase: bill_date,
+          unit_price: unit_price
         },
       });
 
@@ -133,6 +137,8 @@ const getBill = async (req, res) => {
   return res.status(200).json({ allData });
 };
 
+
+
 const updateBill = async (req, res) => {
   try {
     const billId = req.params.id;
@@ -146,6 +152,7 @@ const updateBill = async (req, res) => {
       paid_amount,
       vendor_name,
       quantity,
+      unit_price,
       item_name,
     } = req.body;
 
@@ -155,28 +162,29 @@ const updateBill = async (req, res) => {
         bill_ID: Number(billId),
       },
     });
+    console.log(billData)
 
     if (!billData) {
       return res.status(404).json({ error: "Bill not found!" });
     }
 
     // Find the vendor by name
-    const vendor = await prisma.vendors.findFirst({
-      where: {
-        vendor_name: vendor_name,
-      },
-    });
+    // const vendor = await prisma.vendors.findFirst({
+    //   where: {
+    //     vendor_name: vendor_name,
+    //   },
+    // });
 
-    // Find the item by name
-    const item = await prisma.items.findFirst({
-      where: {
-        item_name: item_name,
-      },
-    });
+    // // Find the item by name
+    // const item = await prisma.items.findFirst({
+    //   where: {
+    //     item_name: item_name,
+    //   },
+    // });
 
-    if (!vendor || !item) {
-      return res.status(404).json({ error: "Vendor or Item not found!" });
-    }
+    // if (!vendor || !item) {
+    //   return res.status(404).json({ error: "Vendor or Item not found!" });
+    // }
 
     // Calculate the left_amount
     const left_amount = actual_amount - paid_amount;
@@ -197,9 +205,10 @@ const updateBill = async (req, res) => {
           actual_amount,
           paid_amount,
           quantity,
+          unit_price,
           left_amount, // Assigning calculated left_amount
-          vendor_ID: vendor.vendor_id,
-          item_id: item.item_id,
+          vendor_ID: billData.vendor_ID,
+          item_id: billData.item_id,
         },
       });
 
@@ -288,6 +297,9 @@ const updateBill = async (req, res) => {
           total_purchased: {
             increment: actual_amount,
           },
+          recent_purchase: bill_date,
+          unit_price: unit_price
+
         },
       });
 
