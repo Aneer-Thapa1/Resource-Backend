@@ -69,6 +69,7 @@ const addBill = async (req, res) => {
                   increment: actual_amount,
                 }
               : actual_amount,
+          last_purchase_date: bill_date,
         },
       });
 
@@ -115,7 +116,7 @@ const addBill = async (req, res) => {
       return { newBill, updatedVendor, updateItem };
     });
 
-    return res.status(201).json(result.newBill); 
+    return res.status(201).json(result.newBill);
   } catch (error) {
     console.error(error);
     return res.status(400).json({ error: "Failed to add the bill!" });
@@ -211,6 +212,7 @@ const updateBill = async (req, res) => {
           total_payment: {
             decrement: billData.actual_amount,
           },
+          last_purchase_date: bill_date,
         },
       });
 

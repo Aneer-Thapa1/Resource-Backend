@@ -29,7 +29,7 @@ const addItem = async (req, res) => {
       where: { item_category_name: itemCategory },
     });
 
-    if (!categoryRecord || !itemCategoryRecord || !productCategoryRecord) {
+    if (!categoryRecord || !itemCategoryRecord || !productCategoryRecord || !low_limit) {
       return res
         .status(400)
         .json({ error: "Invalid category or item category name!" });
@@ -43,10 +43,9 @@ const addItem = async (req, res) => {
         category_id: categoryRecord.category_id,
         item_category_id: itemCategoryRecord.item_category_id,
         product_category_id: productCategoryRecord.product_category_id,
-        low_limit: parseInt("69", 10),
+        low_limit,
       },
     });
-
     return res
       .status(201)
       .json({ message: "Item added successfully!", newItem });
@@ -77,8 +76,7 @@ const getItems = async (req, res) => {
 
     if (req.query.search) {
       const filterItem = itemsWithStockStatus.filter((item) =>
-        item.item_name.includes(req.query.search)
-      );
+        item.item_name.includes(req.query.search));
       return res.status(201).json({ filterItem });
     }
 

@@ -16,8 +16,7 @@ const addVendor = async (req, res) => {
       data: {
         vendor_name,
         vat_number,
-        vendor_contact: parseInt(vendor_contact, 10),
-        payment_duration: parseInt("69", 10),
+        vendor_contact: parseInt(vendor_contact, 10)
       },
     });
     return res
