@@ -62,28 +62,55 @@ const addBill = async (req, res) => {
       });
 
       // Update the vendor's total and pending payments
-      const specificData = await prisma.$queryRaw`
-        SELECT 
-          SUM(bills.actual_amount) as total_purchase_amount, 
-          SUM(bills.left_amount) as total_pending_amount 
-        FROM resource.bills 
-        JOIN resource.vendors 
-        ON bills.vendor_ID = vendors.vendor_id 
-        WHERE vendors.vendor_id = ${vendor.vendor_id}`;
+      const allVendors = await prisma.vendors.findMany();
 
-      // Update the vendor's total and pending payments
-      const updatedVendor = await prisma.vendors.update({
-        where: {
-          vendor_id: vendor.vendor_id,
-        },
-        data: {
-          total_payment: specificData[0].total_purchase_amount,
-          pending_payment: specificData[0].total_pending_amount,
-          last_purchase_date: new Date(bill_date),
-        },
-      });
+      let specificData;
+      for (const vendor of allVendors) {
+        const specificData = await prisma.$queryRaw`
+      SELECT SUM(bills.actual_amount) as total_purchase_amount, 
+            SUM(bills.left_amount) as total_pending_amount 
+            FROM resource.bills 
+            JOIN resource.vendors 
+            ON bills.vendor_ID = vendors.vendor_id 
+            WHERE vendors.vendor_id = ${vendor.vendor_id}`;
 
-      return { newBill, specificData, updatedVendor };
+        await prisma.vendors.update({
+          where: {
+            vendor_id: vendor.vendor_id,
+          },
+          data: {
+            total_payment: specificData[0].total_purchase_amount,
+            pending_payment: specificData[0].total_pending_amount,
+            last_purchase_date: new Date(bill_date),
+          },
+        });
+      }
+
+      const allItem = await prisma.items.findMany();
+
+      let itemData;
+      for (const item of allItem) {
+        const itemData = await prisma.$queryRaw`
+      SELECT SUM(bills.actual_amount) as total_purchase_amount, 
+                 SUM(bills.quantity) as total_quantity 
+                 FROM resource.bills 
+                 JOIN resource.items 
+                 ON bills.item_id = items.item_id 
+                 WHERE items.item_id = ${item.item_id}`;
+
+        await prisma.items.update({
+          where: {
+            item_id: item.item_id,
+          },
+          data: {
+            total_purchased: itemData[0].total_purchase_amount,
+            quantity: itemData[0].total_quantity,
+            // last_purchase_date: new Date(bill_date),
+          },
+        });
+      }
+
+      return { newBill, specificData, itemData };
     });
 
     return res.status(201).json(result.newBill);
@@ -168,7 +195,11 @@ const updateBill = async (req, res) => {
       });
 
       // Update the vendor's total and pending payments
-      const specificData = await prisma.$queryRaw`
+      const allVendors = await prisma.vendors.findMany();
+
+      let specificData;
+      for (const vendor of allVendors) {
+        const specificData = await prisma.$queryRaw`
         SELECT 
           SUM(bills.actual_amount) as total_purchase_amount, 
           SUM(bills.left_amount) as total_pending_amount 
@@ -177,19 +208,42 @@ const updateBill = async (req, res) => {
         ON bills.vendor_ID = vendors.vendor_id 
         WHERE vendors.vendor_id = ${vendor.vendor_id}`;
 
-      // Update the vendor's total and pending payments
-      const updatedVendor = await prisma.vendors.update({
-        where: {
-          vendor_id: vendor.vendor_id,
-        },
-        data: {
-          total_payment: specificData[0].total_purchase_amount,
-          pending_payment: specificData[0].total_pending_amount,
-          last_purchase_date: bill_date,
-        },
-      });
+        await prisma.vendors.update({
+          where: {
+            vendor_id: vendor.vendor_id,
+          },
+          data: {
+            total_payment: specificData[0].total_purchase_amount,
+            pending_payment: specificData[0].total_pending_amount,
+            last_purchase_date: bill_date,
+          },
+        });
+      }
 
-      return { updateBill, specificData, updatedVendor };
+      const allItems = await prisma.items.findMany();
+
+      let itemData;
+      for (const item of allItems) {
+        const itemData = await prisma.$queryRaw`
+      SELECT SUM(bills.actual_amount) as total_purchase_amount, 
+                 SUM(bills.quantity) as total_quantity 
+                 FROM resource.bills 
+                 JOIN resource.items 
+                 ON bills.item_id = items.item_id 
+                 WHERE items.item_id = ${item.item_id}`;
+
+        await prisma.items.update({
+          where: {
+            item_id: item.item_id,
+          },
+          data: {
+            total_purchased: itemData[0].total_purchase_amount,
+            quantity: itemData[0].total_quantity,
+            // last_purchase_date: new Date(bill_date),
+          },
+        });
+      }
+      return { updateBill, specificData, itemData };
     });
 
     return res.status(200).json(result);
@@ -209,7 +263,7 @@ const getBill = async (req, res) => {
     });
     return res.status(200).json({ bills: billData });
   } catch (error) {
-    return res.status(501).json({ error: "failed to fetch the bills ! " });
+    return res.status(501).json({ error: "failed to fetch the bills!" });
   }
 };
 
