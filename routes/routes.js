@@ -82,6 +82,8 @@ router.post("/addBill", billController.addBill);
 
 router.get("/bill", billController.getBill);
 
+router.get("/singleBill/:bill_id", billController.getBillById);
+
 router.put("/updateBill/:id", billController.updateBill);
 
 module.exports = router;

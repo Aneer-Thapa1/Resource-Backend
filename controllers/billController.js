@@ -66,7 +66,7 @@ const addBill = async (req, res) => {
 
       let specificData;
       for (const vendor of allVendors) {
-      const specificData = await prisma.$queryRaw`
+        const specificData = await prisma.$queryRaw`
       SELECT SUM(bills.actual_amount) as total_purchase_amount, 
             SUM(bills.left_amount) as total_pending_amount 
             FROM resource.bills 
@@ -74,23 +74,23 @@ const addBill = async (req, res) => {
             ON bills.vendor_ID = vendors.vendor_id 
             WHERE vendors.vendor_id = ${vendor.vendor_id}`;
 
-    await prisma.vendors.update({
-        where: {
-          vendor_id: vendor.vendor_id,
-        },
-        data: {
-          total_payment: specificData[0].total_purchase_amount,
-          pending_payment: specificData[0].total_pending_amount,
-          last_purchase_date: new Date(bill_date),
-        },
-      });
-    }
+        await prisma.vendors.update({
+          where: {
+            vendor_id: vendor.vendor_id,
+          },
+          data: {
+            total_payment: specificData[0].total_purchase_amount,
+            pending_payment: specificData[0].total_pending_amount,
+            last_purchase_date: new Date(bill_date),
+          },
+        });
+      }
 
-    const allItem = await prisma.items.findMany();
+      const allItem = await prisma.items.findMany();
 
       let itemData;
       for (const item of allItem) {
-      const itemData = await prisma.$queryRaw`
+        const itemData = await prisma.$queryRaw`
       SELECT SUM(bills.actual_amount) as total_purchase_amount, 
                  SUM(bills.quantity) as total_quantity 
                  FROM resource.bills 
@@ -98,18 +98,18 @@ const addBill = async (req, res) => {
                  ON bills.item_id = items.item_id 
                  WHERE items.item_id = ${item.item_id}`;
 
-      await prisma.items.update({
-        where: {
-          item_id: item.item_id,
-        },
-        data: {
-          total_purchased: itemData[0].total_purchase_amount,
-          quantity: itemData[0].total_quantity,
-          // last_purchase_date: new Date(bill_date),
-        },
-      });
-    }
-      
+        await prisma.items.update({
+          where: {
+            item_id: item.item_id,
+          },
+          data: {
+            total_purchased: itemData[0].total_purchase_amount,
+            quantity: itemData[0].total_quantity,
+            // last_purchase_date: new Date(bill_date),
+          },
+        });
+      }
+
       return { newBill, specificData, itemData };
     });
 
@@ -181,7 +181,7 @@ const updateBill = async (req, res) => {
         data: {
           bill_no,
           bill_amount,
-          bill_date,
+          bill_date: new Date(bill_date),
           TDS,
           invoice_no,
           actual_amount,
@@ -199,7 +199,7 @@ const updateBill = async (req, res) => {
 
       let specificData;
       for (const vendor of allVendors) {
-      const specificData = await prisma.$queryRaw`
+        const specificData = await prisma.$queryRaw`
         SELECT 
           SUM(bills.actual_amount) as total_purchase_amount, 
           SUM(bills.left_amount) as total_pending_amount 
@@ -208,23 +208,23 @@ const updateBill = async (req, res) => {
         ON bills.vendor_ID = vendors.vendor_id 
         WHERE vendors.vendor_id = ${vendor.vendor_id}`;
 
-      await prisma.vendors.update({
-        where: {
-          vendor_id: vendor.vendor_id,
-        },
-        data: {
-          total_payment: specificData[0].total_purchase_amount,
-          pending_payment: specificData[0].total_pending_amount,
-          last_purchase_date: bill_date,
-        },
-      });
-    }
+        await prisma.vendors.update({
+          where: {
+            vendor_id: vendor.vendor_id,
+          },
+          data: {
+            total_payment: specificData[0].total_purchase_amount,
+            pending_payment: specificData[0].total_pending_amount,
+            last_purchase_date: new Date(bill_date),
+          },
+        });
+      }
 
-    const allItems = await prisma.items.findMany();
+      const allItems = await prisma.items.findMany();
 
       let itemData;
       for (const item of allItems) {
-      const itemData = await prisma.$queryRaw`
+        const itemData = await prisma.$queryRaw`
       SELECT SUM(bills.actual_amount) as total_purchase_amount, 
                  SUM(bills.quantity) as total_quantity 
                  FROM resource.bills 
@@ -232,18 +232,18 @@ const updateBill = async (req, res) => {
                  ON bills.item_id = items.item_id 
                  WHERE items.item_id = ${item.item_id}`;
 
-       await prisma.items.update({
-        where: {
-          item_id: item.item_id,
-        },
-        data: {
-          total_purchased: itemData[0].total_purchase_amount,
-          quantity: itemData[0].total_quantity,
-          // last_purchase_date: new Date(bill_date),
-        },
-      });
-    }
-      return { updateBill, specificData , itemData  };
+        await prisma.items.update({
+          where: {
+            item_id: item.item_id,
+          },
+          data: {
+            total_purchased: itemData[0].total_purchase_amount,
+            quantity: itemData[0].total_quantity,
+            // last_purchase_date: new Date(bill_date),
+          },
+        });
+      }
+      return { updateBill, specificData, itemData };
     });
 
     return res.status(200).json(result);
@@ -263,9 +263,32 @@ const getBill = async (req, res) => {
     });
     return res.status(200).json({ bills: billData });
   } catch (error) {
-
     return res.status(501).json({ error: "failed to fetch the bills!" });
+  }
+};
 
+const getBillById = async (req, res) => {
+  try {
+    const { bill_id } = req.params;
+
+    const singleBillData = await prisma.bills.findUnique({
+      where: {
+        bill_ID: Number(bill_id),
+      },
+      include: {
+        vendors: true,
+        items: true,
+      },
+    });
+
+    if (!singleBillData) {
+      return res.status(404).json({ error: "Bill not found" });
+    }
+
+    return res.status(200).json({ bill: singleBillData });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: "Failed to fetch the single bill!" });
   }
 };
 
@@ -273,4 +296,5 @@ module.exports = {
   addBill,
   updateBill,
   getBill,
+  getBillById,
 };
