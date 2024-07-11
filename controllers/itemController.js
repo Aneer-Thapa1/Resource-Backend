@@ -43,7 +43,7 @@ const addItem = async (req, res) => {
         category_id: categoryRecord.category_id,
         item_category_id: itemCategoryRecord.item_category_id,
         product_category_id: productCategoryRecord.product_category_id,
-        low_limit,
+        low_limit: parseInt(low_limit),
       },
     });
     return res
@@ -100,7 +100,6 @@ const getItemsById = async (req, res) => {
     if (!itemData) {
       return res.status(500).json({ error: "Item is not found !" });
     }
-
     const stockStatus =
       itemData.quantity < itemData.low_limit ? "Low Stock" : "In Stock";
     return res.status(201).json({
