@@ -263,7 +263,9 @@ const getBill = async (req, res) => {
     });
     return res.status(200).json({ bills: billData });
   } catch (error) {
+
     return res.status(501).json({ error: "failed to fetch the bills!" });
+
   }
 };
 
