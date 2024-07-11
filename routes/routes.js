@@ -68,7 +68,7 @@ router.delete("/deleteProductCategory/:id",productCategoryController.deleteProdu
 
 router.post("/addBill",billController.addBill);
 
-router.get("/bill",billController.getBill);
+// router.get("/bill",billController.getBill);
 
 router.put("/updateBill/:id",billController.updateBill);
 
