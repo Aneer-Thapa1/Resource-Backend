@@ -198,25 +198,23 @@ const updateBill = async (req, res) => {
     return res.status(400).json({ error: "Failed to update the bill!" });
   }
 };
-const getBill = async(req,res)=>{
-  try{
+
+const getBill = async (req, res) => {
+  try {
     const billData = await prisma.bills.findMany({
-      include:{
-        vendors:true,
-        items:true
-      }
-
+      include: {
+        vendors: true,
+        items: true,
+      },
     });
-    return res.status(200).json({bills: billData});
-
-  }
-  catch(error){
-    return res.status(501).json({error: "failed to fetch the bills ! "})
+    return res.status(200).json({ bills: billData });
+  } catch (error) {
+    return res.status(501).json({ error: "failed to fetch the bills ! " });
   }
 };
 
 module.exports = {
   addBill,
   updateBill,
-  getBill
+  getBill,
 };

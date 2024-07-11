@@ -34,6 +34,9 @@ router.get("/vendor/:id", vendorController.getVendorsById);
 //update vendor
 router.put("/updateVendor/:id", vendorController.updateVendor);
 
+// set blacklist to a vendor
+router.put("/blacklist/:id", vendorController.balckListVendor);
+
 //fetch items
 router.get("/items", itemController.getItems);
 
@@ -77,7 +80,7 @@ router.delete(
 
 router.post("/addBill", billController.addBill);
 
-router.get("/bill",billController.getBill);
+router.get("/bill", billController.getBill);
 
 router.put("/updateBill/:id", billController.updateBill);
 
