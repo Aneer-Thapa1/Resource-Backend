@@ -241,23 +241,7 @@ const updateBill = async (req, res) => {
         },
         data: {
           pending_payment: pendingPaymentSum._sum.left_amount || 0,
-        },
-      });
 
-      // Update the item
-      await prisma.items.update({
-        where: {
-          item_id: billData.item_id,
-        },
-        data: {
-          quantity: {
-            decrement: billData.quantity,
-          },
-        },
-      });
-
-      await prisma.items.update({
-        where: {
           item_id: billData.item_id,
         },
         data: {
