@@ -198,8 +198,19 @@ const updateBill = async (req, res) => {
     return res.status(400).json({ error: "Failed to update the bill!" });
   }
 };
+const getBill = async(req,res)=>{
+  try{
+    const billData = await prisma.bills.findMany({});
+    return res.status(501).json({bills: billData});
+
+  }
+  catch(error){
+    return res.status(501).json({err})
+  }
+};
 
 module.exports = {
   addBill,
   updateBill,
+  getBill
 };
