@@ -200,12 +200,18 @@ const updateBill = async (req, res) => {
 };
 const getBill = async(req,res)=>{
   try{
-    const billData = await prisma.bills.findMany({});
-    return res.status(501).json({bills: billData});
+    const billData = await prisma.bills.findMany({
+      include:{
+        vendors:true,
+        items:true
+      }
+
+    });
+    return res.status(200).json({bills: billData});
 
   }
   catch(error){
-    return res.status(501).json({err})
+    return res.status(501).json({error: "failed to fetch the bills ! "})
   }
 };
 
