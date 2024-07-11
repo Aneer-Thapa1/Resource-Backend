@@ -181,7 +181,7 @@ const updateBill = async (req, res) => {
         data: {
           bill_no,
           bill_amount,
-          bill_date,
+          bill_date: new Date(bill_date),
           TDS,
           invoice_no,
           actual_amount,
@@ -215,7 +215,7 @@ const updateBill = async (req, res) => {
           data: {
             total_payment: specificData[0].total_purchase_amount,
             pending_payment: specificData[0].total_pending_amount,
-            last_purchase_date: bill_date,
+            last_purchase_date: new Date(bill_date),
           },
         });
       }
@@ -267,8 +267,34 @@ const getBill = async (req, res) => {
   }
 };
 
+const getBillById = async (req, res) => {
+  try {
+    const { bill_id } = req.params;
+
+    const singleBillData = await prisma.bills.findUnique({
+      where: {
+        bill_ID: Number(bill_id),
+      },
+      include: {
+        vendors: true,
+        items: true,
+      },
+    });
+
+    if (!singleBillData) {
+      return res.status(404).json({ error: "Bill not found" });
+    }
+
+    return res.status(200).json({ bill: singleBillData });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: "Failed to fetch the single bill!" });
+  }
+};
+
 module.exports = {
   addBill,
   updateBill,
   getBill,
+  getBillById,
 };
