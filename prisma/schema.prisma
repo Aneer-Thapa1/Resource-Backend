@@ -18,13 +18,16 @@ model bills {
   actual_amount Float?    @db.Float
   paid_amount   Float?    @db.Float
   left_amount   Float?    @db.Float
-  quantity      Int?      
-  vendors       vendors?  @relation(fields: [vendor_ID], references: [vendor_id], onDelete: Cascade )
+  unit_price    Int?
+  quantity      Int?
+  vendors       vendors?  @relation(fields: [vendor_ID], references: [vendor_id], onDelete: Cascade)
   vendor_ID     Int?
-  items         items?   @relation(fields: [item_id], references: [item_id], onDelete: Cascade)
+  items         items?    @relation(fields: [item_id], references: [item_id], onDelete: Cascade)
   item_id       Int?
+
   @@index([vendor_ID, item_id])
-} 
+}
+
 model vendors {
   vendor_id          Int       @id @default(autoincrement())
   vendor_name        String?   @db.VarChar(255)
@@ -36,7 +39,7 @@ model vendors {
   last_paid          DateTime? @db.Date
   payment_duration   Int?
   next_payment_date  DateTime? @db.Date
-  black_list          Boolean? 
+  black_list         Boolean?
   bills              bills[]
 }
 
@@ -48,19 +51,22 @@ model users {
 }
 
 model items {
-  item_id         Int       @id @default(autoincrement())
-  item_name       String?   @db.VarChar(255)
-  measuring_unit  String?   @db.VarChar(50)
-  total_purchased Int?
-  quantity        Int?
-  low_limit       Int?
-  category         category? @relation(fields: [category_id], references: [category_id])
-  category_id     Int?
-  itemCategory    itemCategory? @relation(fields: [item_category_id], references: [item_category_id])
-  item_category_id  Int? 
-  productCategory    productCategory? @relation(fields: [product_category_id], references: [product_category_id])
+  item_id             Int              @id @default(autoincrement())
+  item_name           String?          @db.VarChar(255)
+  measuring_unit      String?          @db.VarChar(50)
+  total_purchased     Int?
+  quantity            Int?
+  low_limit           Int?
+  recent_purchase     DateTime?
+  unit_price          Int?
+  Status              Boolean?
+  category            category?        @relation(fields: [category_id], references: [category_id])
+  category_id         Int?
+  itemCategory        itemCategory?    @relation(fields: [item_category_id], references: [item_category_id])
+  item_category_id    Int?
+  productCategory     productCategory? @relation(fields: [product_category_id], references: [product_category_id])
   product_category_id Int?
-  bills              bills[]
+  bills               bills[]
 }
 
 model category {
@@ -69,15 +75,14 @@ model category {
   items         items[]
 }
 
-model itemCategory{
-  item_category_id Int @id @default(autoincrement())
-  item_category_name String @unique
-  items items[]
+model itemCategory {
+  item_category_id   Int     @id @default(autoincrement())
+  item_category_name String  @unique
+  items              items[]
 }
 
-model productCategory{
-  product_category_id Int @id @default(autoincrement())
-  product_category_name String @unique
-  items items[]
+model productCategory {
+  product_category_id   Int     @id @default(autoincrement())
+  product_category_name String  @unique
+  items                 items[]
 }
-
