@@ -47,15 +47,15 @@ const addBill = async (req, res) => {
       const newBill = await prisma.bills.create({
         data: {
           bill_no,
-          bill_amount,
-          bill_date,
-          TDS,
+          bill_amount: parseFloat(bill_amount),
+          bill_date: new Date(bill_date),
+          TDS: parseFloat(TDS),
           invoice_no,
-          actual_amount,
-          paid_amount,
-          quantity,
-          left_amount,
-          unit_price,
+          actual_amount: parseFloat(actual_amount),
+          paid_amount: parseFloat(paid_amount),
+          quantity: parseInt(quantity),
+          left_amount: parseFloat(left_amount),
+          unit_price: parseFloat(unit_price),
           vendor_ID: vendor.vendor_id,
           item_id: item.item_id,
         },
@@ -79,7 +79,7 @@ const addBill = async (req, res) => {
         data: {
           total_payment: specificData[0].total_purchase_amount,
           pending_payment: specificData[0].total_pending_amount,
-          last_purchase_date: bill_date,
+          last_purchase_date: new Date(bill_date),
         },
       });
 
