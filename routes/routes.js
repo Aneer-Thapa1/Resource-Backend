@@ -61,6 +61,8 @@ router.post("/addItemCategory", itemCategoryController.addItemCategory);
 //fetch itemCategoey
 router.get("/itemCategory", itemCategoryController.getItemCategory);
 
+//delete itemCategoey
+
 router.delete(
   "/deleteItemCategory/:id",
   itemCategoryController.deleteItemCategory
