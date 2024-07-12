@@ -34,6 +34,9 @@ router.get("/vendor/:id", vendorController.getVendorsById);
 //update vendor
 router.put("/updateVendor/:id", vendorController.updateVendor);
 
+// set blacklist to a vendor
+router.put("/blacklist/:id", vendorController.balckListVendor);
+
 //fetch items
 router.get("/items", itemController.getItems);
 
@@ -58,18 +61,29 @@ router.post("/addItemCategory", itemCategoryController.addItemCategory);
 //fetch itemCategoey
 router.get("/itemCategory", itemCategoryController.getItemCategory);
 
-router.delete("/deleteItemCategory/:id", itemCategoryController.deleteItemCategory);
+router.delete(
+  "/deleteItemCategory/:id",
+  itemCategoryController.deleteItemCategory
+);
 
-router.get('/productCategory',productCategoryController.getProductCategory); 
+router.get("/productCategory", productCategoryController.getProductCategory);
 
-router.post("/addProductCategory",productCategoryController.addProductCategory);
+router.post(
+  "/addProductCategory",
+  productCategoryController.addProductCategory
+);
 
-router.delete("/deleteProductCategory/:id",productCategoryController.deleteProductCategory);
+router.delete(
+  "/deleteProductCategory/:id",
+  productCategoryController.deleteProductCategory
+);
 
-router.post("/addBill",billController.addBill);
+router.post("/addBill", billController.addBill);
 
-router.get("/bill",billController.getBill);
+router.get("/bill", billController.getBill);
 
-router.put("/updateBill/:id",billController.updateBill);
+router.get("/singleBill/:bill_id", billController.getBillById);
+
+router.put("/updateBill/:id", billController.updateBill);
 
 module.exports = router;

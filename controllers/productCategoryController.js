@@ -25,7 +25,6 @@ const getProductCategory = async (req, res) => {
     const allData = await prisma.productCategory.findMany({
       include: { items: true },
     });
-    console.log(allData);
     return res.status(200).json({ allData });
   } catch (error) {
     return res

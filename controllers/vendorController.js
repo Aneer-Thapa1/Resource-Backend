@@ -16,7 +16,8 @@ const addVendor = async (req, res) => {
       data: {
         vendor_name,
         vat_number,
-        vendor_contact: parseInt(vendor_contact, 10)
+        vendor_contact: parseInt(vendor_contact),
+        payment_duration: parseInt(payment_duration),
       },
     });
     return res
@@ -30,13 +31,18 @@ const addVendor = async (req, res) => {
 
 //update vendor
 const updateVendor = async (req, res) => {
+  const { vendor_name, vendor_contact, vat_number } = req.body;
   try {
     const vendor_id = req.params.id;
     const updateData = await prisma.vendors.update({
       where: {
         vendor_id: Number(vendor_id),
       },
-      data: req.body,
+      data: {
+        vendor_name,
+        vat_number,
+        vendor_contact: parseInt(vendor_contact),
+      },
     });
     return res
       .status(201)
@@ -51,11 +57,11 @@ const getAllVendors = async (req, res) => {
   try {
     // #findMany# function is called from the ORM package, it is used to fetch the vendor from the database with out the query
     const getVendor = await prisma.vendors.findMany({
-      include:{
-        bills:true
-      }
+      include: {
+        bills: true,
+      },
     });
-    return res.status(201).json({ getVendor });
+    return res.status(201).json({ vendors: getVendor });
   } catch (error) {
     console.log(error);
     return res.status(500).json({ error: "failed to get all vendors!" });
@@ -105,10 +111,27 @@ const deleteVendor = async (req, res) => {
   }
 };
 
+const balckListVendor = async (req, res) => {
+  try {
+    const vendor_id = req.params.id;
+    const balckListVendor = await prisma.vendors.update({
+      where: {
+        vendor_id: Number(vendor_id),
+      },
+      data: {
+        black_list: true,
+      },
+    });
+  } catch (error) {
+    console.log(error);
+  }
+};
+
 module.exports = {
   addVendor,
   getAllVendors,
   deleteVendor,
   getVendorsById,
   updateVendor,
+  balckListVendor,
 };
