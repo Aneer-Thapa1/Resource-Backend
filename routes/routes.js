@@ -67,6 +67,7 @@ router.delete(
   "/deleteItemCategory/:id",
   itemCategoryController.deleteItemCategory
 );
+//get  productCategoey
 
 router.get("/productCategory", productCategoryController.getProductCategory);
 
