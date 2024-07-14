@@ -1,6 +1,7 @@
 const jwt = require("jsonwebtoken");
-const { users } = require("../prismaClient");
-const prisma = require("../prismaClient");
+const { PrismaClient } = require("@prisma/client");
+
+const prisma = new PrismaClient();
 
 const adminMiddleware = async (req, res, next) => {
     try {
@@ -13,13 +14,15 @@ const adminMiddleware = async (req, res, next) => {
 
         // Verify the token
         const decodedToken = jwt.verify(token, process.env.SECRETKEY);
-
+        console.log(decodedToken.id);
         // Fetch user details from the database based on the decoded token
         const user = await prisma.users.findUnique({
             where: {
-                user_id: decodedToken.id // Assuming `decodedToken.id` holds the correct user_id
+                user_id: decodedToken.id 
             }
         });
+        console.log(user);
+
 
         if (!user) {
             return res.status(401).json({ message: "User not found" });
