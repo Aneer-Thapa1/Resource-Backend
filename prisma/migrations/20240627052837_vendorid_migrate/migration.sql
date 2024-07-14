@@ -1,2 +1,0 @@
--- AlterTable
-ALTER TABLE `vendors` MODIFY `vendor_id` INTEGER NOT NULL AUTO_INCREMENT;
