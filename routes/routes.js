@@ -7,6 +7,8 @@ const categoryController = require("../controllers/categoryController");
 const itemCategoryController = require("../controllers/itemCategoryController");
 const productCategoryController = require("../controllers/productCategoryController");
 const billController = require("../controllers/billController");
+const authMiddleware = require("../middleware/authMiddleware");
+const adminMiddleware = require("../middleware/adminMiddleware");
 
 // Signup route
 router.post("/signup", authController.signup);
@@ -16,15 +18,15 @@ router.post("/login", authController.login);
 
 // logout route
 router.post("/logout", authController.logout);
-
 // Add vendor route
-router.post("/addVendor", vendorController.addVendor);
+router.post("/addVendor", authMiddleware(), adminMiddleware, vendorController.addVendor);
+
 
 // Delete vendor route
 router.delete("/deleteVendor/:id", vendorController.deleteVendor);
 
 //Fetch all vendor
-router.get("/vendor", vendorController.getAllVendors);
+router.get("/vendor",authMiddleware(), vendorController.getAllVendors);
 
 //add item route
 router.post("/addItem", itemController.addItem);
