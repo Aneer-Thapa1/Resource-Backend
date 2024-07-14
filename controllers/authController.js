@@ -21,7 +21,7 @@ const signup = async (req, res) => {
 
   try {
     // Check if user already exists
-    const existingUser = await prisma.users.findFirst({
+    const existingUser = await prisma.users.findUnique({
       where: {
         user_email: user_email,
       },
@@ -44,10 +44,11 @@ const signup = async (req, res) => {
         password: hashedPassword,
       },
     });
+    s;
 
     return res.status(201).json({ message: "User signed up successfully" });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     return res.status(500).json({ error: "Internal Server Error!" });
   }
 };
@@ -62,14 +63,14 @@ const login = async (req, res) => {
     }
 
     // Check if user exists
-    const user = await prisma.users.findFirst({
+    const user = await prisma.users.findUnique({
       where: {
         user_email: user_email,
       },
     });
 
     if (!user) {
-      return res.status(404).json({ error: "Please provide valid email!" });
+      return res.status(404).json({ error: "User not found!" });
     }
 
     // Verify password
@@ -78,30 +79,45 @@ const login = async (req, res) => {
       return res.status(401).json({ error: "Invalid password!" });
     }
 
-    const age = 1000 * 60 * 60 * 24 * 7;
+    const maxAge = 7 * 24 * 60 * 60 * 1000; // 7 days in milliseconds
 
     // Generate JWT token
     const token = jwt.sign({ id: user.user_id }, process.env.SECRETKEY, {
-      expiresIn: age,
+      expiresIn: maxAge,
     });
 
     // Send token in response
     res
       .cookie("token", token, {
         httpOnly: true,
-        // secure: true,
-        maxAge: age,
+        secure: process.env.NODE_ENV === "production", // Use secure in production
+        sameSite: "strict",
+        maxAge: maxAge,
+        path: "/",
       })
       .status(200)
       .json({ message: "User logged in successfully" });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     return res.status(500).json({ error: "Login failed!" });
   }
 };
 
-const logout = async (req, res) => {
-  res.clearCookie("token").status(200).json({ message: "Log out successful" });
+const logout = (req, res) => {
+  try {
+    res.cookie("token", "", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      path: "/",
+      expires: new Date(0),
+    });
+    console.log("Cookie cleared");
+    return res.status(200).json({ message: "Logged out successfully" });
+  } catch (error) {
+    console.error("Logout error:", error);
+    return res.status(500).json({ error: "Logout failed" });
+  }
 };
 
 module.exports = {
