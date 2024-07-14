@@ -20,7 +20,8 @@
     "mysql": "^2.18.1",
     "mysql2": "^3.10.1",
     "nodemailer": "^6.9.14",
-    "nodemon": "^3.1.4"
+    "nodemon": "^3.1.4",
+    "socket.io": "^4.7.5"
   },
   "devDependencies": {
     "prisma": "^5.16.0"

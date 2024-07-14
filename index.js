@@ -6,6 +6,12 @@ require("dotenv").config();
 
 const app = express();
 
+// socket code
+const http = require("http");
+const socketio = require("socket.io");
+const server = http.createServer(app);
+const io = socketio(server);
+
 // Middleware to parse JSON
 app.use(express.json());
 
@@ -29,6 +35,7 @@ app.use("/api", routes);
 
 // Start the server
 const port = process.env.PORT;
-app.listen(port, () => {
+
+server.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
 });
