@@ -6,8 +6,16 @@ const addProductCategory = async (req, res) => {
     if (!product_category_name) {
       return res.status(501).json({ error: "provide the necessary data!" });
     }
+
+    const existingProductCategory = await prisma.productCategory.findUnique({
+      where: { product_category_name },
+    });
+
+    if (existingProductCategory) {
+      return res.status(400).json({ error: "Product category already exists!" });
+    }
     const addProdCategory = await prisma.productCategory.create({
-      data: req.body,
+      data: {product_category_name},
     });
     return res.status(201).json({
       message: "Successfully added the productCategory !",
