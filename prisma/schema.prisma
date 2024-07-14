@@ -44,11 +44,13 @@ model vendors {
 }
 
 model users {
-  user_id    Int    @id @default(autoincrement())
-  user_name  String @db.VarChar(95)
-  user_email String @db.VarChar(65)
-  password   String @db.VarChar(255)
-  role String @default("user")
+  user_id    Int       @id @default(autoincrement())
+  user_name  String    @db.VarChar(95)
+  user_email String    @unique @db.VarChar(65)
+  password   String    @db.VarChar(255)
+  role       String    @default("user")
+  otp        String?
+  otp_expiry DateTime?
 }
 
 model items {
