@@ -96,6 +96,9 @@ const getItemsById = async (req, res) => {
       where: {
         item_id: Number(item_id),
       },
+      include:{
+        bill:true,
+      }
     });
     if (!itemData) {
       return res.status(500).json({ error: "Item is not found !" });
