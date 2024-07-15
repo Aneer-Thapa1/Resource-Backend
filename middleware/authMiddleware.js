@@ -1,10 +1,8 @@
-// src/middlewares/authMiddleware.js
 const jwt = require("jsonwebtoken");
 
 const authMiddleware = (roles = []) => {
   return (req, res, next) => {
     const authHeader = req.headers["authorization"];
-    console.log("Authorization Header:", authHeader); 
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
       console.log("Authorization header missing or incorrect format");
       return res.status(401).json({ message: "Access Denied" });

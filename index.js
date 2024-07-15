@@ -19,6 +19,10 @@ const io = socketio(server, {
   },
 });
 
+io.on("connection", () => {
+  console.log("connected");
+});
+
 // Middleware to parse JSON
 app.use(express.json());
 
