@@ -277,7 +277,7 @@ const getBillById = async (req, res) => {
       },
       include: {
         vendors: true,
-        items: true,
+        items: true
       },
     });
 
