@@ -6,7 +6,7 @@ const prisma = new PrismaClient();
 const adminMiddleware = async (req, res, next) => {
     try {
         // Extract token from the Authorization header
-        const token = req.headers.authorization.split(" ")[1]; // Assuming token format: Bearer <token>
+        const token = req.headers.authorization.split(" ")[1];
         
         if (!token) {
             return res.status(401).json({ message: "Authorization token is missing" });
@@ -14,8 +14,7 @@ const adminMiddleware = async (req, res, next) => {
 
         // Verify the token
         const decodedToken = jwt.verify(token, process.env.SECRETKEY);
-        console.log(decodedToken.id);
-        // Fetch user details from the database based on the decoded token
+        
         const user = await prisma.users.findUnique({
             where: {
                 user_id: decodedToken.id 
@@ -33,7 +32,7 @@ const adminMiddleware = async (req, res, next) => {
 
         // Check if the user is an admin
         if (user.role === 'ADMIN') {
-            next(); // Allow the request to proceed to the next middleware or route handler
+            next();
         } else {
             return res.status(403).json({ message: "Unauthorized access" });
         }
