@@ -1,10 +1,9 @@
 const prisma = require("../prismaClient");
-
 const addItemCategory = async (req, res) => {
   try {
     const { item_category_name } = req.body;
     if (!item_category_name) {
-      return res.status(501).json({ error: "provide the necessary data!" });
+      return res.status(501).json({ error: "Provide the necessary data!" });
     }
 
     const existingItemCategory = await prisma.itemCategory.findUnique({
@@ -12,22 +11,26 @@ const addItemCategory = async (req, res) => {
     });
 
     if (existingItemCategory) {
-      return res.status(400).json({ error: "Item category already exists!" });
+      const upperCategory = item_category_name.toUpperCase();
+      const upperExistingCategory = existingItemCategory.item_category_name.toUpperCase();
+      
+      if (upperExistingCategory === upperCategory) {
+        return res.status(400).json({ error: "Item category already exists!" });
+      }
     }
-    const upperCategory = item_category_name.toUpperCase();
 
     const addData = await prisma.itemCategory.create({
       data: {
-        item_category_name: upperCategory
+        item_category_name: item_category_name,
       },
     });
-    return res
-      .status(201)
-      .json({ message: "Successfully added the category !", addData });
+    return res.status(201).json({ message: "Successfully added the category!", addData });
   } catch (error) {
+    console.log(error);
     return res.status(501).json({ error: "Failed to add the item category" });
   }
 };
+
 
 const getItemCategory = async (req, res) => {
   try {
