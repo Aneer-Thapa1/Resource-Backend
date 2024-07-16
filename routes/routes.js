@@ -35,7 +35,7 @@ router.get("/vendor", authMiddleware(), vendorController.getAllVendors);
 //add item route
 router.post("/addItem", itemController.addItem);
 
-router.get("/vendor/:id", vendorController.getVendorsById);
+router.get("/vendor/:vat", vendorController.getVendorsByVAT);
 
 //update vendor
 router.put("/updateVendor/:id", vendorController.updateVendor);
