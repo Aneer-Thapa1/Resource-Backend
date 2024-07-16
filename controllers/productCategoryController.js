@@ -10,7 +10,7 @@ const addProductCategory = async (req, res) => {
     const existingProductCategory = await prisma.productCategory.findUnique({
       where: { product_category_name },
     });
-
+    //uppercase
     if (existingProductCategory) {
       const upperCategory = product_category_name.toUpperCase();
       const upperExistingCategory =
