@@ -25,9 +25,12 @@ const addCategory = async (req, res) => {
     if (existingCategory) {
       return res.status(400).json({ error: "Category already exists!" });
     }
+    const upperCategory = category_name.toUpperCase();
 
     const addData = await prisma.category.create({
-      data: { category_name },
+      data: { 
+        category_name:upperCategory
+       },
     });
 
     return res.status(201).json({ message: "Successfully added the category", addData });
