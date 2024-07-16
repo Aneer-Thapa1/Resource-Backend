@@ -10,15 +10,19 @@ const addProductCategory = async (req, res) => {
     const existingProductCategory = await prisma.productCategory.findUnique({
       where: { product_category_name },
     });
-
+    //uppercase
     if (existingProductCategory) {
-      return res.status(400).json({ error: "Product category already exists!" });
-    }
+      const upperCategory = product_category_name.toUpperCase();
+      const upperExistingCategory =
+      existingProductCategory.product_category_name.toUpperCase();
 
-    const upperProdutCategory = product_category_name.toUpperCase();
+      if (upperExistingCategory === upperCategory) {
+        return res.status(400).json({ error: "Product category already exists!" });
+      }
+    }
     const addProdCategory = await prisma.productCategory.create({
       data: {
-        product_category_name: upperProdutCategory
+        product_category_name: product_category_name,
       },
     });
     return res.status(201).json({
@@ -26,7 +30,7 @@ const addProductCategory = async (req, res) => {
       addProdCategory,
     });
   } catch (error) {
-    console.log(error)
+    console.log(error);
     return res
       .status(501)
       .json({ error: "Failed to add the product category !" });

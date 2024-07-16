@@ -15,7 +15,9 @@ const addCategory = async (req, res) => {
   try {
     const { category_name } = req.body;
     if (!category_name) {
-      return res.status(400).json({ error: "Please provide the category name!" });
+      return res
+        .status(400)
+        .json({ error: "Please provide the category name!" });
     }
 
     const existingCategory = await prisma.category.findUnique({
@@ -23,18 +25,25 @@ const addCategory = async (req, res) => {
     });
 
     if (existingCategory) {
-      return res.status(400).json({ error: "Category already exists!" });
+      const upperCategory = category_name.toUpperCase();
+      const upperExistingCategory = existingCategory.category_name.toUpperCase();
+      
+      if (upperExistingCategory === upperCategory) {
+        return res.status(400).json({ error: "Category already exists!" });
+      }
     }
-    const upperCategory = category_name.toUpperCase();
 
     const addData = await prisma.category.create({
-      data: { 
-        category_name:upperCategory
-       },
+      data: {
+        category_name: category_name
+      },
     });
 
-    return res.status(201).json({ message: "Successfully added the category", addData });
+    return res
+      .status(201)
+      .json({ message: "Successfully added the category", addData });
   } catch (error) {
+    console.log(error)
     return res.status(500).json({ error: "Failed to add the category!" });
   }
 };
@@ -47,7 +56,9 @@ const deleteCategory = async (req, res) => {
         category_id: Number(cate_id),
       },
     });
-    return res.status(201).json({ message: "Successfully Deleted the category!" });
+    return res
+      .status(201)
+      .json({ message: "Successfully Deleted the category!" });
   } catch (error) {
     return res.status(500).json({ error: "Failed to delete the category!" });
   }
