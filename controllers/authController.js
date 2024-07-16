@@ -93,7 +93,7 @@ const login = async (req, res) => {
         path: "/",
       })
       .status(200)
-      .json({ message: "User logged in successfully" });
+      .json({ message: "User logged in successfully", token: token });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ error: "Login failed!" });
