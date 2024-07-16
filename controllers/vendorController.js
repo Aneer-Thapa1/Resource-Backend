@@ -10,6 +10,16 @@ const addVendor = async (req, res) => {
       .json({ error: "Please provide all the required fields!" });
   }
 
+  const existingVAT = await prisma.vendors.findFirst({
+    where: {
+      vat_number: vat_number,
+    },
+  });
+
+  if (existingVAT) {
+    return res.status(300).json({ message: "VAT Number already exisit !" });
+  }
+
   try {
     const vendorData = await prisma.vendors.create({
       data: {
@@ -57,7 +67,11 @@ const getAllVendors = async (req, res) => {
     // #findMany# function is called from the ORM package, it is used to fetch the vendor from the database with out the query
     const getVendor = await prisma.vendors.findMany({
       include: {
-        bills: true,
+        bills: {
+          include: {
+            items: true,
+          },
+        },
       },
     });
     return res.status(201).json({ vendors: getVendor });
@@ -68,22 +82,29 @@ const getAllVendors = async (req, res) => {
 };
 
 //get by ID
-const getVendorsById = async (req, res) => {
+const getVendorsByVAT = async (req, res) => {
   try {
-    const vendor_id = req.params.id; //req.paramas.id get the vendor_id fromo the URL
-    // #findUnique#, it is used to fetch the vendor by the id
-    const VendorById = await prisma.vendors.findUnique({
+    const vendor_vat = req.params.vat;
+
+    const VendorById = await prisma.vendors.findFirst({
       where: {
-        vendor_id: Number(vendor_id),
+        vat_number: vendor_vat,
+      },
+      include: {
+        bills: {
+          include: {
+            items: true,
+          },
+        },
       },
     });
-
     //if vendor is not found this condition is called
     if (!VendorById) {
       return res.status(404).json({ error: "Vendor not found !" });
     }
     return res.status(200).json({ VendorById });
   } catch (error) {
+    console.log(error);
     return res.status(500).json({ error: "Failed to fetch vendor by id" });
   }
 };
@@ -130,7 +151,7 @@ module.exports = {
   addVendor,
   getAllVendors,
   deleteVendor,
-  getVendorsById,
+  getVendorsByVAT,
   updateVendor,
   balckListVendor,
 };
