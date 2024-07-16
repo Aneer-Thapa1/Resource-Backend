@@ -4,14 +4,11 @@ const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 
 const adminMiddleware = async (req, res, next) => {
-    try {
-        // Extract token from the Authorization header
+    try {  
         const token = req.headers.authorization.split(" ")[1];
-        
         if (!token) {
             return res.status(401).json({ message: "Authorization token is missing" });
         }
-
         // Verify the token
         const decodedToken = jwt.verify(token, process.env.SECRETKEY);
         
@@ -20,18 +17,13 @@ const adminMiddleware = async (req, res, next) => {
                 user_id: decodedToken.id 
             }
         });
-        console.log(user);
-
-
         if (!user) {
             return res.status(401).json({ message: "User not found" });
         }
-
         // Attach user object to the request for further use
         req.user = user;
-
         // Check if the user is an admin
-        if (user.role === 'ADMIN') {
+        if (user.role === 'admin') {
             next();
         } else {
             return res.status(403).json({ message: "Unauthorized access" });

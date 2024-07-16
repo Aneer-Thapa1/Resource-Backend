@@ -1,4 +1,3 @@
-const db = require("../config/dbConfig");
 const prisma = require("../prismaClient");
 
 // createing the vendor

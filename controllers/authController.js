@@ -6,9 +6,6 @@ const prisma = new PrismaClient();
 
 const signup = async (req, res) => {
   const { user_name, user_email, password } = req.body;
-
-  console.log(user_email, user_name, password);
-
   // Validate user input
   if (!user_name || !user_email || !password) {
     return res.status(400).json({ error: "Please fill all the fields!" });
