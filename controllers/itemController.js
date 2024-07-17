@@ -29,7 +29,12 @@ const addItem = async (req, res) => {
       where: { item_category_name: itemCategory },
     });
 
-    if (!categoryRecord || !itemCategoryRecord || !productCategoryRecord || !low_limit) {
+    if (
+      !categoryRecord ||
+      !itemCategoryRecord ||
+      !productCategoryRecord ||
+      !low_limit
+    ) {
       return res
         .status(400)
         .json({ error: "Invalid category or item category name!" });
@@ -63,9 +68,8 @@ const getItems = async (req, res) => {
         category: true,
         itemCategory: true,
         productCategory: true,
-        bills:true
+        bills: true,
       },
-
     });
 
     const itemsWithStockStatus = items.map((item) => {
@@ -76,7 +80,8 @@ const getItems = async (req, res) => {
 
     if (req.query.search) {
       const filterItem = itemsWithStockStatus.filter((item) =>
-        item.item_name.includes(req.query.search));
+        item.item_name.includes(req.query.search)
+      );
       return res.status(201).json({ filterItem });
     }
 
@@ -96,9 +101,16 @@ const getItemsById = async (req, res) => {
       where: {
         item_id: Number(item_id),
       },
-      include:{
-        bill:true,
-      }
+      include: {
+        category: true,
+        itemCategory: true,
+        productCategory: true,
+        bills: {
+          include: {
+            vendors: true,
+          },
+        },
+      },
     });
     if (!itemData) {
       return res.status(500).json({ error: "Item is not found !" });
@@ -110,6 +122,7 @@ const getItemsById = async (req, res) => {
       itemData: { ...itemData, stockStatus },
     });
   } catch (error) {
+    console.log(error);
     return res.status(500).json({ error: "Failed to fetch the items !" });
   }
 };
