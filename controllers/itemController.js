@@ -148,7 +148,7 @@ const updateItem = async (req, res) => {
     return res.status(500).json({ error: "Failed to update the items !" });
   }
 };
-
+//to delete
 const deleteItem = async (req, res) => {
   try {
     const item_id = req.params.id;
