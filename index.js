@@ -1,17 +1,16 @@
-// Package imports
 const express = require("express");
 const cors = require("cors");
+const routes = require("./routes/routes");
 const cookieParser = require("cookie-parser");
+require("dotenv").config();
 const nodemailer = require("nodemailer");
+
+
+const app = express();
+
+// socket code
 const http = require("http");
 const socketio = require("socket.io");
-require("dotenv").config();
-
-// Route imports
-const routes = require("./routes/routes");
-
-// App initialization
-const app = express();
 const server = http.createServer(app);
 const io = socketio(server, {
   cors: {
@@ -21,11 +20,14 @@ const io = socketio(server, {
   },
 });
 
-// Middleware
-app.use(express.json());
-app.use(cookieParser());
-app.use(express.static("uploads"));
+io.on("connection", () => {
+  console.log("connected");
+});
 
+// Middleware to parse JSON
+app.use(express.json());
+
+// Enable CORS with specific options
 const corsOptions = {
   origin: "http://localhost:5173",
   methods: ["GET", "POST", "PUT", "DELETE"],
@@ -34,39 +36,32 @@ const corsOptions = {
 };
 app.use(cors(corsOptions));
 
-// Routes
+// Parse cookies
+app.use(cookieParser());
+
+// Serve static files from the 'uploads' directory
+app.use(express.static("uploads"));
+
+// Use the routes
 app.use("/api", routes);
 
-// Socket.io connection handling
-io.on("connection", (socket) => {
-  console.log("A user connected");
-
-  socket.on("disconnect", () => {
-    console.log("A user disconnected");
-  });
-
-  socket.on("error", (err) => {
-    console.error("Socket.IO error:", err);
-  });
-});
-
-// Email setup
 const transporter = nodemailer.createTransport({
   service: "Gmail",
   auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
+    user: "habit234@gmail.com",
+    pass: "Habitpulse234",
   },
+});
+
+// Start the server
+const port = process.env.PORT || 3000; // Fallback to 3000 if PORT is not set
+
+server.listen(port, () => {
+  console.log(`Server is running on http://localhost:${port}`);
 });
 
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).send("Something broke!");
-});
-
-// Start the server
-const port = process.env.PORT || 3000; // Fallback to 3000 if PORT is not set
-server.listen(port, () => {
-  console.log(`Server is running on http://localhost:${port}`);
 });

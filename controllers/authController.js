@@ -41,7 +41,6 @@ const signup = async (req, res) => {
         password: hashedPassword,
       },
     });
-    s;
 
     return res.status(201).json({ message: "User signed up successfully" });
   } catch (error) {

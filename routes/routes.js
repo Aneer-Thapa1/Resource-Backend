@@ -9,6 +9,7 @@ const productCategoryController = require("../controllers/productCategoryControl
 const billController = require("../controllers/billController");
 const authMiddleware = require("../middleware/authMiddleware");
 const adminMiddleware = require("../middleware/adminMiddleware");
+const requestController = require("../controllers/requestController");
 
 // Signup route
 router.post("/signup", authController.signup);
@@ -94,5 +95,6 @@ router.get("/bill", billController.getBill);
 router.get("/singleBill/:bill_id", billController.getBillById);
 
 router.put("/updateBill/:id", billController.updateBill);
+router.post("/request", authMiddleware(), requestController.senRequest);
 
 module.exports = router;
