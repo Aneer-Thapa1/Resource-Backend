@@ -29,6 +29,29 @@ const senRequest = async (req,res)=>{
     }
 }
 
+const getRequest = async (req, res) => {
+  try {
+    const allData = await prisma.request.findMany({
+      include: {
+        item: { // Use the correct relation field name
+          select: {
+            item_name: true // Include specific fields from items table
+          }
+        },
+        users:{
+            select:{
+                user_name:true
+            }
+        }
+      }
+    });
+    return res.status(200).json({ request: allData });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ error: "Failed to get all requests!" });
+  }
+};
 module.exports = {
-    senRequest
+    senRequest,
+    getRequest
 }

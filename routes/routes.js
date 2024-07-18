@@ -95,6 +95,7 @@ router.get("/bill", billController.getBill);
 router.get("/singleBill/:bill_id", billController.getBillById);
 
 router.put("/updateBill/:id", billController.updateBill);
-router.post("/request", authMiddleware(), requestController.senRequest);
+router.post("/addRequest", authMiddleware(), requestController.senRequest);
+router.get("/request", authMiddleware(), requestController.getRequest);
 
 module.exports = router;
