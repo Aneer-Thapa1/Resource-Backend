@@ -51,6 +51,7 @@ model users {
   role       String    @default("user")
   otp        String?
   otp_expiry DateTime?
+  department String?   @db.VarChar(100)
 
   request request[]
 }
