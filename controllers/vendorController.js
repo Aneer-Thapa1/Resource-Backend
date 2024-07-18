@@ -84,11 +84,11 @@ const getAllVendors = async (req, res) => {
 //get by ID
 const getVendorsByVAT = async (req, res) => {
   try {
-    const vendor_vat = req.params.vat;
+    const vendor_id = req.params.vat;
 
-    const VendorById = await prisma.vendors.findFirst({
+    const VendorById = await prisma.vendors.findUnique({
       where: {
-        vat_number: vendor_vat,
+        vendor_id: Number(vendor_id),
       },
       include: {
         bills: {
