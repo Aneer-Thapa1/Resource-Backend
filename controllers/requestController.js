@@ -1,6 +1,6 @@
 const prisma = require("../prismaClient");
 
-const senRequest = async (req, res) => {
+const sentRequest = async (req, res) => {
   try {
     const userId = req.user.id;
     const { item_name, quantity } = req.body;
@@ -13,16 +13,13 @@ const senRequest = async (req, res) => {
       return res.status(500).json({ error: "iterm not found !" });
     }
 
-    const request_date = new Date();
-    console.log(request_date);
-
     const requestData = await prisma.request.create({
       data: {
-        request_item_name: item_name,
+        request_item_name: itemData.item_name,
         request_quantity: parseInt(quantity),
         user_id: userId,
         item_id: itemData.item_id,
-        request_date: request_date,
+        request_date: new Date(),
       },
     });
     console.log("user is " + userId);
@@ -61,6 +58,6 @@ const getRequest = async (req, res) => {
 };
 
 module.exports = {
-  senRequest,
+  sentRequest,
   getRequest,
 };
