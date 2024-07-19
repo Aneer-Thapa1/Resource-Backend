@@ -10,19 +10,19 @@ const addBill = async (req, res) => {
       invoice_no,
       actual_amount,
       paid_amount,
-      vendor_name,
+      vat_number,
       quantity,
       item_name,
       unit_price,
     } = req.body;
 
-    // Find the vendor by name
+    // Find the vendor by vat number
     const vendor = await prisma.vendors.findFirst({
       where: {
-        vendor_name: vendor_name,
+        vat_number: vat_number
       },
     });
-
+    console.log(vendor);
     // Find the item by name
     const item = await prisma.items.findFirst({
       where: {
@@ -35,7 +35,7 @@ const addBill = async (req, res) => {
     }
 
     if (!vendor) {
-      return res.status(404).json({ error: "Vendor not found!" });
+      return res.status(404).json({ error: "VAT Number is not found !" });
     }
 
     // Calculate the left_amount
