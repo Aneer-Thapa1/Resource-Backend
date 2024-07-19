@@ -12,12 +12,17 @@ const senRequest = async (req, res) => {
     if (!itemData) {
       return res.status(500).json({ error: "iterm not found !" });
     }
+
+    const request_date = new Date();
+    console.log(request_date);
+
     const requestData = await prisma.request.create({
       data: {
         request_item_name: item_name,
         request_quantity: parseInt(quantity),
         user_id: userId,
         item_id: itemData.item_id,
+        request_date: request_date,
       },
     });
     console.log("user is " + userId);
@@ -25,6 +30,7 @@ const senRequest = async (req, res) => {
       .status(200)
       .json({ message: "Successfully Requested the items", requestData });
   } catch (error) {
+    console.log(error);
     return res.status(500).json({ message: "failed to send the request !" });
   }
 };
