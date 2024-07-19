@@ -81,6 +81,7 @@ model request {
   request_id        Int       @id @default(autoincrement())
   request_item_name String
   request_quantity  Int
+  purpose           String?
   users             users?    @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
   user_id           Int
   item              items?    @relation(fields: [item_id], references: [item_id], onDelete: Cascade)
