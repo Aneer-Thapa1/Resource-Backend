@@ -78,13 +78,14 @@ model items {
 }
 
 model request {
-  request_id        Int    @id @default(autoincrement())
+  request_id        Int       @id @default(autoincrement())
   request_item_name String
   request_quantity  Int
-  users             users? @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+  users             users?    @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
   user_id           Int
-  item              items? @relation(fields: [item_id], references: [item_id], onDelete: Cascade)
+  item              items?    @relation(fields: [item_id], references: [item_id], onDelete: Cascade)
   item_id           Int
+  request_date      DateTime?
 }
 
 model category {
