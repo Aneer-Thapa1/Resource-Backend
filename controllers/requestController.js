@@ -3,7 +3,7 @@ const prisma = require("../prismaClient");
 const sentRequest = async (req, res) => {
   try {
     const userId = req.user.id;
-    const { item_name, quantity } = req.body;
+    const { item_name, quantity, purpose } = req.body;
     const itemData = await prisma.items.findFirst({
       where: {
         item_name: item_name,
@@ -19,10 +19,11 @@ const sentRequest = async (req, res) => {
         request_quantity: parseInt(quantity),
         user_id: userId,
         item_id: itemData.item_id,
+        purpose: purpose,
         request_date: new Date(),
       },
     });
-    console.log("user is " + userId);
+
     return res
       .status(200)
       .json({ message: "Successfully Requested the items", requestData });
