@@ -45,6 +45,7 @@ CREATE TABLE `users` (
     `role` VARCHAR(191) NOT NULL DEFAULT 'user',
     `otp` VARCHAR(191) NULL,
     `otp_expiry` DATETIME(3) NULL,
+    `department` VARCHAR(100) NULL,
 
     UNIQUE INDEX `users_user_email_key`(`user_email`),
     PRIMARY KEY (`user_id`)
@@ -75,6 +76,7 @@ CREATE TABLE `request` (
     `request_quantity` INTEGER NOT NULL,
     `user_id` INTEGER NOT NULL,
     `item_id` INTEGER NOT NULL,
+    `request_date` DATETIME(3) NULL,
 
     PRIMARY KEY (`request_id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
