@@ -4,7 +4,7 @@ const addProductCategory = async (req, res) => {
   try {
     const { product_category_name } = req.body;
     if (!product_category_name) {
-      return res.status(501).json({ error: "provide the necessary data!" });
+      return res.status(501).json({ error: "provide the necessary data!" });  
     }
 
     const existingProductCategory = await prisma.productCategory.findUnique({
