@@ -64,7 +64,7 @@ const updateVendor = async (req, res) => {
 
 const getAllVendors = async (req, res) => {
   try {
-    // #findMany# function is called from the ORM package, it is used to fetch the vendor from the database with out the query
+    
     const getVendor = await prisma.vendors.findMany({
       include: {
         bills: {
@@ -74,6 +74,16 @@ const getAllVendors = async (req, res) => {
         },
       },
     });
+
+
+      if(req.query.search){
+        const searchVendor = getVendor.filter((vendor)=>
+          vendor.vendor_name.toLowerCase().includes(req.query.search.toLowerCase())
+        );
+        return res.status(201).json(searchVendor);
+      }
+
+
     return res.status(201).json({ vendors: getVendor });
   } catch (error) {
     console.log(error);
