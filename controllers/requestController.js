@@ -29,7 +29,7 @@ const sentRequest = async (req, res) => {
       .json({ message: "Successfully Requested the items", requestData });
   } catch (error) {
     console.log(error);
-    return res.status(500).json({ message: "failed to send the request !" });
+    return res.status(500).json({ error : "failed to send the request !" });
   }
 };
 
@@ -57,6 +57,8 @@ const getRequest = async (req, res) => {
     return res.status(500).json({ error: "Failed to get all requests!" });
   }
 };
+
+
 
 module.exports = {
   sentRequest,

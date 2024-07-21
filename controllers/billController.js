@@ -261,6 +261,16 @@ const getBill = async (req, res) => {
         items: true,
       },
     });
+    if (req.query.search) {
+      const searchBill = billData.filter((bill) =>
+        bill.bill_no.toLowerCase().includes(req.query.search.toLowerCase())
+      );
+      return res.status(201).json({ searchBill });
+    } else {
+      console.log("NO")
+      return res.status(404).json({ message: "Bill Record not found!" });
+    }
+    
     return res.status(200).json({ bills: billData });
   } catch (error) {
     return res.status(501).json({ error: "failed to fetch the bills!" });
