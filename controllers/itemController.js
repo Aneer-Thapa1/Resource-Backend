@@ -131,7 +131,6 @@ const getItemsById = async (req, res) => {
 const updateItem = async (req, res) => {
   try {
     const item_id = req.params.id;
-    console.log(item_id);
     const itemData = await prisma.items.update({
       where: {
         item_id: Number(item_id),
@@ -152,7 +151,6 @@ const updateItem = async (req, res) => {
 const deleteItem = async (req, res) => {
   try {
     const item_id = req.params.id;
-    console.log(item_id);
     const deleteData = await prisma.items.delete({
       where: {
         item_id: Number(item_id),
