@@ -41,7 +41,7 @@ const deleteBrand = async (req, res) =>
          const id = Number(req.params.id);
         const getData = await prisma.brand.findUnique({
             where :{
-                brand_id:Number(id)
+                brand_id:id
             }
         })
         console.log(getData);
@@ -53,7 +53,7 @@ const deleteBrand = async (req, res) =>
 
          const brandData = await prisma.brand.delete({
              where :{
-                 brand_id: Number(id)
+                 brand_id: id
              }
          })
  

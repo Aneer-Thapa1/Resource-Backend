@@ -9,6 +9,7 @@ const addItem = async (req, res) => {
       category,
       itemCategory,
       productCategory,
+      brandName,
       low_limit,
     } = req.body;
 
@@ -16,6 +17,13 @@ const addItem = async (req, res) => {
     const productCategoryRecord = await prisma.productCategory.findUnique({
       where: {
         product_category_name: productCategory,
+      },
+    });
+
+    //fimd teh product categroy
+    const brandRecord = await prisma.brand.findFirst({
+      where: {
+        brand_name: brandName
       },
     });
 
@@ -33,7 +41,8 @@ const addItem = async (req, res) => {
       !categoryRecord ||
       !itemCategoryRecord ||
       !productCategoryRecord ||
-      !low_limit
+      !brandRecord ||
+      !low_limit 
     ) {
       return res
         .status(400)
@@ -48,9 +57,11 @@ const addItem = async (req, res) => {
         category_id: categoryRecord.category_id,
         item_category_id: itemCategoryRecord.item_category_id,
         product_category_id: productCategoryRecord.product_category_id,
+        brand_id: brandRecord.brand_id,
         low_limit: parseInt(low_limit),
       },
     });
+    console.log(newItem);
     return res
       .status(201)
       .json({ message: "Item added successfully!", newItem });
