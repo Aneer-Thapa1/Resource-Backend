@@ -74,6 +74,7 @@ CREATE TABLE `request` (
     `request_id` INTEGER NOT NULL AUTO_INCREMENT,
     `request_item_name` VARCHAR(191) NOT NULL,
     `request_quantity` INTEGER NOT NULL,
+    `purpose` VARCHAR(191) NULL,
     `user_id` INTEGER NOT NULL,
     `item_id` INTEGER NOT NULL,
     `request_date` DATETIME(3) NULL,
