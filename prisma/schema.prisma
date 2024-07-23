@@ -7,6 +7,21 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model vendors {
+  vendor_id          Int       @id @default(autoincrement())
+  vendor_name        String?   @db.VarChar(255)
+  vat_number         String?   @db.VarChar(255)
+  vendor_contact     Int?
+  total_payment      Float?    @db.Float
+  pending_payment    Float?    @db.Float
+  last_purchase_date DateTime? @db.Date
+  last_paid          DateTime? @db.Date
+  payment_duration   Int?
+  next_payment_date  DateTime? @db.Date
+  black_list         Boolean?
+  bills              bills[]
+}
+
 model bills {
   bill_ID       Int       @id @default(autoincrement())
   entry_date    DateTime  @default(now())
@@ -26,21 +41,6 @@ model bills {
   item_id       Int?
 
   @@index([vendor_ID, item_id])
-}
-
-model vendors {
-  vendor_id          Int       @id @default(autoincrement())
-  vendor_name        String?   @db.VarChar(255)
-  vat_number         String?   @db.VarChar(255)
-  vendor_contact     Int?
-  total_payment      Float?    @db.Float
-  pending_payment    Float?    @db.Float
-  last_purchase_date DateTime? @db.Date
-  last_paid          DateTime? @db.Date
-  payment_duration   Int?
-  next_payment_date  DateTime? @db.Date
-  black_list         Boolean?
-  bills              bills[]
 }
 
 model users {
@@ -70,9 +70,12 @@ model items {
   category_id         Int?
   itemCategory        itemCategory?    @relation(fields: [item_category_id], references: [item_category_id])
   item_category_id    Int?
+  brand               brand?           @relation(fields: [brand_id], references: [brand_id])
+  brand_id            Int?
   productCategory     productCategory? @relation(fields: [product_category_id], references: [product_category_id])
   product_category_id Int?
-  bills               bills[]
+
+  bills bills[]
 
   request request[]
 }
@@ -105,4 +108,11 @@ model productCategory {
   product_category_id   Int     @id @default(autoincrement())
   product_category_name String  @unique
   items                 items[]
+}
+
+model brand {
+  brand_id   Int    @id @default(autoincrement())
+  brand_name String @unique
+
+  items items[]
 }
