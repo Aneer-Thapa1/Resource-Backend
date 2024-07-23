@@ -82,8 +82,6 @@ const getAllVendors = async (req, res) => {
         );
         return res.status(201).json(searchVendor);
       }
-
-
     return res.status(201).json({ vendors: getVendor });
   } catch (error) {
     console.log(error);

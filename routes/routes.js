@@ -10,6 +10,8 @@ const billController = require("../controllers/billController");
 const authMiddleware = require("../middleware/authMiddleware");
 const adminMiddleware = require("../middleware/adminMiddleware");
 const requestController = require("../controllers/requestController");
+const userController = require("../controllers/userController");
+const brandController = require("../controllers/brandController");
 
 // Signup route
 router.post("/signup", authController.signup);
@@ -94,8 +96,11 @@ router.get("/bill", billController.getBill);
 
 router.get("/singleBill/:bill_id", billController.getBillById);
 
-router.put("/updateBill/:id", billController.updateBill);
+router.put("/updateBill/:id", authMiddleware(), billController.updateBill);
 router.post("/addRequest", authMiddleware(), requestController.sentRequest);
 router.get("/request", authMiddleware(), requestController.getRequest);
+router.get("/allUsers", authMiddleware(), userController.getUser);
+router.get("/addBrand", authMiddleware(), brandController.addBrand);
+router.delete("/deleteBrand/:id", authMiddleware(), brandController.deleteBrand);
 
 module.exports = router;
