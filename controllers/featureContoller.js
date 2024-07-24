@@ -45,7 +45,7 @@ const deleteFeature = async(req,res)=>{
             }
         });
         if(!featureData){
-        return res.status(201).json({message:"features not found ! "});
+        return res.status(201).json({message:"features not found! "});
             
         }
         const deleteData = await prisma.feature.delete({

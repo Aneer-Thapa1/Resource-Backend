@@ -1,6 +1,5 @@
 const prisma = require("../prismaClient");
 
-
 const getUser = async (req,res)=>{
     try {
     const allUser = await prisma.users.findMany({});
