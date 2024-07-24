@@ -116,3 +116,8 @@ model brand {
 
   items items[]
 }
+
+model feature{
+  feature_id   Int    @id @default(autoincrement())
+  feature_name String
+}
