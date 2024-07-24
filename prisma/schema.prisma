@@ -56,28 +56,44 @@ model users {
   request request[]
 }
 
+model feature {
+  feature_id   Int     @id @default(autoincrement())
+  feature_name String
+  items        itemsOnFeatures[]
+}
+
 model items {
-  item_id             Int              @id @default(autoincrement())
-  item_name           String?          @db.VarChar(255)
-  measuring_unit      String?          @db.VarChar(50)
+  item_id             Int               @id @default(autoincrement())
+  item_name           String?           @db.VarChar(255)
+  measuring_unit      String?           @db.VarChar(50)
   total_purchased     Int?
   quantity            Int?
   low_limit           Int?
   recent_purchase     DateTime?
   unit_price          Int?
   Status              Boolean?
-  category            category?        @relation(fields: [category_id], references: [category_id])
+  category            category?         @relation(fields: [category_id], references: [category_id])
   category_id         Int?
-  itemCategory        itemCategory?    @relation(fields: [item_category_id], references: [item_category_id])
+  itemCategory        itemCategory?     @relation(fields: [item_category_id], references: [item_category_id])
   item_category_id    Int?
-  brand               brand?           @relation(fields: [brand_id], references: [brand_id])
+  brand               brand?            @relation(fields: [brand_id], references: [brand_id])
   brand_id            Int?
-  productCategory     productCategory? @relation(fields: [product_category_id], references: [product_category_id])
+  productCategory     productCategory?  @relation(fields: [product_category_id], references: [product_category_id])
   product_category_id Int?
+  itemsOnFeatures     itemsOnFeatures[]
 
   bills bills[]
 
   request request[]
+}
+model itemsOnFeatures {
+  item_id    Int
+  feature_id Int
+  value      String? // Added to store the value of the feature
+  item       items   @relation(fields: [item_id], references: [item_id])
+  feature    feature @relation(fields: [feature_id], references: [feature_id])
+
+  @@id([item_id, feature_id])
 }
 
 model request {
@@ -111,13 +127,7 @@ model productCategory {
 }
 
 model brand {
-  brand_id   Int    @id @default(autoincrement())
-  brand_name String @unique
-
-  items items[]
-}
-
-model feature{
-  feature_id   Int    @id @default(autoincrement())
-  feature_name String
+  brand_id   Int     @id @default(autoincrement())
+  brand_name String  @unique
+  items      items[]
 }
