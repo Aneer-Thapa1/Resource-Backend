@@ -1,6 +1,4 @@
 const prisma = require("../prismaClient");
-
-//adding the vendor
 const addItem = async (req, res) => {
   try {
     const {
@@ -10,33 +8,28 @@ const addItem = async (req, res) => {
       itemCategory,
       productCategory,
       brandName,
+      features,  // Expecting features as key-value pairs
       low_limit,
     } = req.body;
 
-    //fimd teh product categroy
+    // Find or create records for categories, item categories, product categories, and brands
     const productCategoryRecord = await prisma.productCategory.findUnique({
-      where: {
-        product_category_name: productCategory,
-      },
+      where: { product_category_name: productCategory },
     });
 
-    //fimd teh product categroy
     const brandRecord = await prisma.brand.findFirst({
-      where: {
-        brand_name: brandName
-      },
+      where: { brand_name: brandName },
     });
 
-    // Find the category by name
     const categoryRecord = await prisma.category.findUnique({
       where: { category_name: category },
     });
 
-    // Find the item category by name
     const itemCategoryRecord = await prisma.itemCategory.findUnique({
       where: { item_category_name: itemCategory },
     });
 
+    // Validate inputs
     if (
       !categoryRecord ||
       !itemCategoryRecord ||
@@ -49,7 +42,26 @@ const addItem = async (req, res) => {
         .json({ error: "Invalid category or item category name!" });
     }
 
-    // Create the new item with the retrieved category and item category IDs
+    // Process features: convert key-value pairs into feature records
+    const featureEntries = Object.entries(features);  // Convert features object to an array of [key, value] pairs
+    const featureRecords = await Promise.all(
+      featureEntries.map(async ([featureKey, featureValue]) => {
+        let featureRecord = await prisma.feature.findFirst({
+          where: { feature_name: featureKey },
+        });
+
+        if (!featureRecord) {
+          return res
+        .status(400)
+        .json({ error: "item not fou!" });
+    
+        }
+
+        return { feature: featureRecord, value: featureValue };
+      })
+    );
+
+    // Create the new item and associate it with the features using the itemsOnFeatures model
     const newItem = await prisma.items.create({
       data: {
         item_name,
@@ -59,8 +71,15 @@ const addItem = async (req, res) => {
         product_category_id: productCategoryRecord.product_category_id,
         brand_id: brandRecord.brand_id,
         low_limit: parseInt(low_limit),
+        itemsOnFeatures: {
+          create: featureRecords.map(({ feature, value }) => ({
+            feature: { connect: { feature_id: feature.feature_id } },
+            value: value, // Store feature value
+          })),
+        },
       },
     });
+
     console.log(newItem);
     return res
       .status(201)
@@ -71,6 +90,7 @@ const addItem = async (req, res) => {
   }
 };
 
+
 //funtion for getting the items
 const getItems = async (req, res) => {
   try {
@@ -80,15 +100,29 @@ const getItems = async (req, res) => {
         itemCategory: true,
         productCategory: true,
         bills: true,
+        itemsOnFeatures: {
+          include: {
+            feature: true // Ensure feature details are included for transformation
+          }
+        }
       },
     });
 
+    // Transform items to include stock status and reformat itemsOnFeatures
     const itemsWithStockStatus = items.map((item) => {
       const stockStatus =
         item.quantity < item.low_limit ? "Low Stock" : "In Stock";
-      return { ...item, stockStatus };
+
+      // Convert itemsOnFeatures array to a key-value object
+      const featuresObject = item.itemsOnFeatures.reduce((acc, { feature, value }) => {
+        acc[feature.feature_name] = value;
+        return acc;
+      }, {});
+
+      return { ...item, itemsOnFeatures: featuresObject, stockStatus };
     });
 
+    // Apply search filter if provided
     if (req.query.search) {
       const filterItem = itemsWithStockStatus.filter((item) =>
         item.item_name.includes(req.query.search)
