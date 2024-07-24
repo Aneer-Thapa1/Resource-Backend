@@ -12,6 +12,7 @@ const adminMiddleware = require("../middleware/adminMiddleware");
 const requestController = require("../controllers/requestController");
 const userController = require("../controllers/userController");
 const brandController = require("../controllers/brandController");
+const featureController = require("../controllers/featureContoller");
 
 // Signup route
 router.post("/signup", authController.signup);
@@ -102,5 +103,7 @@ router.get("/request", authMiddleware(), requestController.getRequest);
 router.get("/allUsers", authMiddleware(), userController.getUser);
 router.get("/addBrand", authMiddleware(), brandController.addBrand);
 router.delete("/deleteBrand/:id", authMiddleware(), brandController.deleteBrand);
+router.post("/addFeature", authMiddleware(), featureController.addFeature);
+router.delete("/deleteFeature/:id", authMiddleware(), featureController.deleteFeature);
 
 module.exports = router;
