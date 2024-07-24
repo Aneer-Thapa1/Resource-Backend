@@ -8,11 +8,11 @@ const addItem = async (req, res) => {
       itemCategory,
       productCategory,
       brandName,
-      features,  // Expecting features as key-value pairs
+      features,  
       low_limit,
     } = req.body;
 
-    // Find or create records for categories, item categories, product categories, and brands
+  
     const productCategoryRecord = await prisma.productCategory.findUnique({
       where: { product_category_name: productCategory },
     });
@@ -30,16 +30,8 @@ const addItem = async (req, res) => {
     });
 
     // Validate inputs
-    if (
-      !categoryRecord ||
-      !itemCategoryRecord ||
-      !productCategoryRecord ||
-      !brandRecord ||
-      !low_limit 
-    ) {
-      return res
-        .status(400)
-        .json({ error: "Invalid category or item category name!" });
+    if (!categoryRecord ||!itemCategoryRecord ||!productCategoryRecord ||!brandRecord ||!low_limit ) {
+      return res.status(400).json({ error: "Invalid category or item category name!" });
     }
 
     // Process features: convert key-value pairs into feature records
@@ -49,14 +41,11 @@ const addItem = async (req, res) => {
         let featureRecord = await prisma.feature.findFirst({
           where: { feature_name: featureKey },
         });
-
+        
         if (!featureRecord) {
-          return res
-        .status(400)
-        .json({ error: "item not fou!" });
+          return res.status(400).json({ error: "item not found!" });
     
         }
-
         return { feature: featureRecord, value: featureValue };
       })
     );
@@ -74,24 +63,18 @@ const addItem = async (req, res) => {
         itemsOnFeatures: {
           create: featureRecords.map(({ feature, value }) => ({
             feature: { connect: { feature_id: feature.feature_id } },
-            value: value, // Store feature value
+            value: value, 
           })),
         },
       },
     });
-
-    console.log(newItem);
-    return res
-      .status(201)
-      .json({ message: "Item added successfully!", newItem });
+    return res.status(201).json({ message: "Item added successfully!", newItem });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ error: "Failed adding item!" });
   }
 };
 
-
-//funtion for getting the items
 const getItems = async (req, res) => {
   try {
     const items = await prisma.items.findMany({
@@ -102,33 +85,21 @@ const getItems = async (req, res) => {
         bills: true,
         itemsOnFeatures: {
           include: {
-            feature: true // Ensure feature details are included for transformation
+            feature: true 
           }
         }
       },
     });
-
-    // Transform items to include stock status and reformat itemsOnFeatures
     const itemsWithStockStatus = items.map((item) => {
-      const stockStatus =
-        item.quantity < item.low_limit ? "Low Stock" : "In Stock";
+      const stockStatus = item.quantity < item.low_limit ? "Low Stock" : "In Stock";
 
-      // Convert itemsOnFeatures array to a key-value object
-      const featuresObject = item.itemsOnFeatures.reduce((acc, { feature, value }) => {
-        acc[feature.feature_name] = value;
-        return acc;
-      }, {});
-
+        // used to show the value in keyvalue
+      const featuresObject = {};
+      item.itemsOnFeatures.forEach(({ feature, value }) => {
+        featuresObject[feature.feature_name] = value;
+      });
       return { ...item, itemsOnFeatures: featuresObject, stockStatus };
     });
-
-    // Apply search filter if provided
-    if (req.query.search) {
-      const filterItem = itemsWithStockStatus.filter((item) =>
-        item.item_name.includes(req.query.search)
-      );
-      return res.status(201).json({ filterItem });
-    }
 
     return res.status(200).json({ items: itemsWithStockStatus });
   } catch (error) {
