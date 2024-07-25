@@ -104,6 +104,7 @@ router.get("/allUsers", authMiddleware(), userController.getUser);
 router.get("/addBrand", authMiddleware(), brandController.addBrand);
 router.delete("/deleteBrand/:id", authMiddleware(), brandController.deleteBrand);
 router.post("/addFeature", authMiddleware(), featureController.addFeature);
+router.get("/feature", authMiddleware(), featureController.getFeature);
 router.delete("/deleteFeature/:id", authMiddleware(), featureController.deleteFeature);
 
 module.exports = router;

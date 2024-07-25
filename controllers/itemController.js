@@ -126,6 +126,11 @@ const getItemsById = async (req, res) => {
             vendors: true,
           },
         },
+        itemsOnFeatures: {
+          include: {
+            feature: true 
+          }
+        }
       },
     });
     if (!itemData) {
