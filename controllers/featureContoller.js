@@ -63,7 +63,21 @@ const deleteFeature = async(req,res)=>{
     }
 }
 
+const getFeature = async (req,res)=>{
+    try {
+        const feature = await prisma.feature.findMany({});
+        return res.status(201).json({feature:feature});
+    } catch (error) {
+        console.log(error);
+        return res.status(501).json({
+            error: "Failed to get the new feature!"
+        });
+    }
+}
+
+
 module.exports = {
     addFeature,
-    deleteFeature
+    deleteFeature,
+    getFeature
 }
