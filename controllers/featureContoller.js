@@ -4,6 +4,10 @@ const prisma = require("../prismaClient");
 const addFeature = async (req, res) => {
     try {
         const { feature_name } = req.body;
+        if (!feature_name) {
+            return res.status(501).json({ error: "Provide the necessary data!" });  
+          }
+      
         
         // Convert feature_name to lowercase for case-insensitive check
         const normalizedFeatureName = feature_name.toLowerCase();
@@ -16,7 +20,7 @@ const addFeature = async (req, res) => {
             }
         });     
 
-        if (existingFeature) {
+        if (existingFeature ) {
             return res.status(409).json({ message: "Feature name already exists!" });
         }
 
@@ -27,7 +31,7 @@ const addFeature = async (req, res) => {
             }
         });
 
-        return res.status(201).json({ message: "Successfully added the feature!", featuresData });
+        return res.status(201).json({ message: "Successfully added the feature!", featuresData, });
     } catch (error) {
         console.log(error);
         return res.status(501).json({
