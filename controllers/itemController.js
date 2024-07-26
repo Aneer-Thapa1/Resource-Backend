@@ -6,20 +6,28 @@ const addItem = async (req, res) => {
       measuring_unit,
       category,
       itemCategory,
-      productCategory,
-      brandName,
-      features,  
+      // productCategory,
+      // brandName,
+      features,
       low_limit,
     } = req.body;
 
-  
-    const productCategoryRecord = await prisma.productCategory.findUnique({
-      where: { product_category_name: productCategory },
-    });
+    // const productCategoryRecord = await prisma.productCategory.findUnique({
+    //   where: { product_category_name: productCategory },
+    // });
 
-    const brandRecord = await prisma.brand.findFirst({
-      where: { brand_name: brandName },
-    });
+    console.log(
+      item_name,
+      measuring_unit,
+      category,
+      itemCategory,
+      features,
+      low_limit
+    );
+
+    // const brandRecord = await prisma.brand.findFirst({
+    //   where: { brand_name: brandName },
+    // });
 
     const categoryRecord = await prisma.category.findUnique({
       where: { category_name: category },
@@ -30,21 +38,22 @@ const addItem = async (req, res) => {
     });
 
     // Validate inputs
-    if (!categoryRecord ||!itemCategoryRecord ||!productCategoryRecord ||!brandRecord ||!low_limit ) {
-      return res.status(400).json({ error: "Invalid category or item category name!" });
+    if (!categoryRecord || !itemCategoryRecord || !low_limit) {
+      return res
+        .status(400)
+        .json({ error: "Invalid category or item category name!" });
     }
 
     // Process features: convert key-value pairs into feature records
-    const featureEntries = Object.entries(features);  // Convert features object to an array of [key, value] pairs
+    const featureEntries = Object.entries(features); // Convert features object to an array of [key, value] pairs
     const featureRecords = await Promise.all(
       featureEntries.map(async ([featureKey, featureValue]) => {
         let featureRecord = await prisma.feature.findFirst({
           where: { feature_name: featureKey },
         });
-        
+
         if (!featureRecord) {
           return res.status(400).json({ error: "item not found!" });
-    
         }
         return { feature: featureRecord, value: featureValue };
       })
@@ -57,18 +66,20 @@ const addItem = async (req, res) => {
         measuring_unit,
         category_id: categoryRecord.category_id,
         item_category_id: itemCategoryRecord.item_category_id,
-        product_category_id: productCategoryRecord.product_category_id,
-        brand_id: brandRecord.brand_id,
+        // product_category_id: productCategoryRecord.product_category_id,
+        // brand_id: brandRecord.brand_id,
         low_limit: parseInt(low_limit),
         itemsOnFeatures: {
           create: featureRecords.map(({ feature, value }) => ({
             feature: { connect: { feature_id: feature.feature_id } },
-            value: value, 
+            value: value,
           })),
         },
       },
     });
-    return res.status(201).json({ message: "Item added successfully!", newItem });
+    return res
+      .status(201)
+      .json({ message: "Item added successfully!", newItem });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ error: "Failed adding item!" });
@@ -85,15 +96,16 @@ const getItems = async (req, res) => {
         bills: true,
         itemsOnFeatures: {
           include: {
-            feature: true 
-          }
-        }
+            feature: true,
+          },
+        },
       },
     });
     const itemsWithStockStatus = items.map((item) => {
-      const stockStatus = item.quantity < item.low_limit ? "Low Stock" : "In Stock";
+      const stockStatus =
+        item.quantity < item.low_limit ? "Low Stock" : "In Stock";
 
-        // used to show the value in keyvalue
+      // used to show the value in keyvalue
       const featuresObject = {};
       item.itemsOnFeatures.forEach(({ feature, value }) => {
         featuresObject[feature.feature_name] = value;
@@ -128,9 +140,9 @@ const getItemsById = async (req, res) => {
         },
         itemsOnFeatures: {
           include: {
-            feature: true 
-          }
-        }
+            feature: true,
+          },
+        },
       },
     });
     if (!itemData) {
