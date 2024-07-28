@@ -19,7 +19,7 @@ const addItem = async (req, res) => {
     });
 
     // Validate inputs
-    if (!categoryRecord || !itemCategoryRecord || !low_limit) {
+    if (!categoryRecord || !itemCategoryRecord || !low_limit || !features) {
       return res
         .status(400)
         .json({ error: "Invalid category or item category name!" });

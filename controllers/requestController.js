@@ -1,16 +1,29 @@
 const prisma = require("../prismaClient");
+const { getIo } = require("../socket");
 
 const sentRequest = async (req, res) => {
   try {
     const userId = req.user.id;
     const { item_name, quantity, purpose } = req.body;
+
+    // Fetch the user from the database
+    const user = await prisma.users.findUnique({
+      where: { user_id: userId },
+      select: { user_name: true, department: true },
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found!" });
+    }
+
     const itemData = await prisma.items.findFirst({
       where: {
         item_name: item_name,
       },
     });
+
     if (!itemData) {
-      return res.status(500).json({ error: "iterm not found !" });
+      return res.status(500).json({ error: "Item not found!" });
     }
 
     const requestData = await prisma.request.create({
@@ -22,6 +35,21 @@ const sentRequest = async (req, res) => {
         purpose: purpose,
         request_date: new Date(),
       },
+      include: {
+        users: true,
+        item: true,
+      },
+    });
+
+    // Send message and data to admin via Socket.io
+    const io = getIo();
+    io.emit("newRequest", {
+      message: `New request has been added by ${user.user_name}`,
+      requestData: {
+        ...requestData,
+        users: user,
+        item: itemData,
+      },
     });
 
     return res
@@ -29,7 +57,7 @@ const sentRequest = async (req, res) => {
       .json({ message: "Successfully Requested the items", requestData });
   } catch (error) {
     console.log(error);
-    return res.status(500).json({ error : "failed to send the request !" });
+    return res.status(500).json({ error: "Failed to send the request!" });
   }
 };
 
@@ -38,9 +66,8 @@ const getRequest = async (req, res) => {
     const allData = await prisma.request.findMany({
       include: {
         item: {
-          // Use the correct relation field name
           select: {
-            item_name: true, // Include specific fields from items table
+            item_name: true,
           },
         },
         users: {
@@ -54,11 +81,9 @@ const getRequest = async (req, res) => {
     return res.status(200).json({ request: allData });
   } catch (error) {
     console.log(error);
-    return res.status(500).json({ error: "Failed to get all requests!" });
+    return res.status (500).json({ error: "Failed to get all requests!" });
   }
 };
-
-
 
 module.exports = {
   sentRequest,

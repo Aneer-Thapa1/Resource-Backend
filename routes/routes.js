@@ -12,80 +12,50 @@ const requestController = require("../controllers/requestController");
 const userController = require("../controllers/userController");
 const featureController = require("../controllers/featureContoller");
 
-// Signup route
+// Authentication routes
 router.post("/signup", authController.signup);
-
-// Login route
 router.post("/login", authController.login);
-
-// logout route
 router.post("/logout", authController.logout);
-// Add vendor route
-router.post(
-  "/addVendor",
-  authMiddleware(),
-  adminMiddleware,
-  vendorController.addVendor
-);
 
-// Delete vendor route
+// Vendor routes
+router.post("/addVendor", authMiddleware(), adminMiddleware, vendorController.addVendor);
 router.delete("/deleteVendor/:id", vendorController.deleteVendor);
-
-//Fetch all vendor
 router.get("/vendor", authMiddleware(), vendorController.getAllVendors);
-
-//add item route
-router.post("/addItem", itemController.addItem);
-
 router.get("/vendor/:vat", vendorController.getVendorsByVAT);
-
-//update vendor
 router.put("/updateVendor/:id", vendorController.updateVendor);
-
-// set blacklist to a vendor
 router.put("/blacklist/:id", vendorController.balckListVendor);
 
-//fetch items
+// Item routes
+router.post("/addItem", itemController.addItem);
 router.get("/items", itemController.getItems);
-
-//items by id
 router.get("/items/:id", itemController.getItemsById);
-
-//update items
 router.put("/updateItem/:id", itemController.updateItem);
-
-//detele item
 router.delete("/deleteItem/:id", itemController.deleteItem);
 
+// Category routes
 router.get("/category", categoryController.getCategories);
-
 router.post("/addCategory", categoryController.addCategory);
-
 router.delete("/deleteCategory/:id", categoryController.deleteCategory);
 
-//add Item Category
+// Item Category routes
 router.post("/addItemCategory", itemCategoryController.addItemCategory);
-
-//fetch itemCategoey
 router.get("/itemCategory", itemCategoryController.getItemCategory);
+router.delete("/deleteItemCategory/:id", itemCategoryController.deleteItemCategory);
 
-//delete itemCategoey
-
-router.delete(
-  "/deleteItemCategory/:id",
-  itemCategoryController.deleteItemCategory
-);
-
+// Bill routes
 router.post("/addBill", billController.addBill);
-
 router.get("/bill", billController.getBill);
-
 router.get("/singleBill/:bill_id", billController.getBillById);
-
 router.put("/updateBill/:id", authMiddleware(), billController.updateBill);
+
+// Request routes
 router.post("/addRequest", authMiddleware(), requestController.sentRequest);
 router.get("/request", authMiddleware(), requestController.getRequest);
+
+// User routes
 router.get("/allUsers", authMiddleware(), userController.getUser);
+
+// Feature routes
 router.post("/addFeature", authMiddleware(), featureController.addFeature);
 router.get("/feature", authMiddleware(), featureController.getFeature);
 router.delete("/deleteFeature/:id", authMiddleware(), featureController.deleteFeature);
