@@ -5,13 +5,11 @@ const vendorController = require("../controllers/vendorController");
 const itemController = require("../controllers/itemController");
 const categoryController = require("../controllers/categoryController");
 const itemCategoryController = require("../controllers/itemCategoryController");
-const productCategoryController = require("../controllers/productCategoryController");
 const billController = require("../controllers/billController");
 const authMiddleware = require("../middleware/authMiddleware");
 const adminMiddleware = require("../middleware/adminMiddleware");
 const requestController = require("../controllers/requestController");
 const userController = require("../controllers/userController");
-const brandController = require("../controllers/brandController");
 const featureController = require("../controllers/featureContoller");
 
 // Signup route
@@ -77,19 +75,6 @@ router.delete(
   "/deleteItemCategory/:id",
   itemCategoryController.deleteItemCategory
 );
-//get  productCategoey
-
-router.get("/productCategory", productCategoryController.getProductCategory);
-
-router.post(
-  "/addProductCategory",
-  productCategoryController.addProductCategory
-);
-
-router.delete(
-  "/deleteProductCategory/:id",
-  productCategoryController.deleteProductCategory
-);
 
 router.post("/addBill", billController.addBill);
 
@@ -101,8 +86,6 @@ router.put("/updateBill/:id", authMiddleware(), billController.updateBill);
 router.post("/addRequest", authMiddleware(), requestController.sentRequest);
 router.get("/request", authMiddleware(), requestController.getRequest);
 router.get("/allUsers", authMiddleware(), userController.getUser);
-router.get("/addBrand", authMiddleware(), brandController.addBrand);
-router.delete("/deleteBrand/:id", authMiddleware(), brandController.deleteBrand);
 router.post("/addFeature", authMiddleware(), featureController.addFeature);
 router.get("/feature", authMiddleware(), featureController.getFeature);
 router.delete("/deleteFeature/:id", authMiddleware(), featureController.deleteFeature);

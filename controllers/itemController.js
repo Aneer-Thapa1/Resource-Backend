@@ -6,28 +6,9 @@ const addItem = async (req, res) => {
       measuring_unit,
       category,
       itemCategory,
-      // productCategory,
-      // brandName,
       features,
       low_limit,
     } = req.body;
-
-    // const productCategoryRecord = await prisma.productCategory.findUnique({
-    //   where: { product_category_name: productCategory },
-    // });
-
-    console.log(
-      item_name,
-      measuring_unit,
-      category,
-      itemCategory,
-      features,
-      low_limit
-    );
-
-    // const brandRecord = await prisma.brand.findFirst({
-    //   where: { brand_name: brandName },
-    // });
 
     const categoryRecord = await prisma.category.findUnique({
       where: { category_name: category },
@@ -66,8 +47,6 @@ const addItem = async (req, res) => {
         measuring_unit,
         category_id: categoryRecord.category_id,
         item_category_id: itemCategoryRecord.item_category_id,
-        // product_category_id: productCategoryRecord.product_category_id,
-        // brand_id: brandRecord.brand_id,
         low_limit: parseInt(low_limit),
         itemsOnFeatures: {
           create: featureRecords.map(({ feature, value }) => ({
@@ -86,13 +65,13 @@ const addItem = async (req, res) => {
   }
 };
 
+
 const getItems = async (req, res) => {
   try {
     const items = await prisma.items.findMany({
       include: {
         category: true,
         itemCategory: true,
-        productCategory: true,
         bills: true,
         itemsOnFeatures: {
           include: {
@@ -112,13 +91,13 @@ const getItems = async (req, res) => {
       });
       return { ...item, itemsOnFeatures: featuresObject, stockStatus };
     });
-
     return res.status(200).json({ items: itemsWithStockStatus });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ error: "Failed to get all the items!" });
   }
 };
+
 
 //function to get all the items by id
 const getItemsById = async (req, res) => {
@@ -180,6 +159,8 @@ const updateItem = async (req, res) => {
     return res.status(500).json({ error: "Failed to update the items !" });
   }
 };
+
+
 //to delete
 const deleteItem = async (req, res) => {
   try {
