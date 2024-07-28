@@ -5,24 +5,7 @@ const cookieParser = require("cookie-parser");
 require("dotenv").config();
 const nodemailer = require("nodemailer");
 
-
 const app = express();
-
-// socket code
-const http = require("http");
-const socketio = require("socket.io");
-const server = http.createServer(app);
-const io = socketio(server, {
-  cors: {
-    origin: "http://localhost:5173",
-    methods: ["GET", "POST"],
-    credentials: true,
-  },
-});
-
-io.on("connection", () => {
-  console.log("connected");
-});
 
 // Middleware to parse JSON
 app.use(express.json());
@@ -54,6 +37,13 @@ const transporter = nodemailer.createTransport({
 });
 
 // Start the server
+const http = require("http");
+const server = http.createServer(app);
+
+// Import and setup socket
+const { setupSocket } = require("./socket");
+setupSocket(server);
+
 const port = process.env.PORT || 3000; // Fallback to 3000 if PORT is not set
 
 server.listen(port, () => {
