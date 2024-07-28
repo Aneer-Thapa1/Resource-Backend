@@ -65,7 +65,6 @@ const addItem = async (req, res) => {
   }
 };
 
-
 const getItems = async (req, res) => {
   try {
     const items = await prisma.items.findMany({
@@ -97,7 +96,6 @@ const getItems = async (req, res) => {
     return res.status(500).json({ error: "Failed to get all the items!" });
   }
 };
-
 
 //function to get all the items by id
 const getItemsById = async (req, res) => {
@@ -143,6 +141,7 @@ const getItemsById = async (req, res) => {
 const updateItem = async (req, res) => {
   try {
     const item_id = req.params.id;
+
     const itemData = await prisma.items.update({
       where: {
         item_id: Number(item_id),
@@ -156,10 +155,10 @@ const updateItem = async (req, res) => {
       .status(201)
       .json({ message: "Item updated successfully !", itemData });
   } catch (error) {
+    console.log(error);
     return res.status(500).json({ error: "Failed to update the items !" });
   }
 };
-
 
 //to delete
 const deleteItem = async (req, res) => {
