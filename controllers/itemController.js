@@ -125,16 +125,25 @@ const getItemsById = async (req, res) => {
     }
     const stockStatus = itemData.quantity < itemData.low_limit ? "Low Stock" : "In Stock";
 
+    // used to show the value in key-value
     const featuresObject = {};
-    itemData.itemsOnFeatures.map(({ feature, value }) => {
+    itemData.itemsOnFeatures.forEach(({ feature, value }) => {
       featuresObject[feature.feature_name] = value;
     });
-    return res.status(200).json({ ...itemData, itemsOnFeatures: featuresObject, stockStatus });
+
+    return res.status(200).json({
+      ...itemData,
+      itemsOnFeatures: featuresObject,
+      stockStatus,
+      itemCategory: itemData.itemCategory.item_category_name,
+      category: itemData.category.category_name
+    });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ error: "Failed to fetch the item!" });
   }
 };
+
 //function to update the item data
 const updateItem = async (req, res) => {
   try {
