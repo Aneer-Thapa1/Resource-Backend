@@ -85,7 +85,7 @@ const getItems = async (req, res) => {
 
       // used to show the value in keyvalue
       const featuresObject = {};
-      item.itemsOnFeatures.forEach(({ feature, value }) => {
+      item.itemsOnFeatures.map(({ feature, value }) => {
         featuresObject[feature.feature_name] = value;
       });
       return { ...item, itemsOnFeatures: featuresObject, stockStatus };
@@ -101,7 +101,6 @@ const getItems = async (req, res) => {
 const getItemsById = async (req, res) => {
   try {
     const item_id = req.params.id;
-    console.log(item_id);
     const itemData = await prisma.items.findUnique({
       where: {
         item_id: Number(item_id),
@@ -109,7 +108,6 @@ const getItemsById = async (req, res) => {
       include: {
         category: true,
         itemCategory: true,
-        productCategory: true,
         bills: {
           include: {
             vendors: true,
@@ -123,20 +121,20 @@ const getItemsById = async (req, res) => {
       },
     });
     if (!itemData) {
-      return res.status(500).json({ error: "Item is not found !" });
+      return res.status(404).json({ error: "Item not found!" });
     }
-    const stockStatus =
-      itemData.quantity < itemData.low_limit ? "Low Stock" : "In Stock";
-    return res.status(201).json({
-      message: "Successfully fetched the item by id!",
-      itemData: { ...itemData, stockStatus },
+    const stockStatus = itemData.quantity < itemData.low_limit ? "Low Stock" : "In Stock";
+
+    const featuresObject = {};
+    itemData.itemsOnFeatures.map(({ feature, value }) => {
+      featuresObject[feature.feature_name] = value;
     });
+    return res.status(200).json({ ...itemData, itemsOnFeatures: featuresObject, stockStatus });
   } catch (error) {
-    console.log(error);
-    return res.status(500).json({ error: "Failed to fetch the items !" });
+    console.error(error);
+    return res.status(500).json({ error: "Failed to fetch the item!" });
   }
 };
-
 //function to update the item data
 const updateItem = async (req, res) => {
   try {

@@ -10,8 +10,6 @@ const getUser = async (req,res)=>{
     }
 }
 
-console.log(getUser);
-
 module.exports={
     getUser
 }
