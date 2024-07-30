@@ -132,7 +132,6 @@ const getItemsById = async (req, res) => {
     itemData.itemsOnFeatures.forEach(({ feature, value }) => {
       featuresObject[feature.feature_name] = value;
     });
-
     return res.status(200).json({
       ...itemData,
       itemsOnFeatures: featuresObject,

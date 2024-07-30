@@ -54,10 +54,12 @@ model users {
   department String?   @db.VarChar(100)
 
   request request[]
+
+  notification notification[]
 }
 
 model feature {
-  feature_id   Int     @id @default(autoincrement())
+  feature_id   Int               @id @default(autoincrement())
   feature_name String
   items        itemsOnFeatures[]
 }
@@ -76,8 +78,6 @@ model items {
   category_id         Int?
   itemCategory        itemCategory?     @relation(fields: [item_category_id], references: [item_category_id])
   item_category_id    Int?
-  brand               brand?            @relation(fields: [brand_id], references: [brand_id])
-  brand_id            Int?
   productCategory     productCategory?  @relation(fields: [product_category_id], references: [product_category_id])
   product_category_id Int?
   itemsOnFeatures     itemsOnFeatures[]
@@ -86,6 +86,7 @@ model items {
 
   request request[]
 }
+
 model itemsOnFeatures {
   item_id    Int
   feature_id Int
@@ -126,8 +127,9 @@ model productCategory {
   items                 items[]
 }
 
-model brand {
-  brand_id   Int     @id @default(autoincrement())
-  brand_name String  @unique
-  items      items[]
+model notification {
+  notification_id Int    @id @default(autoincrement())
+  message         String
+  users           users? @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+  user_id         Int
 }

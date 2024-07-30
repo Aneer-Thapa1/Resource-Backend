@@ -25,7 +25,7 @@ const sentRequest = async (req, res) => {
     if (!itemData) {
       return res.status(500).json({ error: "Item not found!" });
     }
-
+      const request = await prisma.$transaction(async(prisma)=>{
     const requestData = await prisma.request.create({
       data: {
         request_item_name: itemData.item_name,
@@ -36,25 +36,36 @@ const sentRequest = async (req, res) => {
         request_date: new Date(),
       },
       include: {
-        users: true,
         item: true,
       },
     });
 
+    const notifyMessage = await prisma.notification.create({
+      data:{
+        message: `New request has been added by ${user.user_name}`,
+        user_id:Number(userId)
+
+      }
+    });``
+
+    const notify =await prisma.notification.findMany({});
     // Send message and data to admin via Socket.io
     const io = getIo();
     io.emit("newRequest", {
-      message: `New request has been added by ${user.user_name}`,
+      message: notify.message,
       requestData: {
         ...requestData,
         users: user,
         item: itemData,
       },
     });
+    return{requestData, notifyMessage};
+   
+  })
 
     return res
       .status(200)
-      .json({ message: "Successfully Requested the items", requestData });
+      .json({ message: "Successfully Requested the items", request });
   } catch (error) {
     console.log(error);
     return res.status(500).json({ error: "Failed to send the request!" });
