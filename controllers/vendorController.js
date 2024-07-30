@@ -90,7 +90,7 @@ const getAllVendors = async (req, res) => {
 };
 
 //get by ID
-const getVendorsByVAT = async (req, res) => {
+const getVendorsByID = async (req, res) => {
   try {
     const vendor_id = req.params.vat;
 
@@ -159,7 +159,7 @@ module.exports = {
   addVendor,
   getAllVendors,
   deleteVendor,
-  getVendorsByVAT,
+  getVendorsByID,
   updateVendor,
   balckListVendor,
 };

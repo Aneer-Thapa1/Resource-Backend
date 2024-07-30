@@ -21,7 +21,7 @@ router.post("/logout", authController.logout);
 router.post("/addVendor", authMiddleware(), adminMiddleware, vendorController.addVendor);
 router.delete("/deleteVendor/:id", vendorController.deleteVendor);
 router.get("/vendor", authMiddleware(), vendorController.getAllVendors);
-router.get("/vendor/:vat", vendorController.getVendorsByVAT);
+router.get("/vendor/:vat", vendorController.getVendorsByID);
 router.put("/updateVendor/:id", vendorController.updateVendor);
 router.put("/blacklist/:id", vendorController.balckListVendor);
 
