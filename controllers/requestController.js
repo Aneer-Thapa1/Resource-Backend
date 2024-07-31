@@ -4,7 +4,8 @@ const { getIo } = require("../socket");
 const sentRequest = async (req, res) => {
   try {
     const userId = req.user.id;
-    const { item_name, quantity, purpose } = req.body;
+    
+    const { item_name, quantity, purpose ,state} = req.body;
 
     // Fetch the user from the database
     const user = await prisma.users.findUnique({
@@ -43,21 +44,17 @@ const sentRequest = async (req, res) => {
     const notifyMessage = await prisma.notification.create({
       data:{
         message: `New request has been added by ${user.user_name}`,
-        user_id:Number(userId)
-
+        user_id:Number(userId),
+        state:Boolean(state)
       }
-    });``
-
-    const notify =await prisma.notification.findMany({});
+    });
+    console.log(notifyMessage);
+    // const notify = await prisma.notification.findMany({});
     // Send message and data to admin via Socket.io
     const io = getIo();
     io.emit("newRequest", {
-      message: notify.message,
-      requestData: {
-        ...requestData,
-        users: user,
-        item: itemData,
-      },
+
+      message: notifyMessage,
     });
     return{requestData, notifyMessage};
    
