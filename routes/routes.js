@@ -11,6 +11,7 @@ const adminMiddleware = require("../middleware/adminMiddleware");
 const requestController = require("../controllers/requestController");
 const userController = require("../controllers/userController");
 const featureController = require("../controllers/featureContoller");
+const NotiController = require("../controllers/notificationController");
 
 // Authentication routes
 router.post("/signup", authController.signup);
@@ -59,5 +60,9 @@ router.get("/allUsers", authMiddleware(), userController.getUser);
 router.post("/addFeature", authMiddleware(), featureController.addFeature);
 router.get("/feature", authMiddleware(), featureController.getFeature);
 router.delete("/deleteFeature/:id", authMiddleware(), featureController.deleteFeature);
+
+// Feature routes
+router.get("/notificaiton", authMiddleware(), NotiController.getNotification);
+router.put("/updateNotification/:id", authMiddleware(), NotiController.updateNotification);
 
 module.exports = router;

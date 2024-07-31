@@ -128,8 +128,9 @@ model productCategory {
 }
 
 model notification {
-  notification_id Int    @id @default(autoincrement())
+  notification_id Int     @id @default(autoincrement())
   message         String
-  users           users? @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+  state           Boolean @default(false)
+  users           users?  @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
   user_id         Int
 }
