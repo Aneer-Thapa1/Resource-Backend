@@ -15,17 +15,17 @@ try {
 const updateNotification = async (req,res)=>{
    try {
      const id = Number(req.params.id);
-     const {state} = req.body;
      const result = await prisma.notification.update({
          where:{
              notification_id: id
          },
          data:{
-             state:  Boolean(state)
+             state:  Boolean("true")
          }
-     })
-     return res.status(200).json({updateNotification});
+     });
+     return res.status(200).json({message:"successfuly updated !"});
     } catch (error) {
+        console.log(error);
        return res.status(500).json({error:"failed to update the notification !"});
     
    }

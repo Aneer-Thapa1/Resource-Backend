@@ -45,12 +45,12 @@ const sentRequest = async (req, res) => {
       data:{
         message: `New request has been added by ${user.user_name}`,
         user_id:Number(userId),
-        state:Boolean(state)
+        state:Boolean(state),
+        created_at: new Date()
       }
     });
     console.log(notifyMessage);
-    // const notify = await prisma.notification.findMany({});
-    // Send message and data to admin via Socket.io
+        // Send message and data to admin via Socket.io
     const io = getIo();
     io.emit("newRequest", {
 
@@ -92,6 +92,7 @@ const getRequest = async (req, res) => {
     return res.status (500).json({ error: "Failed to get all requests!" });
   }
 };
+
 
 module.exports = {
   sentRequest,
