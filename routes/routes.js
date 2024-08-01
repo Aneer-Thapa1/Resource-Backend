@@ -64,6 +64,7 @@ router.delete("/deleteFeature/:id", authMiddleware(), featureController.deleteFe
 // Feature routes
 router.get("/notificaiton", authMiddleware(), NotiController.getNotification);
 router.put("/updateNotification/:id", authMiddleware(), NotiController.updateNotification);
-router.put("/updateNotification/:id", authMiddleware(), NotiController.updateNotification);
+router.put("/updateNotification", NotiController.updateNotification);
+router.put("/singleNotification/:id", NotiController.singleUpdateNotification);
 
 module.exports = router;
