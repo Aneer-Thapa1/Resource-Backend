@@ -12,8 +12,6 @@ model vendors {
   vendor_name        String?   @db.VarChar(255)
   vat_number         String?   @db.VarChar(255)
   vendor_contact     Int?
-  total_payment      Float?    @db.Float
-  pending_payment    Float?    @db.Float
   last_purchase_date DateTime? @db.Date
   last_paid          DateTime? @db.Date
   payment_duration   Int?
@@ -98,15 +96,16 @@ model itemsOnFeatures {
 }
 
 model request {
-  request_id        Int       @id @default(autoincrement())
+  request_id        Int      @id @default(autoincrement())
   request_item_name String
   request_quantity  Int
   purpose           String?
-  users             users?    @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+  users             users?   @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
   user_id           Int
-  item              items?    @relation(fields: [item_id], references: [item_id], onDelete: Cascade)
+  item              items?   @relation(fields: [item_id], references: [item_id], onDelete: Cascade)
   item_id           Int
-  request_date      DateTime?
+  request_date      DateTime @default(now())
+  status            String
 }
 
 model category {
