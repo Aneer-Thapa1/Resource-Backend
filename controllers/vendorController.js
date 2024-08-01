@@ -61,7 +61,6 @@ const updateVendor = async (req, res) => {
     res.status(500).json({ error: "Error updating vendor" });
   }
 };
-
 const getAllVendors = async (req, res) => {
   try {
     const getVendor = await prisma.vendors.findMany({
@@ -82,12 +81,33 @@ const getAllVendors = async (req, res) => {
       );
       return res.status(201).json(searchVendor);
     }
-    return res.status(201).json({ vendors: getVendor });
+
+    // Calculate total_pending_amount for each vendor
+    const vendorsWithTotalPayment = await Promise.all(
+      getVendor.map(async (vendor) => {
+        const specificData = await prisma.$queryRaw`
+          SELECT SUM(bills.actual_amount) as total_purchase_amount, 
+                 SUM(bills.left_amount) as total_pending_amount 
+          FROM resource.bills 
+          JOIN resource.vendors 
+          ON bills.vendor_ID = vendors.vendor_id 
+          WHERE vendors.vendor_id = ${vendor.vendor_id}`;
+
+        return {
+          ...vendor,
+          pending_payment: specificData[0]?.total_pending_amount || 0,
+          total_amount: specificData[0]?.total_purchase_amount || 0,
+        };
+      })
+    );
+
+    return res.status(201).json(vendorsWithTotalPayment);
   } catch (error) {
-    console.log(error);
-    return res.status(500).json({ error: "failed to get all vendors!" });
+    return res.status(500).json({ error: error.message });
   }
 };
+
+
 
 //get by ID
 const getVendorsByID = async (req, res) => {
@@ -110,7 +130,22 @@ const getVendorsByID = async (req, res) => {
     if (!VendorById) {
       return res.status(404).json({ error: "Vendor not found !" });
     }
-    return res.status(200).json({ VendorById });
+  
+        const specificData = await prisma.$queryRaw`
+        SELECT SUM(bills.actual_amount) as total_purchase_amount, 
+               SUM(bills.left_amount) as total_pending_amount 
+        FROM resource.bills 
+        JOIN resource.vendors 
+        ON bills.vendor_ID = vendors.vendor_id 
+        WHERE vendors.vendor_id = ${VendorById.vendor_id}`;
+
+const singleVendorWithDetail = {
+  ...VendorById,
+  pending_payment: specificData[0]?.total_pending_amount || 0,
+  total_amount: specificData[0]?.total_purchase_amount || 0
+};
+
+return res.status(200).json(singleVendorWithDetail);
   } catch (error) {
     console.log(error);
     return res.status(500).json({ error: "Failed to fetch vendor by id" });
