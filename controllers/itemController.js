@@ -64,8 +64,6 @@ const addItem = async (req, res) => {
     return res.status(500).json({ error: "Failed adding item!" });
   }
 };
-
-
 const getItems = async (req, res) => {
   try {
     const items = await prisma.items.findMany({
@@ -80,32 +78,50 @@ const getItems = async (req, res) => {
         },
       },
     });
-    const itemsWithStockStatus = items.map((item) => {
-      const stockStatus =
-        item.quantity < item.low_limit ? "Low Stock" : "In Stock";
 
-      // used to show the value in keyvalue
-      const featuresObject = {};
-      item.itemsOnFeatures.map(({ feature, value }) => {
-        featuresObject[feature.feature_name] = value;
-      });
-      return { ...item, itemsOnFeatures: featuresObject, stockStatus };
-    });
-    return res.status(200).json({ items: itemsWithStockStatus });
+    const itemWithTotalPayment = await Promise.all(
+      items.map(async (item) => {
+        const stockStatus =
+          item.quantity < item.low_limit ? "Low Stock" : "In Stock";
+
+        const featuresObject = {};
+        item.itemsOnFeatures.map(({ feature, value }) => {
+          featuresObject[feature.feature_name] = value;
+        });
+
+        const specificData = await prisma.$queryRaw`
+          SELECT SUM(bills.actual_amount) as total_purchase_amount, 
+                 SUM(bills.left_amount) as total_pending_amount 
+          FROM resource.bills 
+          JOIN resource.items 
+          ON bills.item_id = items.item_id 
+          WHERE items.item_id = ${item.item_id}`;
+
+        return {
+          ...item,
+          stockStatus,
+          itemsOnFeatures: featuresObject,
+          category: item.category.category_name,
+          itemCategory: item.itemCategory.item_category_name,
+          pending_payment: specificData[0]?.total_pending_amount || 0,
+          total_amount: specificData[0]?.total_purchase_amount || 0,
+        };
+      })
+    );
+
+    return res.status(200).json(itemWithTotalPayment);
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ error: "Failed to get all the items!" });
+    return res.status(400).json({ error: "Failed to retrieve items!" });
   }
 };
 
-
-//function to get all the items by id
 const getItemsById = async (req, res) => {
   try {
-    const item_id = req.params.id;
+    const item_id = Number(req.params.id);
     const itemData = await prisma.items.findUnique({
       where: {
-        item_id: Number(item_id),
+        item_id,
       },
       include: {
         category: true,
@@ -125,23 +141,36 @@ const getItemsById = async (req, res) => {
     if (!itemData) {
       return res.status(404).json({ error: "Item not found!" });
     }
-    const stockStatus = itemData.quantity < itemData.low_limit ? "Low Stock" : "In Stock";
+    const stockStatus =
+      itemData.quantity < itemData.low_limit ? "Low Stock" : "In Stock";
 
-    // used to show the value in key-value
     const featuresObject = {};
-    itemData.itemsOnFeatures.forEach(({ feature, value }) => {
+    itemData.itemsOnFeatures.map(({ feature, value }) => {
       featuresObject[feature.feature_name] = value;
     });
-    return res.status(200).json({
+
+    const specificData = await prisma.$queryRaw`
+      SELECT SUM(bills.actual_amount) as total_purchase_amount, 
+             SUM(bills.left_amount) as total_pending_amount 
+      FROM resource.bills 
+      JOIN resource.items 
+      ON bills.item_id = items.item_id 
+      WHERE items.item_id = ${item_id}`;
+
+    const responseData = {
       ...itemData,
-      itemsOnFeatures: featuresObject,
       stockStatus,
+      itemsOnFeatures: featuresObject,
+      category: itemData.category.category_name,
       itemCategory: itemData.itemCategory.item_category_name,
-      category: itemData.category.category_name
-    });
+      pending_payment: specificData[0]?.total_pending_amount || 0,
+      total_amount: specificData[0]?.total_purchase_amount || 0,
+    };
+
+    return res.status(200).json(responseData);
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ error: "Failed to fetch the item!" });
+    return res.status(400).json({ error: "Failed to retrieve item!" });
   }
 };
 
@@ -165,7 +194,6 @@ const updateItem = async (req, res) => {
     return res.status(500).json({ error: "Failed to update the items !" });
   }
 };
-
 
 //to delete
 const deleteItem = async (req, res) => {

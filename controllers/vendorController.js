@@ -62,6 +62,8 @@ const updateVendor = async (req, res) => {
     res.status(500).json({ error: "Error updating vendor" });
   }
 };
+
+
 const getAllVendors = async (req, res) => {
   try {
     const getVendor = await prisma.vendors.findMany({
@@ -102,7 +104,7 @@ const getAllVendors = async (req, res) => {
       })
     );
 
-    return res.status(201).json(vendorsWithTotalPayment);
+    return res.status(201).json({vendor:vendorsWithTotalPayment});
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }

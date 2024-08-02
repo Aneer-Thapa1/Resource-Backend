@@ -113,8 +113,17 @@ const addBill = async (req, res) => {
           last_paid: new Date()
         },
       });
+      const updateItem = await prisma.items.update({
+        where: {
+          item_id: newBill.item_id,
+        },
+        data: {
+          recent_purchase: newBill.bill_date,
+          unit_price: newBill.unit_price
+        },
+      });
 
-      return { newBill, updateVendor };
+      return { newBill, updateVendor,updateItem };
     });
     return res.status(201).json({ result });
   } catch (error) {
@@ -256,55 +265,55 @@ const addBill = async (req, res) => {
 //   }
 // };
 
-// const getBill = async (req, res) => {
-//   try {
-//     const billData = await prisma.bills.findMany({
-//       include: {
-//         vendors: true,
-//         items: true,
-//       },
-//     });
-//     if (req.query.search) {
-//       const searchBill = billData.filter((bill) =>
-//         bill.bill_no.toLowerCase().includes(req.query.search.toLowerCase())
-//       );
-//       return res.status(201).json({ searchBill });
-//     }
+const getBill = async (req, res) => {
+  try {
+    const billData = await prisma.bills.findMany({
+      include: {
+        vendors: true,
+        items: true,
+      },
+    });
+    if (req.query.search) {
+      const searchBill = billData.filter((bill) =>
+        bill.bill_no.toLowerCase().includes(req.query.search.toLowerCase())
+      );
+      return res.status(201).json({ searchBill });
+    }
 
-//     return res.status(200).json({ bills: billData });
-//   } catch (error) {
-//     return res.status(501).json({ error: "failed to fetch the bills!" });
-//   }
-// };
+    return res.status(200).json({ bills: billData });
+  } catch (error) {
+    return res.status(501).json({ error: "failed to fetch the bills!" });
+  }
+};
 
-// const getBillById = async (req, res) => {
-//   try {
-//     const { bill_id } = req.params;
+const getBillById = async (req, res) => {
+  try {
+    const { bill_id } = req.params;
 
-//     const singleBillData = await prisma.bills.findUnique({
-//       where: {
-//         bill_ID: Number(bill_id),
-//       },
-//       include: {
-//         vendors: true,
-//         items: true
-//       },
-//     });
+    const singleBillData = await prisma.bills.findUnique({
+      where: {
+        bill_ID: Number(bill_id),
+      },
+      include: {
+        vendors: true,
+        items: true
+      },
+    });
 
-//     if (!singleBillData) {
-//       return res.status(404).json({ error: "Bill not found" });
-//     }
+    if (!singleBillData) {
+      return res.status(404).json({ error: "Bill not found" });
+    }
 
-//     return res.status(200).json({ bill: singleBillData });
-//   } catch (error) {
-//     console.error(error);
-//     return res.status(500).json({ error: "Failed to fetch the single bill!" });
-//   }
-// };
+    return res.status(200).json({ bill: singleBillData });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: "Failed to fetch the single bill!" });
+  }
+};
 
 module.exports = {
   addBill,
   // updateBill,
-  // getBill,
-  // getBillById,
+  getBill,
+  getBillById,
 };
