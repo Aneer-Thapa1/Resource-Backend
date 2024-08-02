@@ -8,7 +8,6 @@ const addBill = async (req, res) => {
       bill_date,
       TDS,
       invoice_no,
-      actual_amount,
       paid_amount,
       vat_number,
       quantity,
@@ -19,7 +18,7 @@ const addBill = async (req, res) => {
     // Find the vendor by vat number
     const vendor = await prisma.vendors.findFirst({
       where: {
-        vat_number: vat_number
+        vat_number: vat_number,
       },
     });
     // Find the item by name
@@ -36,19 +35,49 @@ const addBill = async (req, res) => {
     if (!vendor) {
       return res.status(404).json({ error: "VAT Number is not found !" });
     }
-    
-    // Calculate the left_amount
-    let left_amount;
-    if(actual_amount >= paid_amount){
-      left_amount = actual_amount - paid_amount;
+      
+      // TDS Calculation
+      const calculateTDS = (amount, TDS) => {
+        let tdsValue = 0;
+        if (TDS === 1.5) {
+          tdsValue = (amount / 1.13) * 0.015;
+          console.log("1.5");
+        } else if (TDS === 10) {
+          tdsValue = amount * 0.1;
+        } else if (TDS === 15) {
+          tdsValue = amount * 0.1;
+        } else {
+        return res
+          .status(500)
+          .json({
+            error:
+            "Invalid TDS percentage!"
+          });
 
-    }
-    else{
-      return res.status(404).json({ error: "Paid amount cannot be greater than or equal to actual amount! !" });
-     
-    }
+      }
+      return amount - tdsValue;
+    };
 
-      // Create the bill
+    const calculatedActualAmount = calculateTDS(
+      parseFloat(bill_amount),
+      parseFloat(TDS)
+    );
+
+     // Calculate the left_amount
+     let left_amount;
+     if (calculatedActualAmount >= paid_amount) {
+       left_amount = calculatedActualAmount - paid_amount;
+     } else {
+       return res
+         .status(404)
+         .json({
+           error:
+             "Paid amount cannot be greater than or equal to actual amount! !",
+         });
+       }
+
+    // Create the bill
+    const result = await prisma.$transaction(async (prisma) => {
       const newBill = await prisma.bills.create({
         data: {
           bill_no,
@@ -56,7 +85,7 @@ const addBill = async (req, res) => {
           bill_date: new Date(bill_date),
           TDS: parseFloat(TDS),
           invoice_no,
-          actual_amount: parseFloat(actual_amount),
+          actual_amount: calculatedActualAmount,
           paid_amount: parseFloat(paid_amount),
           quantity: parseInt(quantity),
           left_amount: parseFloat(left_amount),
@@ -66,7 +95,28 @@ const addBill = async (req, res) => {
         },
       });
 
-    return res.status(201).json(newBill);
+      const addDays = (date, days) => {
+        const result = new Date(date);
+        result.setDate(result.getDate() + days);
+        return result;
+      };
+
+      const payment_day = addDays(new Date(bill_date), vendor.payment_duration);
+
+      const updateVendor = await prisma.vendors.update({
+        where: {
+          vendor_id: newBill.vendor_ID,
+        },
+        data: {
+          last_purchase_date: newBill.bill_date,
+          next_payment_date: payment_day,
+          last_paid: new Date()
+        },
+      });
+
+      return { newBill, updateVendor };
+    });
+    return res.status(201).json({ result });
   } catch (error) {
     console.error(error);
     return res.status(400).json({ error: "Failed to add the bill!" });
@@ -153,12 +203,12 @@ const addBill = async (req, res) => {
 //       let specificData;
 //       for (const vendor of allVendors) {
 //         const specificData = await prisma.$queryRaw`
-//         SELECT 
-//           SUM(bills.actual_amount) as total_purchase_amount, 
-//           SUM(bills.left_amount) as total_pending_amount 
-//         FROM resource.bills 
+//         SELECT
+//           SUM(bills.actual_amount) as total_purchase_amount,
+//           SUM(bills.left_amount) as total_pending_amount
+//         FROM resource.bills
 //         JOIN resource.vendors
-//         ON bills.vendor_ID = vendors.vendor_id 
+//         ON bills.vendor_ID = vendors.vendor_id
 //         WHERE vendors.vendor_id = ${vendor.vendor_id}`;
 
 //         await prisma.vendors.update({
@@ -178,11 +228,11 @@ const addBill = async (req, res) => {
 //       let itemData;
 //       for (const item of allItems) {
 //         const itemData = await prisma.$queryRaw`
-//       SELECT SUM(bills.actual_amount) as total_purchase_amount, 
-//                  SUM(bills.quantity) as total_quantity 
-//                  FROM resource.bills 
-//                  JOIN resource.items 
-//                  ON bills.item_id = items.item_id 
+//       SELECT SUM(bills.actual_amount) as total_purchase_amount,
+//                  SUM(bills.quantity) as total_quantity
+//                  FROM resource.bills
+//                  JOIN resource.items
+//                  ON bills.item_id = items.item_id
 //                  WHERE items.item_id = ${item.item_id}`;
 
 //         await prisma.items.update({
@@ -220,7 +270,7 @@ const addBill = async (req, res) => {
 //       );
 //       return res.status(201).json({ searchBill });
 //     }
-    
+
 //     return res.status(200).json({ bills: billData });
 //   } catch (error) {
 //     return res.status(501).json({ error: "failed to fetch the bills!" });
