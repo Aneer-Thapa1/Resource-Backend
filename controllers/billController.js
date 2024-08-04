@@ -120,7 +120,7 @@ const addBill = async (req, res) => {
         data: {
           recent_purchase: newBill.bill_date,
           unit_price: newBill.unit_price,
-          quantity: item.quantity + quantity
+          quantity: parseInt(item.quantity + quantity)
 
         },
       });
