@@ -110,7 +110,7 @@ const addBill = async (req, res) => {
         data: {
           last_purchase_date: newBill.bill_date,
           next_payment_date: payment_day,
-          last_paid: new Date()
+          last_paid: newBill.bill_date
         },
       });
       const updateItem = await prisma.items.update({
