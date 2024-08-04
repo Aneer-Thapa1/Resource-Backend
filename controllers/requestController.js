@@ -83,56 +83,73 @@ const sentRequest = async (req, res) => {
     return res.status(500).json({ error: "Failed to send the request!" });
   }
 };
-
-
-const returnItem = async (req,res)=>{
+const returnItem = async (req, res) => {
   try {
     const id = Number(req.params.id);
 
-    
     const findRequest = await prisma.request.findUnique({
-      where:{
+      where: {
         request_id: id
       }
-    
-    })
-  const itemData = await prisma.items.findUnique({
-    where:{
-      item_id: findRequest.item_id
-    }
-  })    
-  console.log(itemData);
-  const category = await prisma.category.findFirst({
-    where: { category_id: itemData.category_id },
-  });
+    });
 
-  console.log(category);
-  if (!category) {
-    return res.status(404).json({ error: "Category not found!" });
-  }
-
-  let updatedItem;
-    if (category.category_name === "pen") {
-      updatedItem= await prisma.items.update({
-        where: {
-          item_id: itemData.item_id,
-        },
-        data: {
-          quantity: itemData.quantity + findRequest.request_quantity,
-        },
-      });
-      return res.status(404).json({
-        message:"successfuly returned the item !", updatedItem
-      })
-      
+    if (!findRequest) {
+      return res.status(404).json({ error: "Request not found!" });
     }
-    return res.status(500).json({ error: "item not valid for return!" });
+
+    if (findRequest.isReturned) {
+      return res.status(400).json({ error: "Item has already been returned!" });
+    }
+
+    const itemData = await prisma.items.findUnique({
+      where: {
+        item_id: findRequest.item_id
+      }
+    });
+
+    if (!itemData) {
+      return res.status(404).json({ error: "Item not found!" });
+    }
+
+    const category = await prisma.category.findFirst({
+      where: { category_id: itemData.category_id },
+    });
+
+    if (!category) {
+      return res.status(404).json({ error: "Category not found!" });
+    }
+
+    if (category.category_name !== "pen") {
+      return res.status(500).json({ error: "Item not valid for return!" });
+    }
+
+    const updatedItem = await prisma.items.update({
+      where: {
+        item_id: itemData.item_id,
+      },
+      data: {
+        quantity: itemData.quantity + findRequest.request_quantity,
+      },
+    });
+
+    await prisma.request.update({
+      where: {
+        request_id: id
+      },
+      data: {
+        isReturned: true
+      }
+    });
+
+    return res.status(200).json({
+      message: "Successfully returned the item!", updatedItem
+    });
   } catch (error) {
-    
     console.error(error);
     return res.status(500).json({ error: "Failed to send the request!" });
   }
-}
+};
+
 
 const getRequest = async (req, res) => {
   try {
