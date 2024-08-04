@@ -82,7 +82,7 @@ const addBill = async (req, res) => {
         data: {
           bill_no,
           bill_amount: parseFloat(bill_amount),
-          bill_date: new Date(),
+          bill_date: new Date(bill_date),
           TDS: parseFloat(TDS),
           invoice_no,
           actual_amount: calculatedActualAmount,
@@ -120,7 +120,7 @@ const addBill = async (req, res) => {
         data: {
           recent_purchase: newBill.bill_date,
           unit_price: newBill.unit_price,
-          quantity: item.quantity + quantity
+          quantity: parseInt(item.quantity + quantity)
 
         },
       });
