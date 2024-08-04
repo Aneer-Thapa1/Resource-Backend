@@ -104,6 +104,7 @@ model request {
   item_id           Int
   request_date      DateTime @default(now())
   status            String
+   isReturned        Boolean  @default(false)
 }
 
 model category {
