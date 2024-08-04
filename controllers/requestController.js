@@ -48,6 +48,19 @@ const sentRequest = async (req, res) => {
         },
       });
 
+      const category = await prisma.category.findFirst({
+        where:{
+          category_id : itemData.category_id
+        }
+
+      })
+      console.log(category.category_name);
+
+
+     
+
+
+
       // Send message and data to admin via Socket.io
       const io = getIo();
       io.emit("newRequest", {
@@ -55,18 +68,19 @@ const sentRequest = async (req, res) => {
       });
 
       if (status === "accept") {
-        console.log("accepted item");
-        
-        const updateItem = await prisma.items.update({
-          where: {
-            item_id: requestData.item_id,
-          },
-          data: {
-            quantity: itemData.quantity - requestData.request_quantity,
-          },
-        });
+        if(category.category_name === "subin" ){
+          console.log("Return able");
+        }
+        // const updateItem = await prisma.items.update({
+        //   where: {
+        //     item_id: requestData.item_id,
+        //   },
+        //   data: {
+        //     quantity: itemData.quantity - requestData.request_quantity,
+        //   },
+        // });
 
-        return { requestData, updateItem, notifyMessage };
+        // return { requestData, updateItem, notifyMessage };
       }
       
      
