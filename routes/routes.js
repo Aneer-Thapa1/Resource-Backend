@@ -47,7 +47,7 @@ router.delete("/deleteItemCategory/:id", itemCategoryController.deleteItemCatego
 router.post("/addBill", billController.addBill);
 router.get("/bill", billController.getBill);
 router.get("/singleBill/:bill_id", billController.getBillById);
-// router.put("/updateBill/:id", authMiddleware(), billController.updateBill);
+router.put("/updateBill/:id", authMiddleware(), billController.updateBill);
 
 // Request routes
 router.post("/addRequest", authMiddleware(), requestController.sentRequest);
