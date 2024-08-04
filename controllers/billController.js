@@ -119,7 +119,9 @@ const addBill = async (req, res) => {
         },
         data: {
           recent_purchase: newBill.bill_date,
-          unit_price: newBill.unit_price
+          unit_price: newBill.unit_price,
+          quantity: item.quantity + quantity
+
         },
       });
 
@@ -131,6 +133,7 @@ const addBill = async (req, res) => {
     return res.status(400).json({ error: "Failed to add the bill!" });
   }
 };
+
 
 const updateBill = async (req, res) => {
   try {
@@ -157,13 +160,30 @@ const updateBill = async (req, res) => {
       return res.status(404).json({ error: "Vendor not found!" });
     }
 
-    // Find the item by name
-    const item = await prisma.items.findFirst({
+    // Find the existing bill
+    const existingBill = await prisma.bills.findUnique({
+      where: { bill_ID: id },
+    });
+
+    if (!existingBill) {
+      return res.status(404).json({ error: "Bill not found!" });
+    }
+
+    // Find the existing item and new item by name
+    const existingItem = await prisma.items.findFirst({
+      where: { item_id: existingBill.item_id },
+    });
+
+    if (!existingItem) {
+      return res.status(404).json({ error: "Existing item not found!" });
+    }
+
+    const newItem = await prisma.items.findFirst({
       where: { item_name },
     });
 
-    if (!item) {
-      return res.status(404).json({ error: "Item not found!" });
+    if (!newItem) {
+      return res.status(404).json({ error: "New item not found!" });
     }
 
     // TDS Calculation
@@ -198,7 +218,6 @@ const updateBill = async (req, res) => {
       const updatedBill = await prisma.bills.update({
         where: { bill_ID: id },
         data: {
-          // entry_date:new Date(),
           bill_no,
           bill_amount: parseFloat(bill_amount),
           bill_date: new Date(bill_date),
@@ -210,7 +229,7 @@ const updateBill = async (req, res) => {
           left_amount: parseFloat(left_amount),
           unit_price: parseFloat(unit_price),
           vendor_ID: vendor.vendor_id,
-          item_id: item.item_id,
+          item_id: newItem.item_id,
         },
       });
 
@@ -231,13 +250,37 @@ const updateBill = async (req, res) => {
         },
       });
 
-      await prisma.items.update({
-        where: { item_id: item.item_id },
-        data: {
-          recent_purchase: updatedBill.bill_date,
-          unit_price: updatedBill.unit_price,
-        },
-      });
+      // Update the quantities for the old and new items
+      const quantityDifference = parseInt(quantity) - existingBill.quantity;
+      
+      // If the item has changed, update both old and new item quantities
+      if (existingItem.item_id !== newItem.item_id) {
+        await prisma.items.update({
+          where: { item_id: existingItem.item_id },
+          data: {
+            quantity: existingItem.quantity - existingBill.quantity,
+          },
+        });
+
+        await prisma.items.update({
+          where: { item_id: newItem.item_id },
+          data: {
+            recent_purchase: updatedBill.bill_date,
+            unit_price: updatedBill.unit_price,
+            quantity: newItem.quantity + parseInt(quantity),
+          },
+        });
+      } else {
+        // If the item has not changed, just update its quantity
+        await prisma.items.update({
+          where: { item_id: newItem.item_id },
+          data: {
+            recent_purchase: updatedBill.bill_date,
+            unit_price: updatedBill.unit_price,
+            quantity: newItem.quantity + quantityDifference,
+          },
+        });
+      }
 
       return updatedBill;
     });
@@ -248,6 +291,7 @@ const updateBill = async (req, res) => {
     return res.status(400).json({ error: "Failed to update the bill!" });
   }
 };
+
 
   
   const getBill = async (req, res) => {

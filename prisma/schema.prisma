@@ -63,19 +63,20 @@ model feature {
 }
 
 model items {
-  item_id             Int               @id @default(autoincrement())
-  item_name           String?           @db.VarChar(255)
-  measuring_unit      String?           @db.VarChar(50)
-  low_limit           Int?
-  recent_purchase     DateTime?
-  unit_price          Int?
-  Status              Boolean?
-  category            category?         @relation(fields: [category_id], references: [category_id])
-  category_id         Int?
-  itemCategory        itemCategory?     @relation(fields: [item_category_id], references: [item_category_id])
-  item_category_id    Int?
-  
-  itemsOnFeatures     itemsOnFeatures[]
+  item_id          Int           @id @default(autoincrement())
+  item_name        String?       @db.VarChar(255)
+  measuring_unit   String?       @db.VarChar(50)
+  quantity         Int?
+  low_limit        Int?
+  recent_purchase  DateTime?
+  unit_price       Int?
+  Status           Boolean?
+  category         category?     @relation(fields: [category_id], references: [category_id])
+  category_id      Int?
+  itemCategory     itemCategory? @relation(fields: [item_category_id], references: [item_category_id])
+  item_category_id Int?
+
+  itemsOnFeatures itemsOnFeatures[]
 
   bills bills[]
 
