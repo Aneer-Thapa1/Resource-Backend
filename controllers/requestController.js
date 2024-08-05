@@ -32,7 +32,7 @@ const sentRequest = async (req, res) => {
           item_id: itemData.item_id,
           purpose: purpose,
           request_date: new Date(),
-          status: status,
+          status: "pending",
         },
         include: {
           item: true,
@@ -98,7 +98,7 @@ const returnItem = async (req, res) => {
     }
 
     if (findRequest.isReturned) {
-      return res.status(400).json({ error: "Item has already been returned!" });
+      return res.status(400).json({ message: "Item has already been returned!" });
     }
 
     const itemData = await prisma.items.findUnique({
