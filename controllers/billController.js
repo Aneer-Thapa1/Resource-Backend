@@ -15,6 +15,8 @@ const addBill = async (req, res) => {
       unit_price,
     } = req.body;
 
+    console.log(quantity);
+
     // Find the vendor by vat number
     const vendor = await prisma.vendors.findFirst({
       where: {
@@ -28,6 +30,7 @@ const addBill = async (req, res) => {
       },
     });
 
+    console.log(item);
     if (!item) {
       return res.status(404).json({ error: "Item not found!" });
     }
@@ -35,27 +38,23 @@ const addBill = async (req, res) => {
     if (!vendor) {
       return res.status(404).json({ error: "VAT Number is not found !" });
     }
-      
-      // TDS Calculation
-      const calculateTDS = (amount, TDS) => {
-        let tdsValue = 0;
-        if (TDS === 1.5) {
-          tdsValue = (amount / 1.13) * 0.015;
-          console.log("1.5");
-        } else if (TDS === 10) {
-          tdsValue = amount * 0.1;
-        } else if (TDS === 15) {
-          tdsValue = amount * 0.1;
-        } else {
-        return res
-          .status(500)
-          .json({
-            error:
-            "Invalid TDS percentage!"
-          });
 
+    // TDS Calculation
+    const calculateTDS = (amount, TDS) => {
+      let tdsValue = 0;
+      if (TDS === 1.5) {
+        tdsValue = (amount / 1.13) * 0.015;
+        console.log("1.5");
+      } else if (TDS === 10) {
+        tdsValue = amount * 0.1;
+      } else if (TDS === 15) {
+        tdsValue = amount * 0.1;
+      } else {
+        return res.status(500).json({
+          error: "Invalid TDS percentage!",
+        });
       }
-      return amount - tdsValue;
+      return amount + tdsValue;
     };
 
     const calculatedActualAmount = calculateTDS(
@@ -63,18 +62,16 @@ const addBill = async (req, res) => {
       parseFloat(TDS)
     );
 
-     // Calculate the left_amount
-     let left_amount;
-     if (calculatedActualAmount >= paid_amount) {
-       left_amount = calculatedActualAmount - paid_amount;
-     } else {
-       return res
-         .status(404)
-         .json({
-           error:
-             "Paid amount cannot be greater than or equal to actual amount! !",
-         });
-       }
+    // Calculate the left_amount
+    let left_amount;
+    if (calculatedActualAmount >= paid_amount) {
+      left_amount = calculatedActualAmount - paid_amount;
+    } else {
+      return res.status(404).json({
+        error:
+          "Paid amount cannot be greater than or equal to actual amount! !",
+      });
+    }
 
     // Create the bill
     const result = await prisma.$transaction(async (prisma) => {
@@ -110,7 +107,7 @@ const addBill = async (req, res) => {
         data: {
           last_purchase_date: newBill.bill_date,
           next_payment_date: payment_day,
-          last_paid: newBill.bill_date
+          last_paid: newBill.bill_date,
         },
       });
       const updateItem = await prisma.items.update({
@@ -120,20 +117,19 @@ const addBill = async (req, res) => {
         data: {
           recent_purchase: newBill.bill_date,
           unit_price: newBill.unit_price,
-          quantity: parseInt(item.quantity + quantity)
-
+          quantity: parseInt(item.quantity + parseInt(quantity)),
         },
       });
 
-      return { newBill, updateVendor,updateItem };
+      return { newBill, updateVendor, updateItem };
     });
+
     return res.status(201).json({ result });
   } catch (error) {
     console.error(error);
     return res.status(400).json({ error: "Failed to add the bill!" });
   }
 };
-
 
 const updateBill = async (req, res) => {
   try {
@@ -201,7 +197,10 @@ const updateBill = async (req, res) => {
       return amount - tdsValue;
     };
 
-    const calculatedActualAmount = calculateTDS(parseFloat(bill_amount), parseFloat(TDS));
+    const calculatedActualAmount = calculateTDS(
+      parseFloat(bill_amount),
+      parseFloat(TDS)
+    );
 
     // Calculate the left_amount
     let left_amount;
@@ -252,7 +251,7 @@ const updateBill = async (req, res) => {
 
       // Update the quantities for the old and new items
       const quantityDifference = parseInt(quantity) - existingBill.quantity;
-      
+
       // If the item has changed, update both old and new item quantities
       if (existingItem.item_id !== newItem.item_id) {
         await prisma.items.update({
@@ -292,12 +291,10 @@ const updateBill = async (req, res) => {
   }
 };
 
-
-  
-  const getBill = async (req, res) => {
-    try {
-      const billData = await prisma.bills.findMany({
-        include: {
+const getBill = async (req, res) => {
+  try {
+    const billData = await prisma.bills.findMany({
+      include: {
         vendors: true,
         items: true,
       },
@@ -325,7 +322,7 @@ const getBillById = async (req, res) => {
       },
       include: {
         vendors: true,
-        items: true
+        items: true,
       },
     });
 
