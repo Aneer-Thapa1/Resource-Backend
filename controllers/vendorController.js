@@ -50,7 +50,7 @@ const updateVendor = async (req, res) => {
       data: {
         vendor_name,
         vat_number,
-        vendor_contact: parseInt(vendor_contact),
+        vendor_contact: vendor_contact,
       },
     });
     return res
