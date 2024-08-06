@@ -4,8 +4,6 @@ CREATE TABLE `vendors` (
     `vendor_name` VARCHAR(255) NULL,
     `vat_number` VARCHAR(255) NULL,
     `vendor_contact` INTEGER NULL,
-    `total_payment` FLOAT NULL,
-    `pending_payment` FLOAT NULL,
     `last_purchase_date` DATE NULL,
     `last_paid` DATE NULL,
     `payment_duration` INTEGER NULL,
@@ -64,7 +62,6 @@ CREATE TABLE `items` (
     `item_id` INTEGER NOT NULL AUTO_INCREMENT,
     `item_name` VARCHAR(255) NULL,
     `measuring_unit` VARCHAR(50) NULL,
-    `total_purchased` INTEGER NULL,
     `quantity` INTEGER NULL,
     `low_limit` INTEGER NULL,
     `recent_purchase` DATETIME(3) NULL,
@@ -72,7 +69,6 @@ CREATE TABLE `items` (
     `Status` BOOLEAN NULL,
     `category_id` INTEGER NULL,
     `item_category_id` INTEGER NULL,
-    `product_category_id` INTEGER NULL,
 
     PRIMARY KEY (`item_id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -96,6 +92,7 @@ CREATE TABLE `request` (
     `item_id` INTEGER NOT NULL,
     `request_date` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `status` VARCHAR(191) NOT NULL,
+    `isReturned` BOOLEAN NOT NULL DEFAULT false,
 
     PRIMARY KEY (`request_id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -116,15 +113,6 @@ CREATE TABLE `itemCategory` (
 
     UNIQUE INDEX `itemCategory_item_category_name_key`(`item_category_name`),
     PRIMARY KEY (`item_category_id`)
-) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-
--- CreateTable
-CREATE TABLE `productCategory` (
-    `product_category_id` INTEGER NOT NULL AUTO_INCREMENT,
-    `product_category_name` VARCHAR(191) NOT NULL,
-
-    UNIQUE INDEX `productCategory_product_category_name_key`(`product_category_name`),
-    PRIMARY KEY (`product_category_id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
@@ -149,9 +137,6 @@ ALTER TABLE `items` ADD CONSTRAINT `items_category_id_fkey` FOREIGN KEY (`catego
 
 -- AddForeignKey
 ALTER TABLE `items` ADD CONSTRAINT `items_item_category_id_fkey` FOREIGN KEY (`item_category_id`) REFERENCES `itemCategory`(`item_category_id`) ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE `items` ADD CONSTRAINT `items_product_category_id_fkey` FOREIGN KEY (`product_category_id`) REFERENCES `productCategory`(`product_category_id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `itemsOnFeatures` ADD CONSTRAINT `itemsOnFeatures_item_id_fkey` FOREIGN KEY (`item_id`) REFERENCES `items`(`item_id`) ON DELETE RESTRICT ON UPDATE CASCADE;

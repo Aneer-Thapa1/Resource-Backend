@@ -68,15 +68,18 @@ const sentRequest = async (req, res) => {
         });
       }
 
-     
-
       return { requestData, notifyMessage, updateItem };
     });
 
     if (result.updateItem) {
-      return res.status(200).json({ message: "Successfully requested and updated the items", result });
+      return res.status(200).json({
+        message: "Successfully requested and updated the items",
+        result,
+      });
     } else {
-      return res.status(200).json({ message: "Successfully requested the items", result });
+      return res
+        .status(200)
+        .json({ message: "Successfully requested the items", result });
     }
   } catch (error) {
     console.error(error);
@@ -89,8 +92,8 @@ const returnItem = async (req, res) => {
 
     const findRequest = await prisma.request.findUnique({
       where: {
-        request_id: id
-      }
+        request_id: id,
+      },
     });
 
     if (!findRequest) {
@@ -98,13 +101,15 @@ const returnItem = async (req, res) => {
     }
 
     if (findRequest.isReturned) {
-      return res.status(400).json({ message: "Item has already been returned!" });
+      return res
+        .status(400)
+        .json({ message: "Item has already been returned!" });
     }
 
     const itemData = await prisma.items.findUnique({
       where: {
-        item_id: findRequest.item_id
-      }
+        item_id: findRequest.item_id,
+      },
     });
 
     if (!itemData) {
@@ -134,22 +139,22 @@ const returnItem = async (req, res) => {
 
     await prisma.request.update({
       where: {
-        request_id: id
+        request_id: id,
       },
       data: {
-        isReturned: true
-      }
+        isReturned: true,
+      },
     });
 
     return res.status(200).json({
-      message: "Successfully returned the item!", updatedItem
+      message: "Successfully returned the item!",
+      updatedItem,
     });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ error: "Failed to send the request!" });
   }
 };
-
 
 const getRequest = async (req, res) => {
   try {
