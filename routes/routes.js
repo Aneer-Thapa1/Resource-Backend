@@ -12,6 +12,9 @@ const requestController = require("../controllers/requestController");
 const userController = require("../controllers/userController");
 const featureController = require("../controllers/featureContoller");
 const NotiController = require("../controllers/notificationController");
+const chatController = require("../controllers/chatController"); 
+const messageController = require("../controllers/messageController"); 
+
 
 // Authentication routes
 router.post("/signup", authController.signup);
@@ -56,6 +59,7 @@ router.put("/returnRequest/:id", requestController.returnItem);
 
 // User routes
 router.get("/allUsers", authMiddleware(), userController.getUser);
+router.get("/activeUsers", authMiddleware(), userController.activeUser);
 
 // Feature routes
 router.post("/addFeature", authMiddleware(), featureController.addFeature);
@@ -67,5 +71,14 @@ router.get("/notificaiton", authMiddleware(), NotiController.getNotification);
 router.put("/updateNotification/:id", authMiddleware(), NotiController.updateNotification);
 router.put("/updateNotification", NotiController.updateNotification);
 router.put("/singleNotification/:id", NotiController.singleUpdateNotification);
+
+//chats 
+router.post("/chat", chatController.createChat);
+router.get("/chat/:userId", chatController.findUserChats);
+router.get("/chat/find/:firstId/:secondId", chatController.findChat);
+
+//message
+router.post('/messages', messageController.createMessage);
+router.get('/messages/:chatId', messageController.getMessage);
 
 module.exports = router;
