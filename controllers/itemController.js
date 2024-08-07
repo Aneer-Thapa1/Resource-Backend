@@ -26,7 +26,7 @@ const addItem = async (req, res) => {
     }
 
     // Process features: convert key-value pairs into feature records
-    const featureEntries = Object.entries(features); // Convert features object to an array of [key, value] pairs
+    const featureEntries = Object.entries(features); 
     const featureRecords = await Promise.all(
       featureEntries.map(async ([featureKey, featureValue]) => {
         let featureRecord = await prisma.feature.findFirst({
