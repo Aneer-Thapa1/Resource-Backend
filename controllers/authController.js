@@ -83,6 +83,15 @@ const login = async (req, res) => {
       expiresIn: maxAge,
     });
 
+    const userData = {
+      user_id: user.user_id,
+      user_name: user.user_name,
+      user_email: user.user_email,
+      user_role: user.role,
+    };
+
+    console.log(userData);
+
     // Send token in response
     res
       .cookie("token", token, {
@@ -97,7 +106,7 @@ const login = async (req, res) => {
         message: "User logged in successfully",
         token: token,
         role: user.role,
-        user_name: user.user_name,
+        user: userData,
       });
   } catch (error) {
     console.error(error);
