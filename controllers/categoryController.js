@@ -26,8 +26,9 @@ const addCategory = async (req, res) => {
 
     if (existingCategory) {
       const upperCategory = category_name.toUpperCase();
-      const upperExistingCategory = existingCategory.category_name.toUpperCase();
-      
+      const upperExistingCategory =
+        existingCategory.category_name.toUpperCase();
+
       if (upperExistingCategory === upperCategory) {
         return res.status(400).json({ error: "Category already exists!" });
       }
@@ -35,7 +36,7 @@ const addCategory = async (req, res) => {
 
     const addData = await prisma.category.create({
       data: {
-        category_name: category_name
+        category_name: category_name,
       },
     });
 
@@ -43,7 +44,7 @@ const addCategory = async (req, res) => {
       .status(201)
       .json({ message: "Successfully added the category", addData });
   } catch (error) {
-    console.log(error)
+    console.log(error);
     return res.status(500).json({ error: "Failed to add the category!" });
   }
 };
