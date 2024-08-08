@@ -125,7 +125,7 @@ const addBill = async (req, res) => {
       return { newBill, updateVendor, updateItem };
     });
 
-    return res.status(201).json({ result });
+    return res.status(201).json({ message: "Bill added successfully", result });
   } catch (error) {
     console.error(error);
     return res.status(400).json({ error: "Failed to add the bill!" });
