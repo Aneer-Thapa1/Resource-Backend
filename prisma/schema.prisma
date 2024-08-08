@@ -42,16 +42,16 @@ model bills {
 }
 
 model users {
-  user_id    Int       @id @default(autoincrement())
-  user_name  String    @db.VarChar(95)
-  user_email String    @unique @db.VarChar(65)
-  password   String    @db.VarChar(255)
-  role       String    @default("user")
-  otp        String?
-  otp_expiry DateTime?
-  department String?   @db.VarChar(100)
-  status    Boolean
-  request request[]
+  user_id      Int            @id @default(autoincrement())
+  user_name    String         @db.VarChar(95)
+  user_email   String         @unique @db.VarChar(65)
+  password     String         @db.VarChar(255)
+  role         String         @default("user")
+  otp          String?
+  otp_expiry   DateTime?
+  department   String?        @db.VarChar(100)
+  status       Boolean
+  request      request[]
   notification notification[]
 }
 
@@ -126,19 +126,20 @@ model notification {
   user_id         Int
   created_at      DateTime @default(now())
 }
+
 model Chat {
-  id        Int      @id @default(autoincrement())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id        Int          @id @default(autoincrement())
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
   members   ChatMember[]
-  Message Message[]
+  Message   Message[]
 }
 
 model ChatMember {
-  id     Int    @id @default(autoincrement())
-  chatId Int
+  id       Int    @id @default(autoincrement())
+  chatId   Int
   memberId String
-  Chat   Chat   @relation(fields: [chatId], references: [id])
+  Chat     Chat   @relation(fields: [chatId], references: [id])
 
   @@unique([chatId, memberId])
 }
@@ -152,4 +153,12 @@ model Message {
   updatedAt DateTime @updatedAt
 
   Chat Chat @relation(fields: [chatId], references: [id])
+}
+
+model userPool {
+  userPoolId Int     @id @default(autoincrement())
+  user_name  String
+  user_email String  @unique
+  department String
+  status     Boolean
 }
