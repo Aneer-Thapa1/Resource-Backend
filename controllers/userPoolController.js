@@ -15,6 +15,11 @@ const addUser = async (req, res) => {
       },
     });
 
+    const regex = /@iic\.edu\.np$/;
+    if (!regex.test(user_email)) {
+      return res.status(400).json({ error: "Email is invalid!" });
+    }
+
     if (existingUser) {
       return res
         .status(409)
