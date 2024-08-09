@@ -11,7 +11,7 @@ model vendors {
   vendor_id          Int       @id @default(autoincrement())
   vendor_name        String?   @db.VarChar(255)
   vat_number         String?   @db.VarChar(255)
-  vendor_contact     String?
+  vendor_contact     Int?
   last_purchase_date DateTime? @db.Date
   last_paid          DateTime? @db.Date
   payment_duration   Int?
@@ -42,7 +42,6 @@ model bills {
 }
 
 model users {
-
   user_id         Int            @id @default(autoincrement())
   user_name       String         @db.VarChar(95)
   user_email      String         @unique @db.VarChar(65)
@@ -128,6 +127,7 @@ model notification {
   user_id         Int
   created_at      DateTime @default(now())
 }
+
 
 model Conversation {
   id            Int           @id @default(autoincrement())
