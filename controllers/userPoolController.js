@@ -33,7 +33,7 @@ const addUser = async (req, res) => {
 
     return res
       .status(201)
-      .json({ message: "User added successfully!", user: addNewUser });
+      .json({ message: "User added successfully!", addNewUser });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ error: "Something went wrong!" });

@@ -3,33 +3,29 @@ const prisma = require("../prismaClient");
 // Function to add a new item category
 const addItemCategory = async (req, res) => {
   try {
-
-
     // Extract item_category_name from the request body
     const { item_category_name } = req.body;
 
-     // Check if item_category_name is provided
+    // Check if item_category_name is provided
     if (!item_category_name) {
       return res.status(501).json({ error: "Provide the necessary data!" });
     }
-
 
     // Check if the item category already exists in the database
     const existingItemCategory = await prisma.itemCategory.findUnique({
       where: { item_category_name },
     });
 
-
     // Compare item category names in uppercase to handle case sensitivity
     if (existingItemCategory) {
       const upperCategory = item_category_name.toUpperCase();
-      const upperExistingCategory = existingItemCategory.item_category_name.toUpperCase();
-      
+      const upperExistingCategory =
+        existingItemCategory.item_category_name.toUpperCase();
+
       if (upperExistingCategory === upperCategory) {
         return res.status(400).json({ error: "Item category already exists!" });
       }
     }
-  
 
     // Create a new item category if it does not exist
     const addData = await prisma.itemCategory.create({
@@ -37,7 +33,9 @@ const addItemCategory = async (req, res) => {
         item_category_name: item_category_name,
       },
     });
-    return res.status(201).json({ message: "Successfully added the category!", addData });
+    return res
+      .status(201)
+      .json({ message: "Successfully added the category!", addData });
   } catch (error) {
     console.log(error);
     return res.status(501).json({ error: "Failed to add the item category" });
@@ -73,8 +71,7 @@ const deleteItemCategory = async (req, res) => {
       .status(200)
       .json({ message: "successfully deleted the item category !" });
   } catch (error) {
-
-     // Return error response if an exception occurs
+    // Return error response if an exception occurs
     return res.status(501).json({ error: "failed to delete the category !" });
   }
 };
