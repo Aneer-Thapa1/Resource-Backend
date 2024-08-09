@@ -25,7 +25,7 @@ const adminMiddleware = async (req, res, next) => {
     // Attach user object to the request for further use
     req.user = user;
     // Check if the user is an admin
-    if (user.role === "admin") {
+    if (user.role === "admin" || user.role == "superadmin") {
       next();
     } else {
       return res.status(403).json({ message: "Unauthorized access" });

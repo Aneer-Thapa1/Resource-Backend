@@ -21,7 +21,12 @@ router.post("/login", authController.login);
 router.post("/logout", authController.logout);
 
 // Vendor routes
-router.post("/addVendor", authMiddleware(), adminMiddleware, vendorController.addVendor);
+router.post(
+  "/addVendor",
+  authMiddleware(),
+  adminMiddleware,
+  vendorController.addVendor
+);
 router.delete("/deleteVendor/:id", vendorController.deleteVendor);
 router.get("/vendor", authMiddleware(), vendorController.getAllVendors);
 router.get("/vendor/:vat", vendorController.getVendorsByID);
@@ -43,7 +48,10 @@ router.delete("/deleteCategory/:id", categoryController.deleteCategory);
 // Item Category routes
 router.post("/addItemCategory", itemCategoryController.addItemCategory);
 router.get("/itemCategory", itemCategoryController.getItemCategory);
-router.delete("/deleteItemCategory/:id", itemCategoryController.deleteItemCategory);
+router.delete(
+  "/deleteItemCategory/:id",
+  itemCategoryController.deleteItemCategory
+);
 
 // Bill routes
 router.post("/addBill", billController.addBill);
@@ -57,17 +65,26 @@ router.get("/request", authMiddleware(), requestController.getRequest);
 router.put("/returnRequest/:id", requestController.returnItem);
 
 // User routes
-router.get("/allUsers", authMiddleware(), userController.getUser);
+router.post("/addUser", userPoolController.addUser);
+router.get("/allUsers", userPoolController.getAllUsers);
 router.get("/activeUsers", authMiddleware(), userController.activeUser);
 
 // Feature routes
 router.post("/addFeature", authMiddleware(), featureController.addFeature);
 router.get("/feature", authMiddleware(), featureController.getFeature);
-router.delete("/deleteFeature/:id", authMiddleware(), featureController.deleteFeature);
+router.delete(
+  "/deleteFeature/:id",
+  authMiddleware(),
+  featureController.deleteFeature
+);
 
 // Feature routes
 router.get("/notificaiton", authMiddleware(), NotiController.getNotification);
-router.put("/updateNotification/:id", authMiddleware(), NotiController.updateNotification);
+router.put(
+  "/updateNotification/:id",
+  authMiddleware(),
+  NotiController.updateNotification
+);
 router.put("/updateNotification", NotiController.updateNotification);
 router.put("/singleNotification/:id", NotiController.singleUpdateNotification);
 

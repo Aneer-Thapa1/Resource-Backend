@@ -11,7 +11,7 @@ model vendors {
   vendor_id          Int       @id @default(autoincrement())
   vendor_name        String?   @db.VarChar(255)
   vat_number         String?   @db.VarChar(255)
-  vendor_contact     Int?
+  vendor_contact     String?
   last_purchase_date DateTime? @db.Date
   last_paid          DateTime? @db.Date
   payment_duration   Int?
@@ -42,6 +42,7 @@ model bills {
 }
 
 model users {
+
   user_id         Int            @id @default(autoincrement())
   user_name       String         @db.VarChar(95)
   user_email      String         @unique @db.VarChar(65)
@@ -128,7 +129,6 @@ model notification {
   created_at      DateTime @default(now())
 }
 
-
 model Conversation {
   id            Int           @id @default(autoincrement())
   participants  ConversationParticipant[]
@@ -154,4 +154,12 @@ model Message {
   updatedAt  DateTime @updatedAt
   conversation Conversation @relation(fields: [conversationId], references: [id])
   conversationId Int
+}
+
+model userPool {
+  userPoolId Int     @id @default(autoincrement())
+  user_name  String
+  user_email String  @unique
+  department String
+  status     Boolean
 }
