@@ -2,8 +2,14 @@ const prisma = require("../prismaClient");
 
 // createing the vendor
 const addVendor = async (req, res) => {
-  const { vendor_name, vat_number, vendor_contact, payment_duration } =
-    req.body;
+  const {
+    vendor_name,
+    vat_number,
+    vendor_contact,
+    vendor_profile,
+    payment_duration,
+    categories,
+  } = req.body;
   if (!vendor_name || !vat_number || !vendor_contact) {
     return res
       .status(400)
@@ -25,8 +31,10 @@ const addVendor = async (req, res) => {
       data: {
         vendor_name,
         vat_number,
+        vendor_profile,
         vendor_contact: vendor_contact,
         payment_duration: parseInt(payment_duration),
+        categories,
       },
     });
     return res
