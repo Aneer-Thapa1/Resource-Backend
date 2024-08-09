@@ -9,13 +9,10 @@ const getUser = async (req, res) => {
     return res.status(500).json({ error: "Failed to get all the users !" });
   }
 };
+
 const activeUser = async (req, res) => {
   try {
-    const user = await prisma.users.findMany({
-      where: {
-        status: true,
-      },
-    });
+    const user = await prisma.users.findMany({});
     return res.status(200).json({ user });
   } catch (error) {
     console.log(error);

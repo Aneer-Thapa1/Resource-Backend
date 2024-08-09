@@ -39,7 +39,16 @@ const signup = async (req, res) => {
         user_name,
         user_email,
         password: hashedPassword,
-        status: false,
+      },
+    });
+
+    // Create new user
+    const addNewUser = await prisma.userPool.create({
+      data: {
+        user_name: user_name,
+        user_email: user_email,
+        department: "Resourse",
+        status: true,
       },
     });
 
