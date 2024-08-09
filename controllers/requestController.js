@@ -4,7 +4,7 @@ const { getIo } = require("../socket");
 const sentRequest = async (req, res) => {
   try {
     const userId = req.user.id;
-    const { item_name, quantity, purpose, state, status } = req.body;
+    const { item_name, quantity, purpose } = req.body;
 
     const user = await prisma.users.findUnique({
       where: { user_id: userId },
@@ -54,19 +54,19 @@ const sentRequest = async (req, res) => {
         message: notifyMessage,
       });
 
-      let updateItem;
-      let deductItem;
+      // let updateItem;
+      // let deductItem;
 
-      if (status === "accept") {
-        updateItem = await prisma.items.update({
-          where: {
-            item_id: requestData.item_id,
-          },
-          data: {
-            quantity: itemData.quantity - requestData.request_quantity,
-          },
-        });
-      }
+      // if (status === "accept") {
+      //   updateItem = await prisma.items.update({
+      //     where: {
+      //       item_id: requestData.item_id,
+      //     },
+      //     data: {
+      //       quantity: itemData.quantity - requestData.request_quantity,
+      //     },
+      //   });
+      // }
 
       return { requestData, notifyMessage, updateItem };
     });
