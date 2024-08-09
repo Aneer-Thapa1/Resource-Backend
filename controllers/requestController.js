@@ -86,6 +86,7 @@ const sentRequest = async (req, res) => {
     return res.status(500).json({ error: "Failed to send the request!" });
   }
 };
+
 const returnItem = async (req, res) => {
   try {
     const id = Number(req.params.id);
