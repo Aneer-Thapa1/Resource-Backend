@@ -6,6 +6,12 @@ const sentRequest = async (req, res) => {
     const userId = req.user.id;
     const { item_name, quantity, purpose } = req.body;
 
+    if (!item_name || !quantity || !purpose) {
+      return res.status(400).json({
+        error: "All fields are required !"
+      });
+    }
+
     const user = await prisma.users.findUnique({
       where: { user_id: userId },
       select: { user_name: true, department: true },

@@ -10,6 +10,12 @@ const addItem = async (req, res) => {
       low_limit,
     } = req.body;
 
+    if (!item_name || !measuring_unit || !category || !itemCategory || !features || !low_limit) {
+      return res.status(400).json({
+        error: "All fields are required !"
+      });
+    }
+
     const categoryRecord = await prisma.category.findUnique({
       where: { category_name: category },
     });
