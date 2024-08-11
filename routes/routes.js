@@ -67,7 +67,12 @@ router.put("/returnRequest/:id", requestController.returnItem);
 // User routes
 router.post("/addUser", userPoolController.addUser);
 router.get("/allUsers", userPoolController.getAllUsers);
-router.get("/activeUsers", authMiddleware(), userController.activeUser);
+router.get("/activeUsers/", authMiddleware(), userController.activeUser);
+router.post(
+  "/setUserActive/:id",
+  // authMiddleware(),
+  userPoolController.setUserActive
+);
 
 // Feature routes
 router.post("/addFeature", authMiddleware(), featureController.addFeature);

@@ -110,7 +110,9 @@ const getAllVendors = async (req, res) => {
       })
     );
 
-    return res.status(201).json({ vendor: vendorsWithTotalPayment });
+    return res.status(201).json({
+      vendor: vendorsWithTotalPayment,
+    });
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }
