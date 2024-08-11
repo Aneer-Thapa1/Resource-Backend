@@ -13,8 +13,8 @@ const userController = require("../controllers/userController");
 const userPoolController = require("../controllers/userPoolController");
 const featureController = require("../controllers/featureContoller");
 const NotiController = require("../controllers/notificationController");
-const messageController = require("../controllers/messagesController"); 
-
+const messageController = require("../controllers/messagesController");
+const userPoolController = require("../controllers/userPoolController");
 
 // Authentication routes
 router.post("/signup", authController.signup);
@@ -94,10 +94,13 @@ router.put(
 router.put("/updateNotification", NotiController.updateNotification);
 router.put("/singleNotification/:id", NotiController.singleUpdateNotification);
 
-
 //message
 
-router.get('/messages/:id',authMiddleware() ,messageController.getMessages);
-router.post('/messages/send/:id', authMiddleware(),messageController.sendMessage);
+router.get("/messages/:id", authMiddleware(), messageController.getMessages);
+router.post(
+  "/messages/send/:id",
+  authMiddleware(),
+  messageController.sendMessage
+);
 
 module.exports = router;

@@ -1,6 +1,7 @@
 const prisma = require("../prismaClient");
 const bcrypt = require("bcrypt");
 const transporter = require("../config/nodeMailerConfig");
+const { getIo } = require("../socket");
 
 const addUser = async (req, res) => {
   const { user_name, user_email, department } = req.body;
@@ -63,8 +64,7 @@ const setUserActive = async (req, res) => {
   try {
     const user_id = req.params.id;
 
-    console.log(user_id);
-
+    // Find the user in userPool
     const checkUser = await prisma.userPool.findUnique({
       where: {
         userPoolId: Number(user_id),
@@ -75,7 +75,8 @@ const setUserActive = async (req, res) => {
       return res.status(404).json({ error: "User not found!" });
     }
 
-    const updateStatus = await prisma.userPool.update({
+    // Update user status in userPool
+    const updatedUser = await prisma.userPool.update({
       where: {
         userPoolId: Number(user_id),
       },
@@ -84,76 +85,92 @@ const setUserActive = async (req, res) => {
       },
     });
 
-    const password = "resource@2024";
-    const hashedPassword = await bcrypt.hash(password, 10);
+    // Generate hashed password
+    const defaultPassword = "resource@2024";
+    const hashedPassword = await bcrypt.hash(defaultPassword, 10);
 
-    const user = {
-      user_name: checkUser.user_name,
-      user_email: checkUser.user_email,
-      password: hashedPassword,
-      role: "user",
-      status: false,
-    };
-
-    const signupUser = await prisma.users.create({
+    // Create new user in 'users' table
+    const newUser = await prisma.users.create({
       data: {
         user_name: checkUser.user_name,
         user_email: checkUser.user_email,
         password: hashedPassword,
         role: "user",
-        status: false,
+        status: false, // Assuming 'status' is required in the schema
       },
     });
 
+    const userDetails = {
+      user_name: checkUser.user_name,
+      user_email: checkUser.user_email,
+      role: "user",
+    };
+
+    // Send email to the user
     const info = await transporter.sendMail({
-      from: "RTE Department <habit234pulse@gmail.com>",
-      to: user.user_email,
+      from: "Studet Service Department <habit234pulse@gmail.com>",
+      // to: userDetails.user_email,
+      to: `bantawasubin@gmail.com`,
       subject: "Important Notice!",
-      // text: "Hello world?",
       html: `
-      <p>Dear Shrey,</p>
-
-      <p>I hope this message finds you well.</p>
-
-      <p>We are pleased to inform you that you have been added to the user list of our resource website. You can now access the platform and explore the various resources available to you.</p>
-
-      <h3>Account Details:</h3>
-      <ul>
-        
-        <li><strong>Role:</strong> User</li>
-      </ul>
-
-      <h3>Next Steps:</h3>
-      <p>For security reasons, your password has not been included in this email. To obtain your password, please contact the Resource Department Head directly.</p>
-
-      <h3>Contact Information:</h3>
-      <ul>
-        <li><strong>Resource Department Head:</strong> Nikhil Shakya</li>
-        <li><strong>Phone Number:</strong> 9823e23432</li>
-      </ul>
-
-      <p>Once you have your password, you can log in to the resource website and start utilizing the available tools and materials. And make sure you change your password after you login!</p>
-
-      <p>If you have any questions or encounter any issues, please don't hesitate to reach out to us.</p>
-
-      <p>Thank you, and we look forward to your active participation on the platform.</p>
-
-      <p>Best regards,</p>
-
-      <p>Nikhil Shakya<br>
-      Resource Department Head<br>
-      <br>
-      </p>
-    `,
+  <p>Dear Kamesh,</p>
+    
+    <p>We are excited to inform you that you have been selected for our prestigious International Exposure Program to Thailand. You have been chosen along with four other outstanding students for this incredible opportunity.</p>
+    
+    <h3>Details of the Program:</h3>
+    <ul>
+        <li><strong>Destination:</strong> Thailand</li>
+        <li><strong>Purpose:</strong> International Exposure and Cultural Experience</li>
+        <li><strong>Cost:</strong> All expenses for the selected five students are fully covered by IIC.</li>
+    </ul>
+    
+    <p>To proceed, please visit the college with your passport and other official documents by tomorrow. This will help us complete the necessary preparations and formalities for your participation in the program.</p>
+    
+    <h3>Action Required:</h3>
+    <ul>
+        <li><strong>Date:</strong> [Date: August 12, 2024]</li>
+        <li><strong>Documents Needed:</strong> Passport, and any other relevant official documents</li>
+    </ul>
+    
+    <p>This is a remarkable opportunity to broaden your horizons and gain invaluable international experience. We are confident that this program will be a rewarding experience for you.</p>
+    
+    <p>Congratulations once again on your selection! If you have any questions or need further assistance, please do not hesitate to contact us at <b>9708438154</b>.</p>
+    
+    <p>Best regards,</p>
+    <p>SSD <br>
+    Itahari International College<br>
+    9708438154<br>
+    </p>
+      `,
     });
 
-    await transporter.sendMail(info);
+    // Emit event using Socket.IO if available
+    const io = getIo();
+    if (io) {
+      io.emit("activated_user", {
+        message: userDetails,
+        updated: updatedUser,
+      });
+      console.log("Emitted activated_user event:", userDetails);
+    } else {
+      console.error("Socket.IO instance is not available.");
+    }
 
-    return res
-      .status(200)
-      .json({ message: "User activated", user: signupUser });
+    // Fetch updated user data from userPool
+    const updatedUserData = await prisma.userPool.findUnique({
+      where: {
+        userPoolId: Number(user_id),
+      },
+    });
+
+    // Respond with success message, user details, and updated user data
+    return res.status(200).json({
+      message: "User activated",
+      user: userDetails,
+      updatedUserData: updatedUserData,
+    });
   } catch (error) {
-    console.log(error);
+    console.error("An error occurred:", error);
     return res
       .status(500)
       .json({ error: "An error occurred", details: error.message });
