@@ -52,8 +52,9 @@ model users {
   role          String                    @default("user")
   otp           String?
   otp_expiry    DateTime?
-  department    String?                   @db.VarChar(100)
-  status        Boolean
+  isActive      Boolean?                   @default(false)
+  department    department?               @relation(fields: [department_id], references: [department_id])
+  department_id Int?
   request       request[]
   notification  notification[]
   conversations ConversationParticipant[]
@@ -159,13 +160,19 @@ model Message {
 }
 
 model userPool {
-  userPoolId Int      @id @default(autoincrement())
+  userPoolId Int       @id @default(autoincrement())
   user_name  String
-  user_email String   @unique
+  user_email String    @unique
   department String
   status     Boolean
   otp        String?
   created_at DateTime?
   expire_at  DateTime?
-  verified Boolean
+  verified   Boolean
+}
+
+model department {
+  department_id   Int    @id @default(autoincrement())
+  department_name String
+  users users[]
 }

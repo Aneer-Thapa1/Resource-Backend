@@ -10,7 +10,6 @@ const authMiddleware = require("../middleware/authMiddleware");
 const adminMiddleware = require("../middleware/adminMiddleware");
 const requestController = require("../controllers/requestController");
 const userController = require("../controllers/userController");
-const userPoolController = require("../controllers/userPoolController");
 const featureController = require("../controllers/featureContoller");
 const NotiController = require("../controllers/notificationController");
 const messageController = require("../controllers/messagesController");
@@ -63,16 +62,12 @@ router.put("/updateBill/:id", authMiddleware(), billController.updateBill);
 router.post("/addRequest", authMiddleware(), requestController.sentRequest);
 router.get("/request", authMiddleware(), requestController.getRequest);
 router.put("/returnRequest/:id", requestController.returnItem);
+router.put("/approveRequest/:id", requestController.approveRequest);
 
 // User routes
-router.post("/addUser", userPoolController.addUser);
-router.get("/allUsers", userPoolController.getAllUsers);
-router.get("/activeUsers/", authMiddleware(), userController.activeUser);
-router.post(
-  "/setUserActive/:id",
-  // authMiddleware(),
-  userPoolController.setUserActive
-);
+router.post("/role/addUser", userController.addUser);
+router.get("/role/allUsers", userController.getUser);
+
 
 // Feature routes
 router.post("/addFeature", authMiddleware(), featureController.addFeature);
@@ -101,8 +96,5 @@ router.post(
   authMiddleware(),
   messageController.sendMessage
 );
-
-//verify otp
-router.post("/verifyOTP", userPoolController.verifyOTP);
 
 module.exports = router;
