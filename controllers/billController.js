@@ -15,8 +15,11 @@ const addBill = async (req, res) => {
       unit_price,
     } = req.body;
 
-    console.log(quantity);
-
+    if (!bill_no || !bill_amount || !bill_date || !TDS || !paid_amount || !vat_number || !quantity || !item_name || !unit_price) {
+      return res.status(400).json({
+        error: "All fields are required."
+      });
+    }
     // Find the vendor by vat number
     const vendor = await prisma.vendors.findFirst({
       where: {
@@ -147,6 +150,12 @@ const updateBill = async (req, res) => {
       item_name,
       unit_price,
     } = req.body;
+
+    if (!bill_no || !bill_amount || !bill_date || !TDS || !invoice_no || !paid_amount || !vat_number || !quantity || !item_name || !unit_price) {
+      return res.status(400).json({
+        error: "All fields are required."
+      });
+    }
 
     // Find the vendor by VAT number
     const vendor = await prisma.vendors.findFirst({

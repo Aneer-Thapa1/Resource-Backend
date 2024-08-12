@@ -8,12 +8,12 @@ datasource db {
 }
 
 model vendors {
-  vendor_id          Int       @id @default(autoincrement())
-  vendor_name        String?   @db.VarChar(255)
-  vat_number         String?   @db.VarChar(255)
-  vendor_contact     String
-  vendor_profile     String
-  categories         String?
+  vendor_id      Int     @id @default(autoincrement())
+  vendor_name    String? @db.VarChar(255)
+  vat_number     String? @db.VarChar(255)
+  vendor_contact String
+  vendor_profile String
+  categories     String?
 
   last_purchase_date DateTime? @db.Date
   last_paid          DateTime? @db.Date
@@ -45,18 +45,18 @@ model bills {
 }
 
 model users {
-  user_id         Int            @id @default(autoincrement())
-  user_name       String         @db.VarChar(95)
-  user_email      String         @unique @db.VarChar(65)
-  password        String         @db.VarChar(255)
-  role            String         @default("user")
-  otp             String?
-  otp_expiry      DateTime?
-  department      String?        @db.VarChar(100)
-  status          Boolean
-  request         request[]
-  notification    notification[]
-  conversations  ConversationParticipant[]
+  user_id       Int                       @id @default(autoincrement())
+  user_name     String                    @db.VarChar(95)
+  user_email    String                    @unique @db.VarChar(65)
+  password      String                    @db.VarChar(255)
+  role          String                    @default("user")
+  otp           String?
+  otp_expiry    DateTime?
+  department    String?                   @db.VarChar(100)
+  status        Boolean
+  request       request[]
+  notification  notification[]
+  conversations ConversationParticipant[]
 }
 
 model feature {
@@ -131,38 +131,41 @@ model notification {
   created_at      DateTime @default(now())
 }
 
-
 model Conversation {
-  id            Int           @id @default(autoincrement())
-  participants  ConversationParticipant[]
-  messages      Message[]
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
+  id           Int                       @id @default(autoincrement())
+  participants ConversationParticipant[]
+  messages     Message[]
+  createdAt    DateTime                  @default(now())
+  updatedAt    DateTime                  @updatedAt
 }
 
 model ConversationParticipant {
-  id            Int           @id @default(autoincrement())
-  conversation  Conversation  @relation(fields: [conversationId], references: [id])
+  id             Int          @id @default(autoincrement())
+  conversation   Conversation @relation(fields: [conversationId], references: [id])
   conversationId Int
-  user          users         @relation(fields: [userId], references: [user_id])
-  userId        Int
+  user           users        @relation(fields: [userId], references: [user_id])
+  userId         Int
 }
 
 model Message {
-  id         Int      @id @default(autoincrement())
-  senderId   Int
-  receiverId Int
-  message    String
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  conversation Conversation @relation(fields: [conversationId], references: [id])
+  id             Int          @id @default(autoincrement())
+  senderId       Int
+  receiverId     Int
+  message        String
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  conversation   Conversation @relation(fields: [conversationId], references: [id])
   conversationId Int
 }
 
 model userPool {
-  userPoolId Int     @id @default(autoincrement())
+  userPoolId Int      @id @default(autoincrement())
   user_name  String
-  user_email String  @unique
+  user_email String   @unique
   department String
   status     Boolean
+  otp        String?
+  created_at DateTime?
+  expire_at  DateTime?
+  verified Boolean
 }

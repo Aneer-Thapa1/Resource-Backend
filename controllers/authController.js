@@ -1,5 +1,6 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const validator = require("validator");
 const { PrismaClient } = require("@prisma/client");
 
 const prisma = new PrismaClient();
@@ -15,6 +16,10 @@ const signup = async (req, res) => {
   if (!regex.test(user_email)) {
     return res.status(400).json({ error: "Email is invalid!" });
   }
+
+  if(!validator.isStrongPassword(password)){
+    return res.status(400).json({error:"Password must be a strong!"})
+  };
 
   try {
     // Check if user already exists

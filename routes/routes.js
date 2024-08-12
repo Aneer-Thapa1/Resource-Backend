@@ -10,10 +10,10 @@ const authMiddleware = require("../middleware/authMiddleware");
 const adminMiddleware = require("../middleware/adminMiddleware");
 const requestController = require("../controllers/requestController");
 const userController = require("../controllers/userController");
+const userPoolController = require("../controllers/userPoolController");
 const featureController = require("../controllers/featureContoller");
 const NotiController = require("../controllers/notificationController");
 const messageController = require("../controllers/messagesController");
-const userPoolController = require("../controllers/userPoolController");
 
 // Authentication routes
 router.post("/signup", authController.signup);
@@ -101,5 +101,8 @@ router.post(
   authMiddleware(),
   messageController.sendMessage
 );
+
+//verify otp
+router.post("/verifyOTP", userPoolController.verifyOTP);
 
 module.exports = router;

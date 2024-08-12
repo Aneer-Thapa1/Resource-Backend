@@ -3,10 +3,16 @@ const { getIo } = require("../socket");
 
 const sentRequest = async (req, res) => {
   try {
-    const userId = req.user.id;
-    const { item_name, quantity, purpose } = req.body;
+    const userId = req.user.user_id;
+    const { item_name, quantity, purpose, status } = req.body;
 
-    const user = await prisma.users.findUnique({
+    if (!item_name || !quantity || !purpose) {
+      return res.status(400).json({
+        error: "All fields are required !"
+      });
+    }
+
+    const user = await prisma.users.findFirst({
       where: { user_id: userId },
       select: { user_name: true, department: true },
     });
@@ -43,7 +49,6 @@ const sentRequest = async (req, res) => {
         data: {
           message: `New request has been added by ${user.user_name}`,
           user_id: Number(userId),
-          state: Boolean(state),
           created_at: new Date(),
         },
       });
@@ -54,19 +59,19 @@ const sentRequest = async (req, res) => {
         message: notifyMessage,
       });
 
-      // let updateItem;
-      // let deductItem;
+      let updateItem;
+      let deductItem;
 
-      // if (status === "accept") {
-      //   updateItem = await prisma.items.update({
-      //     where: {
-      //       item_id: requestData.item_id,
-      //     },
-      //     data: {
-      //       quantity: itemData.quantity - requestData.request_quantity,
-      //     },
-      //   });
-      // }
+      if (status === "accept") {
+        updateItem = await prisma.items.update({
+          where: {
+            item_id: requestData.item_id,
+          },
+          data: {
+            quantity: itemData.quantity - requestData.request_quantity,
+          },
+        });
+      }
 
       return { requestData, notifyMessage, updateItem };
     });
@@ -184,6 +189,6 @@ const getRequest = async (req, res) => {
 
 module.exports = {
   sentRequest,
-  getRequest,
+  getRequest,   
   returnItem,
 };
