@@ -63,6 +63,7 @@ router.put("/updateBill/:id", authMiddleware(), billController.updateBill);
 router.post("/addRequest", authMiddleware(), requestController.sentRequest);
 router.get("/request", authMiddleware(), requestController.getRequest);
 router.put("/returnRequest/:id", requestController.returnItem);
+router.put("/approveRequest/:id", requestController.approveRequest);
 
 // User routes
 router.post("/addUser", userPoolController.addUser);
