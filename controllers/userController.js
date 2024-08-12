@@ -4,7 +4,6 @@ const { getIo } = require("../socket");
 const newUserMail = require("../mail/newUser.skeleton");
 const bcrypt = require("bcrypt");
 
-
 const getUser = async (req, res) => {
   try {
     const allUser = await prisma.users.findMany({});
@@ -15,23 +14,21 @@ const getUser = async (req, res) => {
   }
 };
 
-const addUser = async (req,res)=>{
-  const{user_email , user_name, department} = req.body;
-  
-if (!user_name || !user_email || !department) {
-  return res.status(400).json({ error: "Please fill all the fields!" });
-}
+const addUser = async (req, res) => {
+  const { user_email, user_name, department } = req.body;
+
+  if (!user_name || !user_email || !department) {
+    return res.status(400).json({ error: "Please fill all the fields!" });
+  }
   try {
-
-
     const checkDepartment = await prisma.department.findFirst({
-      where:{
-        department_name: department
-      }
-    })
+      where: {
+        department_name: department,
+      },
+    });
 
-     // Check if the user already exists
-     const existingUser = await prisma.userPool.findUnique({
+    // Check if the user already exists
+    const existingUser = await prisma.userPool.findUnique({
       where: {
         user_email: user_email,
       },
@@ -48,33 +45,65 @@ if (!user_name || !user_email || !department) {
         .json({ error: "User with this email already exists!" });
     }
 
-    if(!checkDepartment) return res.status(200).json({error:'department not found !'});
+    if (!checkDepartment)
+      return res.status(200).json({ error: "department not found !" });
 
-
-    const defaultPassword = 'rar@iicResource';
+    const defaultPassword = "rar@iicResource";
     const salt = 10;
-    const hashedPassword = await bcrypt.hash(defaultPassword,salt);
+    const hashedPassword = await bcrypt.hash(defaultPassword, salt);
 
     const addUser = await prisma.users.create({
-      data:{
-          user_name: user_name,
+      data: {
+        user_name: user_name,
         user_email: user_email,
-          password: hashedPassword,
-          department: {
-            connect: { department_id: checkDepartment.department_id }
-          }
-      }
-    })
+        password: hashedPassword,
+        department: {
+          connect: { department_id: checkDepartment.department_id },
+        },
+      },
+    });
 
-    return res.status(200).json({message:"new user added successfully", newUser:addUser});
+    return res
+      .status(200)
+      .json({ message: "new user added successfully", newUser: addUser });
   } catch (error) {
     console.log(error.message);
     return res.status(500).json({ error: "Internal Server Error !" });
   }
-}
+};
+
+const setActiveUser = async (req, res) => {
+  const user_id = Number(req.params.id);
+  try {
+    const user = await prisma.users.findFirst({
+      where: {
+        user_id: user_id,
+      },
+    });
+    if (!user) return res.status(400).json({ message: "user Already exist " });
+
+    const activeUser = await prisma.users.update({
+      where: {
+        user_id: user_id,
+      },
+      data: {
+        isActive: true,
+      },
+    });
+    const mailOptions = newUserMail(user.user_email, user.user_name);
+    await transporter.sendMail(mailOptions);
+
+    return res
+      .status(200)
+      .json({ message: "user is Active Now !" });
+  } catch (error) {
+    console.log({ message: "error in setActiveUser :", error: error.message });
+    return res.status(500).json({ error: "Internal Server Error !" });
+  }
+};
 
 module.exports = {
   getUser,
   addUser,
+  setActiveUser,
 };
-

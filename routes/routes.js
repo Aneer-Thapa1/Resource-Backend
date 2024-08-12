@@ -64,9 +64,10 @@ router.get("/request", authMiddleware(), requestController.getRequest);
 router.put("/returnRequest/:id", requestController.returnItem);
 router.put("/approveRequest/:id", requestController.approveRequest);
 
-// User routes
+// role User routes
 router.post("/role/addUser", userController.addUser);
 router.get("/role/allUsers", userController.getUser);
+router.put("/role/activateUser/:id", userController.setActiveUser);
 
 
 // Feature routes
