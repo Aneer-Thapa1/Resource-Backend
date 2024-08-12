@@ -120,11 +120,6 @@ const setUserActive = async (req, res) => {
       },
     });
 
-    const userDetails = {
-      user_name: newUser.user_name,
-      user_email: newUser.user_email,
-      role: "user",
-    };
 
     // Send email to the user
     const info = await transporter.sendMail({
@@ -157,10 +152,9 @@ const setUserActive = async (req, res) => {
     const io = getIo();
     if (io) {
       io.emit("activated_user", {
-        message: userDetails,
+        message: newUser,
         updated: updatedUser,
       });
-      console.log("Emitted activated_user event:", userDetails);
     } else {
       console.error("Socket.IO instance is not available.");
     }
@@ -174,7 +168,7 @@ const setUserActive = async (req, res) => {
 
     return res.status(200).json({
       message: "User activated",
-      user: userDetails,
+      user: newUser,
       updatedUserData: updatedUserData,
     });
   } catch (error) {
