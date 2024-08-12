@@ -105,7 +105,6 @@ const login = async (req, res) => {
       user_role: user.role,
     };
 
-    console.log(userData);
 
     // Send token in response
     res
@@ -149,5 +148,5 @@ const logout = (req, res) => {
 module.exports = {
   signup,
   login,
-  logout,
+  logout
 };
