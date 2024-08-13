@@ -17,9 +17,9 @@ const signup = async (req, res) => {
     return res.status(400).json({ error: "Email is invalid!" });
   }
 
-  if(!validator.isStrongPassword(password)){
-    return res.status(400).json({error:"Password must be a strong!"})
-  };
+  if (!validator.isStrongPassword(password)) {
+    return res.status(400).json({ error: "Password must be a strong!" });
+  }
 
   try {
     // Check if user already exists
@@ -44,7 +44,6 @@ const signup = async (req, res) => {
         user_name,
         user_email,
         password: hashedPassword,
-        status: false,
       },
     });
 
@@ -54,7 +53,6 @@ const signup = async (req, res) => {
         user_name: user_name,
         user_email: user_email,
         department: "Resourse",
-        status: true,
       },
     });
 
@@ -105,7 +103,6 @@ const login = async (req, res) => {
       user_role: user.role,
     };
 
-
     // Send token in response
     res
       .cookie("token", token, {
@@ -148,5 +145,5 @@ const logout = (req, res) => {
 module.exports = {
   signup,
   login,
-  logout
+  logout,
 };
