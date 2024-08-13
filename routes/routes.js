@@ -102,6 +102,7 @@ router.post(
 
 //department
 router.post("/addDepartment", departmentController.addDepartment);
+router.get("/getDepartment", departmentController.getDepartment);
 
 
 module.exports = router;

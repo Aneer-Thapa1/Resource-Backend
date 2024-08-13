@@ -17,6 +17,18 @@ const addDepartment = async(req,res)=>{
     }
 }
 
+const getDepartment = async(req,res)=>{
+    try {
+        const data = await prisma.department.findMany({})
+        return res.status(200).json({department:data});
+    } catch (error) {
+        console.log(error.message);
+        return res.status(500).json({ error: "Internal Server Error !" });
+        }
+        
+    }
+
 module.exports={
-    addDepartment
+    addDepartment,
+    getDepartment
 }
