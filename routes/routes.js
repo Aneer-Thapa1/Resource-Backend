@@ -13,6 +13,8 @@ const userController = require("../controllers/userController");
 const featureController = require("../controllers/featureContoller");
 const NotiController = require("../controllers/notificationController");
 const messageController = require("../controllers/messagesController");
+const departmentController = require("../controllers/departmentController");
+
 
 // Authentication routes
 router.post("/signup", authController.signup);
@@ -97,5 +99,9 @@ router.post(
   authMiddleware(),
   messageController.sendMessage
 );
+
+//department
+router.post("/addDepartment", departmentController.addDepartment);
+
 
 module.exports = router;
