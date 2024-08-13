@@ -8,13 +8,26 @@ const getUser = async (req, res) => {
   try {
     const allUser = await prisma.users.findMany({
       select: {
+        user_id: true,
         user_name: true,
         user_email: true,
         department: true,
         role: true,
+        isActive: true,
       },
     });
-    return res.status(200).json({ users: allUser });
+    const transformedUsers = allUser.map((user) => ({
+      user_id: user.user_id,
+      user_name: user.user_name,
+      user_email: user.user_email,
+      role: user.role,
+      isActive: user.isActive,
+      department_name: user.department.department_name,
+    }));
+
+    return res.status(200).json({
+      users: transformedUsers,
+    });
   } catch (error) {
     console.log(error);
     return res.status(500).json({ error: "Failed to get all the users!" });
@@ -64,15 +77,28 @@ const addUser = async (req, res) => {
         user_name: user_name,
         user_email: user_email,
         password: hashedPassword,
+        isActive: false,
         department: {
           connect: { department_id: checkDepartment.department_id },
         },
       },
+      include: {
+        department: true,
+      },
     });
 
-    return res
-      .status(200)
-      .json({ message: "new user added successfully", newUser: addUser });
+    const response = {
+      message: "New user added successfully",
+      newUser: {
+        user_id: addUser.user_id,
+        user_name: addUser.user_name,
+        user_email: addUser.user_email,
+        role: addUser.role,
+        isActive: addUser.isActive,
+        department_name: addUser.department.department_name,
+      },
+    };
+    return res.status(200).json(response);
   } catch (error) {
     console.log(error.message);
     return res.status(500).json({ error: "Internal Server Error !" });
@@ -80,14 +106,16 @@ const addUser = async (req, res) => {
 };
 
 const setActiveUser = async (req, res) => {
-  const user_id = Number(req.params.id);
+  const user_id = Number(req.params.user_id);
+  console.log(user_id);
   try {
     const user = await prisma.users.findFirst({
       where: {
         user_id: user_id,
       },
     });
-    if (!user) return res.status(400).json({ message: "user Already exist " });
+
+    if (!user) return res.status(400).json({ message: "user does not exist " });
 
     const activeUser = await prisma.users.update({
       where: {
@@ -107,8 +135,40 @@ const setActiveUser = async (req, res) => {
   }
 };
 
+const setInActiveUser = async (req, res) => {
+  const user_id = Number(req.params.user_id);
+  console.log(user_id);
+  try {
+    const user = await prisma.users.findFirst({
+      where: {
+        user_id: user_id,
+      },
+    });
+
+    if (!user) return res.status(400).json({ message: "user does not exist " });
+
+    const activeUser = await prisma.users.update({
+      where: {
+        user_id: user_id,
+      },
+      data: {
+        isActive: false,
+      },
+    });
+
+    const mailOptions = newUserMail(user.user_email, user.user_name);
+    await transporter.sendMail(mailOptions);
+
+    return res.status(200).json({ message: "user is Active Now !" });
+  } catch (error) {
+    console.log({ message: "error in setActiveUser :", error: error.message });
+    return res.status(500).json({ error: "Internal Server Error !" });
+  }
+};
+
 module.exports = {
   getUser,
   addUser,
   setActiveUser,
+  setInActiveUser,
 };
