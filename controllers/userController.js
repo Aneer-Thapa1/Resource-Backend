@@ -6,12 +6,12 @@ const bcrypt = require("bcrypt");
 
 const getUser = async (req, res) => {
   try {
-   
     const allUser = await prisma.users.findMany({
       select: {
         user_name: true,
         user_email: true,
-        department: true
+        department: true,
+        role: true,
       },
     });
     return res.status(200).json({ users: allUser });
@@ -20,7 +20,6 @@ const getUser = async (req, res) => {
     return res.status(500).json({ error: "Failed to get all the users!" });
   }
 };
-
 
 const addUser = async (req, res) => {
   const { user_email, user_name, department } = req.body;
@@ -101,9 +100,7 @@ const setActiveUser = async (req, res) => {
     const mailOptions = newUserMail(user.user_email, user.user_name);
     await transporter.sendMail(mailOptions);
 
-    return res
-      .status(200)
-      .json({ message: "user is Active Now !" });
+    return res.status(200).json({ message: "user is Active Now !" });
   } catch (error) {
     console.log({ message: "error in setActiveUser :", error: error.message });
     return res.status(500).json({ error: "Internal Server Error !" });
