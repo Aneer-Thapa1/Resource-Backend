@@ -15,7 +15,6 @@ const NotiController = require("../controllers/notificationController");
 const messageController = require("../controllers/messagesController");
 const departmentController = require("../controllers/departmentController");
 
-
 // Authentication routes
 router.post("/signup", authController.signup);
 router.post("/login", authController.login);
@@ -69,8 +68,8 @@ router.put("/approveRequest/:id", requestController.approveRequest);
 // role User routes
 router.post("/role/addUser", userController.addUser);
 router.get("/role/allUsers", userController.getUser);
-router.put("/role/activateUser/:id", userController.setActiveUser);
-
+router.put("/role/activateUser/:user_id", userController.setActiveUser);
+router.put("/role/deactivateUser/:user_id", userController.setInActiveUser);
 
 // Feature routes
 router.post("/addFeature", authMiddleware(), featureController.addFeature);
@@ -103,6 +102,5 @@ router.post(
 //department
 router.post("/addDepartment", departmentController.addDepartment);
 router.get("/getDepartment", departmentController.getDepartment);
-
 
 module.exports = router;
