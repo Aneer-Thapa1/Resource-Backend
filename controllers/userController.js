@@ -14,7 +14,15 @@ const getUser = async (req, res) => {
         department: true
       },
     });
-    return res.status(200).json({ users: allUser });
+    const transformedUsers = allUser.map(user => ({
+      user_name: user.user_name,
+      user_email: user.user_email,
+      department_name: user.department.department_name,
+    }));
+    
+    return res.status(200).json({
+      users: transformedUsers
+    });
   } catch (error) {
     console.log(error);
     return res.status(500).json({ error: "Failed to get all the users!" });
@@ -69,11 +77,26 @@ const addUser = async (req, res) => {
           connect: { department_id: checkDepartment.department_id },
         },
       },
+      include: {
+        department: true, // Include the department relation
+      },
     });
 
-    return res
-      .status(200)
-      .json({ message: "new user added successfully", newUser: addUser });
+    const response = {
+      message: "New user added successfully",
+      newUser: {
+        user_id: addUser.user_id,
+        user_name: addUser.user_name,
+        user_email: addUser.user_email,
+        password: addUser.password,
+        role: addUser.role,
+        otp: addUser.otp,
+        otp_expiry: addUser.otp_expiry,
+        isActive: addUser.isActive,
+        department_name: addUser.department.department_name,
+      },
+    };
+    return res.status(200).json(response);    
   } catch (error) {
     console.log(error.message);
     return res.status(500).json({ error: "Internal Server Error !" });

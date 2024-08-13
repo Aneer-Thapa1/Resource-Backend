@@ -2,6 +2,7 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const validator = require("validator");
 const { PrismaClient } = require("@prisma/client");
+const { department } = require("../prismaClient");
 
 const prisma = new PrismaClient();
 
@@ -43,18 +44,7 @@ const signup = async (req, res) => {
       data: {
         user_name,
         user_email,
-        password: hashedPassword,
-        status: false,
-      },
-    });
-
-    // Create new user
-    const addNewUser = await prisma.userPool.create({
-      data: {
-        user_name: user_name,
-        user_email: user_email,
-        department: "Resourse",
-        status: true,
+        password: hashedPassword
       },
     });
 
@@ -79,7 +69,11 @@ const login = async (req, res) => {
       where: {
         user_email: user_email,
       },
+      include:{
+        department:true
+      }
     });
+
 
     if (!user) {
       return res.status(404).json({ error: "User not found!" });
@@ -105,6 +99,11 @@ const login = async (req, res) => {
       user_role: user.role,
     };
 
+    // const findDepartment = await prisma.department.findFirst({
+    //   where:{
+
+    //   }
+    // })
 
     // Send token in response
     res
@@ -121,6 +120,7 @@ const login = async (req, res) => {
         token: token,
         role: user.role,
         user_name: user.user_name,
+        department_name: user.department?.department_name || null
       });
   } catch (error) {
     console.error(error);
