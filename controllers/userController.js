@@ -6,13 +6,21 @@ const bcrypt = require("bcrypt");
 
 const getUser = async (req, res) => {
   try {
-    const allUser = await prisma.users.findMany({});
-    return res.status(200).json({ user: allUser });
+   
+    const allUser = await prisma.users.findMany({
+      select: {
+        user_name: true,
+        user_email: true,
+        department: true
+      },
+    });
+    return res.status(200).json({ users: allUser });
   } catch (error) {
     console.log(error);
-    return res.status(500).json({ error: "Failed to get all the users !" });
+    return res.status(500).json({ error: "Failed to get all the users!" });
   }
 };
+
 
 const addUser = async (req, res) => {
   const { user_email, user_name, department } = req.body;
