@@ -16,6 +16,7 @@ const getUser = async (req, res) => {
         isActive: true,
       },
     });
+
     const transformedUsers = allUser.map((user) => ({
       user_id: user.user_id,
       user_name: user.user_name,
@@ -93,11 +94,16 @@ const addUser = async (req, res) => {
         user_id: addUser.user_id,
         user_name: addUser.user_name,
         user_email: addUser.user_email,
+        password: addUser.password,
         role: addUser.role,
+        otp: addUser.otp,
+        otp_expiry: addUser.otp_expiry,
+
         isActive: addUser.isActive,
         department_name: addUser.department.department_name,
       },
-    };
+
+
     return res.status(200).json(response);
   } catch (error) {
     console.log(error.message);

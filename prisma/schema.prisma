@@ -23,27 +23,6 @@ model vendors {
   bills              bills[]
 }
 
-model bills {
-  bill_ID       Int       @id @default(autoincrement())
-  entry_date    DateTime  @default(now())
-  bill_no       String?   @db.VarChar(255)
-  bill_amount   Float?    @db.Float
-  TDS           Float?    @db.Float
-  bill_date     DateTime? @db.Date
-  invoice_no    String?   @db.VarChar(255)
-  actual_amount Float?    @db.Float
-  paid_amount   Float?    @db.Float
-  left_amount   Float?    @db.Float
-  unit_price    Int?
-  quantity      Int?
-  vendors       vendors?  @relation(fields: [vendor_ID], references: [vendor_id], onDelete: Cascade)
-  vendor_ID     Int?
-  items         items?    @relation(fields: [item_id], references: [item_id], onDelete: Cascade)
-  item_id       Int?
-
-  @@index([vendor_ID, item_id])
-}
-
 model users {
   user_id       Int                       @id @default(autoincrement())
   user_name     String                    @db.VarChar(95)
@@ -66,6 +45,7 @@ model feature {
   items        itemsOnFeatures[]
 }
 
+
 model items {
   item_id          Int           @id @default(autoincrement())
   item_name        String?       @db.VarChar(255)
@@ -79,12 +59,40 @@ model items {
   category_id      Int?
   itemCategory     itemCategory? @relation(fields: [item_category_id], references: [item_category_id])
   item_category_id Int?
-
   itemsOnFeatures itemsOnFeatures[]
-
-  bills bills[]
-
   request request[]
+  BillItems BillItems[]
+}
+
+
+model bills {
+  bill_id      Int       @id @default(autoincrement())
+  bill_no       String?   @db.VarChar(255) @unique
+  bill_amount   Float?    @db.Float
+  TDS           Float?    @db.Float
+  bill_date     DateTime? @db.Date  
+  invoice_no    String?   @db.VarChar(255)
+  actual_amount Float?    @db.Float
+  paid_amount   Float?    @db.Float
+  left_amount   Float?    @db.Float
+  vendors       vendors?  @relation(fields: [vendor_ID], references: [vendor_id], onDelete: Cascade)
+  vendor_ID     Int?
+  bill_type     String?
+  created_At     DateTime  @default(now())
+  BillItems BillItems[]
+}
+
+// Junction table to link items and bills
+model BillItems {
+  id          Int      @id @default(autoincrement())
+  bill_id     Int
+  item_id     Int
+  quantity    Int?
+  unit_price  Int?
+  bill        bills    @relation(fields: [bill_id], references: [bill_id], onDelete: Cascade)
+  item        items    @relation(fields: [item_id], references: [item_id], onDelete: Cascade)
+
+  @@unique([bill_id, item_id]) // Ensure each item can appear only once per bill
 }
 
 model itemsOnFeatures {
