@@ -70,6 +70,7 @@ router.post("/role/addUser", userController.addUser);
 router.get("/role/allUsers", userController.getUser);
 router.put("/role/activateUser/:user_id", userController.setActiveUser);
 router.put("/role/deactivateUser/:user_id", userController.setInActiveUser);
+router.put("/role/updateRole/:user_id", userController.updateUserRole);
 
 // Feature routes
 router.post("/addFeature", authMiddleware(), featureController.addFeature);
