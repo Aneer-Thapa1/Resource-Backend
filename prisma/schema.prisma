@@ -64,31 +64,31 @@ model items {
 }
 
 model bills {
-  bill_id       Int         @id @default(autoincrement())
-  bill_no       String?     @unique @db.VarChar(255)
-  bill_amount   Float?      @db.Float
-  TDS           Float?      @db.Float
-  bill_date     DateTime?   @db.Date
-  invoice_no    String?     @db.VarChar(255)
-  actual_amount Float?      @db.Float
-  paid_amount   Float?      @db.Float
-  left_amount   Float?      @db.Float
-  vendors       vendors?    @relation(fields: [vendor_ID], references: [vendor_id], onDelete: Cascade)
-  vendor_ID     Int?
-  bill_type     String?
-  created_At    DateTime    @default(now())
-  BillItems     BillItems[]
+  bill_id     Int         @id @default(autoincrement())
+  bill_no     String?     @unique @db.VarChar(255)
+  bill_date   DateTime?   @db.Date
+  invoice_no  String?     @db.VarChar(255)
+  paid_amount Float?      @db.Float
+  left_amount Float?      @db.Float
+  vendors     vendors?    @relation(fields: [vendor_ID], references: [vendor_id], onDelete: Cascade)
+  vendor_ID   Int?
+  bill_type   String?
+  created_At  DateTime    @default(now())
+  BillItems   BillItems[]
 }
 
 // Junction table to link items and bills
 model BillItems {
-  id         Int   @id @default(autoincrement())
-  bill_id    Int
-  item_id    Int
-  quantity   Int?
-  unit_price Int?
-  bill       bills @relation(fields: [bill_id], references: [bill_id], onDelete: Cascade)
-  item       items @relation(fields: [item_id], references: [item_id], onDelete: Cascade)
+  id                Int    @id @default(autoincrement())
+  bill_id           Int
+  item_id           Int
+  quantity          Int?
+  unit_price        Int?
+  VATAmount         Float? @db.Float
+  TDS_deduct_amount Float? @db.Float
+  TDS               Float? @db.Float
+  bill              bills  @relation(fields: [bill_id], references: [bill_id], onDelete: Cascade)
+  item              items  @relation(fields: [item_id], references: [item_id], onDelete: Cascade)
 
   @@unique([bill_id, item_id]) // Ensure each item can appear only once per bill
 }
