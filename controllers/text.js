@@ -353,3 +353,130 @@ module.exports = {
   getBill,
   getBillById,
 };
+
+
+
+
+// addBill.js
+
+const prisma = require("../prismaClient");
+const {
+  vatCalculationHandler,
+  panCalculationHandler,
+  noBillCalculation,
+  tdsCalculation,
+  vatCalculation,
+} = require("../controllers/billMethods/billCalculationMethods");
+
+const billCalculationMethods = {
+  VAT: vatCalculationHandler,
+  PAN: panCalculationHandler,
+  NOBILL: noBillCalculation,
+};
+
+const addBill = async (req, res) => {
+  try {
+    const {
+      bill_no,
+      bill_date,
+      invoice_no,
+      paid_amount,
+      vat_number,
+      bill_type,
+      items,
+      pan_type,
+      vat_type,
+    } = req.body;
+
+    // Check if bill_no already exists
+    const existingBill = await prisma.bills.findUnique({
+      where: { bill_no },
+    });
+
+    if (existingBill) {
+      return res.status(400).json({ error: "Bill with this number already exists" });
+    }
+
+    const vendor = await prisma.vendors.findFirst({ where: { vat_number } });
+
+    if (!vendor) {
+      return res.status(404).json({ error: "Vendor not found" });
+    }
+
+    const billItems = await Promise.all(
+      items.map(async (item) => {
+        const foundItem = await prisma.items.findFirst({
+          where: { item_name: item.item_name },
+        });
+
+        if (!foundItem) {
+          throw new Error(`Item ${item.item_name} not found`);
+        }
+
+        const total_amount = item.unit_price * item.quantity;
+
+        // TDS Calculation
+        let tdsDeductAmount = 0;
+        try {
+          tdsDeductAmount = tdsCalculation(total_amount, item.TDS);
+        } catch (error) {
+          return res.status(400).json({ error: error.message });
+        }
+
+        // VAT Calculation
+        const vatAmount = (bill_type === "VAT") ? vatCalculation(total_amount, 0.13) : 0;
+
+        return {
+          item: { connect: { item_id: foundItem.item_id } },
+          quantity: item.quantity,
+          unit_price: item.unit_price,
+          TDS_deduct_amount: tdsDeductAmount,
+          VATAmount: vatAmount,
+          TDS: item.TDS,
+        };
+      })
+    );
+
+    // Determine the calculation method
+    const calculationMethod = billCalculationMethods[bill_type];
+
+    if (typeof calculationMethod !== 'function') {
+      return res.status(400).json({ error: "Invalid bill type" });
+    }
+
+    const { totalSumAmount, pendingAmount } = calculationMethod(billItems, paid_amount, res);
+
+    if (totalSumAmount === undefined || pendingAmount === undefined) {
+      return;
+    }
+
+    const bill = await prisma.bills.create({
+      data: {
+        bill_no,
+        bill_date: new Date(bill_date),
+        invoice_no,
+        paid_amount,
+        left_amount: pendingAmount,
+        bill_type,
+        vendors: { connect: { vendor_id: vendor.vendor_id } },
+        BillItems: {
+          create: billItems,
+        },
+      },
+      include: {
+        BillItems: true,
+      },
+    });
+
+    return res.status(200).json({ message: "Successfully added bill!", bill });
+  } catch (error) {
+    console.log("Error:", error.message);
+    if (!res.headersSent) {
+      return res.status(500).json({ error: "Internal Server Error!" });
+    }
+  }
+};
+
+module.exports = {
+  addBill,
+};

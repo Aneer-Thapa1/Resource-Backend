@@ -84,7 +84,7 @@ model BillItems {
   item_id           Int
   quantity          Int?
   unit_price        Int?
-  VATAmount         Float? @db.Float
+  withVATAmount     Float? @db.Float
   TDS_deduct_amount Float? @db.Float
   TDS               Float? @db.Float
   bill              bills  @relation(fields: [bill_id], references: [bill_id], onDelete: Cascade)
