@@ -64,7 +64,7 @@ const getMessages = async (req, res) => {
             userId: senderId,
           },
           some: {
-            userId: parseInt(userToChatId), // convert userToChatId to Int
+            conversationId: parseInt(userToChatId), // convert userToChatId to Int
           },
         },
       },
