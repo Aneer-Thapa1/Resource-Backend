@@ -151,7 +151,7 @@ const setInActiveUser = async (req, res) => {
       },
     });
 
-    if (!user) return res.status(400).json({ message: "user does not exist " });
+    if (!user) return res.status(400).json({ message: "user does not exist"});
 
     const activeUser = await prisma.users.update({
       where: {
@@ -172,9 +172,31 @@ const setInActiveUser = async (req, res) => {
   }
 };
 
+
+const allUserForMessage = async (req, res) => {
+  try {
+    const userid = req.user.user_id;
+
+    const allUser = await prisma.users.findMany({
+      where: {
+        NOT: {
+          user_id: userid,
+        },
+      },
+    });
+
+    return res.status(200).json({ allUser });
+  } catch (error) {
+    console.log({ message: "Error in allUserForMessage:", error: error.message });
+    return res.status(500).json({ error: "Internal Server Error!" });
+  }
+};
+
+
 module.exports = {
   getUser,
   addUser,
   setActiveUser,
   setInActiveUser,
+  allUserForMessage
 };
