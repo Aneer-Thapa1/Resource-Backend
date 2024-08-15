@@ -102,7 +102,8 @@ const addUser = async (req, res) => {
         isActive: addUser.isActive,
         department_name: addUser.department.department_name,
       },
-    };
+
+    }
     return res.status(200).json(response);
   } catch (error) {
     console.log(error.message);
@@ -112,6 +113,7 @@ const addUser = async (req, res) => {
 
 const setActiveUser = async (req, res) => {
   const user_id = Number(req.params.user_id);
+  console.log(user_id);
   try {
     const user = await prisma.users.findFirst({
       where: {
@@ -132,11 +134,7 @@ const setActiveUser = async (req, res) => {
     const mailOptions = newUserMail(user.user_email, user.user_name);
     await transporter.sendMail(mailOptions);
 
-    console.log(activeUser);
-
-    return res
-      .status(200)
-      .json({ message: "user is Active Now !", activeUser });
+    return res.status(200).json({ message: "user is Active Now !" });
   } catch (error) {
     console.log({ message: "error in setActiveUser :", error: error.message });
     return res.status(500).json({ error: "Internal Server Error !" });
@@ -153,7 +151,7 @@ const setInActiveUser = async (req, res) => {
       },
     });
 
-    if (!user) return res.status(400).json({ message: "user does not exist " });
+    if (!user) return res.status(400).json({ message: "user does not exist"});
 
     const activeUser = await prisma.users.update({
       where: {
@@ -164,71 +162,41 @@ const setInActiveUser = async (req, res) => {
       },
     });
 
-    console.log(activeUser);
     const mailOptions = newUserMail(user.user_email, user.user_name);
     await transporter.sendMail(mailOptions);
 
-    return res
-      .status(200)
-      .json({ message: "user is Active Now !", activeUser });
+    return res.status(200).json({ message: "user is Active Now !" });
   } catch (error) {
     console.log({ message: "error in setActiveUser :", error: error.message });
     return res.status(500).json({ error: "Internal Server Error !" });
   }
 };
 
-const updateUserRole = async (req, res) => {
+
+const allUserForMessage = async (req, res) => {
   try {
-    const user_id = parseInt(req.params.user_id, 10);
-    const { role } = req.body;
+    const userid = req.user.user_id;
 
-    console.log("User ID received:", user_id);
-    console.log("Role received:", role);
-
-    // Validate input
-    if (isNaN(user_id)) {
-      return res.status(400).json({ message: "Invalid user ID" });
-    }
-    if (typeof role !== "string" || role.trim() === "") {
-      return res.status(400).json({ message: "Invalid role" });
-    }
-
-    const user = await prisma.users.findUnique({
+    const allUser = await prisma.users.findMany({
       where: {
-        user_id: user_id,
+        NOT: {
+          user_id: userid,
+        },
       },
     });
 
-    if (!user) {
-      return res.status(404).json({ message: "User does not exist" });
-    }
-
-    // Update the user's role
-    const updatedUser = await prisma.users.update({
-      where: {
-        user_id: user_id,
-      },
-      data: {
-        role: role,
-      },
-    });
-
-    console.log("Updated User Role:", updatedUser.role);
-
-    return res.status(200).json({
-      message: "User role updated successfully",
-      updatedUser,
-    });
+    return res.status(200).json({ allUser });
   } catch (error) {
-    console.error("Error updating user role:", error);
-    return res.status(500).json({ message: "Internal server error" });
+    console.log({ message: "Error in allUserForMessage:", error: error.message });
+    return res.status(500).json({ error: "Internal Server Error!" });
   }
 };
+
 
 module.exports = {
   getUser,
   addUser,
   setActiveUser,
   setInActiveUser,
-  updateUserRole,
+  allUserForMessage
 };

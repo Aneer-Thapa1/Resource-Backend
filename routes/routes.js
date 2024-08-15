@@ -55,7 +55,7 @@ router.delete(
 
 // Bill routes
 router.post("/addBill", billController.addBill);
-// router.get("/bill", billController.getBill);
+router.get("/bill", billController.getBill);
 // router.get("/singleBill/:bill_id", billController.getBillById);
 // router.put("/updateBill/:id", authMiddleware(), billController.updateBill);
 
@@ -94,6 +94,7 @@ router.put("/singleNotification/:id", NotiController.singleUpdateNotification);
 //message
 
 router.get("/messages/:id", authMiddleware(), messageController.getMessages);
+router.get("/message/allUser", authMiddleware(), userController.allUserForMessage);
 router.post(
   "/messages/send/:id",
   authMiddleware(),
