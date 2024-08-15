@@ -57,14 +57,14 @@ const getMessages = async (req, res) => {
     const { id: userToChatId } = req.params;
     const senderId = req.user.user_id;
 
+    // Find the conversation that includes both the sender and receiver
     const conversation = await prisma.conversation.findFirst({
       where: {
         participants: {
-          some: {
-            userId: senderId,
-          },
-          some: {
-            conversationId: parseInt(userToChatId), // convert userToChatId to Int
+          every: {
+            userId: {
+              in: [senderId, parseInt(userToChatId)],
+            },
           },
         },
       },
@@ -77,8 +77,8 @@ const getMessages = async (req, res) => {
 
     res.status(200).json(conversation.messages);
   } catch (error) {
-    console.log(`Error in getMessages Controller: `, error);
-    res.status(500).json({ error: "Internal Server Error !" });
+    console.error(`Error in getMessages Controller: `, error);
+    res.status(500).json({ error: "Internal Server Error!" });
   }
 };
 
