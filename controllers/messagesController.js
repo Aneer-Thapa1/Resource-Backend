@@ -1,4 +1,5 @@
 const prisma = require("../prismaClient");
+
 const sendMessage = async (req, res) => {
   try {
     const { message } = req.body;
