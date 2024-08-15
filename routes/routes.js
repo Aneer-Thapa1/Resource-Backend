@@ -94,7 +94,11 @@ router.put("/singleNotification/:id", NotiController.singleUpdateNotification);
 //message
 
 router.get("/messages/:id", authMiddleware(), messageController.getMessages);
-router.get("/message/allUser", authMiddleware(), userController.allUserForMessage);
+router.get(
+  "/message/allUser",
+  authMiddleware(),
+  userController.allUserForMessage
+);
 router.post(
   "/messages/send/:id",
   authMiddleware(),
