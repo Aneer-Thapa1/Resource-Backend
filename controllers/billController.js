@@ -185,27 +185,43 @@ const addBill = async (req, res) => {
   }
 };
 
-const getBill = async (req,res)=>{
- try {
-  // const bi
-   const bill = await prisma.bills.findMany({
-     include:{
-      vendors:true,
-      // billItems:true
-     }
-   })
-   console.log(prisma.billItems);
-   return res
-   .status(200)
-   .json({bill });
- } catch (error) {
-  console.log("Error:", error.message);
-  return res.status(500).json({ error: "Internal Server Error!" });
- 
- }
+const getBill = async (req, res) => {
+  try {
+    const result = await prisma.bills.findMany({
+      include: {
+        vendors: true,
+        BillItems: true
+      },
+    });
+
+    return res.status(200).json({ bill:result });
+  } catch (error) {
+    console.log("Error:", error.message);
+    return res.status(500).json({ error: "Internal Server Error!" });
+  }
+};
+
+
+const getBillById = async (req,res)=>{
+  try {
+    const bill_id = req.params.id;
+    const billData = await prisma.bills.findFirst({
+      where:{
+        id: bill_id
+      },
+      include:{
+        BillItems:true
+      }
+    })
+    return res.status(200).json({ bill:billData });
+  } catch (error) {
+    console.log("Error:", error.message);
+    return res.status(500).json({ error: "Internal Server Error!" });
+  }
 }
 
 module.exports = {
   addBill,
-  getBill
+  getBill,
+  getBillById
 };
