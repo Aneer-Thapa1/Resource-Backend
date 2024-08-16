@@ -14,6 +14,7 @@ const featureController = require("../controllers/featureContoller");
 const NotiController = require("../controllers/notificationController");
 const messageController = require("../controllers/messagesController");
 const departmentController = require("../controllers/departmentController");
+const exportToExcel = require("../controllers/exportToExcel");
 
 // Authentication routes
 router.post("/signup", authController.signup);
@@ -109,4 +110,7 @@ router.post(
 router.post("/addDepartment", departmentController.addDepartment);
 router.get("/getDepartment", departmentController.getDepartment);
 
+
+//export excel
+router.get("/bill/export", exportToExcel.exportBill)
 module.exports = router;

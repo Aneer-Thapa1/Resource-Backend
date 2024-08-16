@@ -81,7 +81,7 @@ function tdsCalculation(total_amount, TDS, bill_type) {
 
 // VAT calculation function
 function vatCalculation(total_amount, percentage) {
-  return total_amount + (total_amount * percentage); 
+  return total_amount + (total_amount * percentage);   
 }
 
 module.exports = {

@@ -60,7 +60,7 @@ const getMessages = async (req, res) => {
     const conversation = await prisma.conversation.findFirst({
       where: {
         participants: {
-          some: {
+          some: { 
             userId: senderId,
           },
           some: {
