@@ -158,6 +158,7 @@ const setInActiveUser = async (req, res) => {
       },
       data: {
         isActive: false,
+        role: "user",
       },
     });
 

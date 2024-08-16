@@ -48,7 +48,6 @@ const signup = async (req, res) => {
       },
     });
 
-
     return res.status(201).json({ message: "User signed up successfully" });
   } catch (error) {
     console.error(error);
@@ -70,14 +69,17 @@ const login = async (req, res) => {
       where: {
         user_email: user_email,
       },
-      include:{
-        department:true
-      }
+      include: {
+        department: true,
+      },
     });
-
 
     if (!user) {
       return res.status(404).json({ error: "User not found!" });
+    }
+
+    if (!user.isActive) {
+      return res.status(403).json({ error: "You are currently inactive!" });
     }
 
     // Verify password
@@ -100,7 +102,6 @@ const login = async (req, res) => {
       user_role: user.role,
     };
 
-
     // Send token in response
     res
       .cookie("token", token, {
@@ -116,7 +117,7 @@ const login = async (req, res) => {
         token: token,
         role: user.role,
         user_name: user.user_name,
-        department_name: user.department?.department_name || null
+        department_name: user.department?.department_name || null,
       });
   } catch (error) {
     console.error(error);
