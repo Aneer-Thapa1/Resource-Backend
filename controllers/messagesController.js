@@ -6,14 +6,18 @@ const sendMessage = async (req, res) => {
     const { id: receiverId } = req.params;
     const senderId = req.user.user_id;
 
+    if (!message || message.trim() === "") {
+      return;
+    }
+
+    // Find or create a conversation between sender and receiver
     let conversation = await prisma.conversation.findFirst({
       where: {
         participants: {
-          some: {
-            userId: senderId,
-          },
-          some: {
-            userId: parseInt(receiverId), // convert receiverId to Int
+          every: {
+            userId: {
+              in: [senderId, parseInt(receiverId)],
+            },
           },
         },
       },
@@ -24,22 +28,19 @@ const sendMessage = async (req, res) => {
         data: {
           participants: {
             create: [
-              {
-                userId: senderId,
-              },
-              {
-                userId: parseInt(receiverId), // convert receiverId to Int
-              },
+              { userId: senderId },
+              { userId: parseInt(receiverId) }, // Convert receiverId to Int
             ],
           },
         },
       });
     }
 
+    // Create a new message in the found or newly created conversation
     const newMessage = await prisma.message.create({
       data: {
         senderId,
-        receiverId: parseInt(receiverId), // convert receiverId to Int
+        receiverId: parseInt(receiverId), // Convert receiverId to Int
         message,
         conversationId: conversation.id,
       },
@@ -47,8 +48,8 @@ const sendMessage = async (req, res) => {
 
     res.status(201).json(newMessage);
   } catch (error) {
-    console.log(`Error in sendMessage Controller: `, error.message);
-    res.status(500).json({ error: "Internal Server Error !" });
+    console.error(`Error in sendMessage Controller: `, error.message);
+    res.status(500).json({ error: "Internal Server Error!" });
   }
 };
 
@@ -57,14 +58,14 @@ const getMessages = async (req, res) => {
     const { id: userToChatId } = req.params;
     const senderId = req.user.user_id;
 
+    // Find the conversation between sender and receiver
     const conversation = await prisma.conversation.findFirst({
       where: {
         participants: {
-          some: { 
-            userId: senderId,
-          },
-          some: {
-            conversationId: parseInt(userToChatId), // convert userToChatId to Int
+          every: {
+            userId: {
+              in: [senderId, parseInt(userToChatId)],
+            },
           },
         },
       },
@@ -73,12 +74,14 @@ const getMessages = async (req, res) => {
       },
     });
 
-    if (!conversation) return res.status(200).json([]);
+    if (!conversation) {
+      return res.status(200).json([]); // No conversation found, return an empty array
+    }
 
     res.status(200).json(conversation.messages);
   } catch (error) {
-    console.log(`Error in getMessages Controller: `, error);
-    res.status(500).json({ error: "Internal Server Error !" });
+    console.error(`Error in getMessages Controller: `, error.message);
+    res.status(500).json({ error: "Internal Server Error!" });
   }
 };
 
