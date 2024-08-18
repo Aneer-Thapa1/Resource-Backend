@@ -89,7 +89,7 @@ const getAllVendors = async (req, res) => {
           SUM(b.left_amount) as total_pending_amount 
         FROM resource.bills b
         WHERE b.vendor_ID = ${vendor.vendor_id}`;
-        
+
         return {
           ...vendor,
           pending_payment: specificPendingData[0]?.total_pending_amount || 0,
@@ -134,12 +134,12 @@ const getVendorsByID = async (req, res) => {
         FROM resource.bills b
         JOIN resource.BillItems bi ON b.bill_id = bi.bill_id
         WHERE b.vendor_ID = ${vendor_id}`,
-      
+
       prisma.$queryRaw`
         SELECT 
           SUM(b.left_amount) as total_pending_amount 
         FROM resource.bills b
-        WHERE b.vendor_ID = ${vendor_id}`
+        WHERE b.vendor_ID = ${vendor_id}`,
     ]);
 
     // Respond with vendor details and calculated totals
@@ -148,7 +148,6 @@ const getVendorsByID = async (req, res) => {
       pending_payment: totalPendingAmount[0]?.total_pending_amount || 0,
       total_amount: totalPurchaseAmount[0]?.total_purchase_amount || 0,
     });
-
   } catch (error) {
     console.error(error);
     return res.status(500).json({ error: error.message });
