@@ -1,12 +1,12 @@
 // Function to calculate total amount based on bill type
 function calculateTotalAmount(billItems, calculationType) {
   return billItems.reduce((sum, item) => {
-    if (calculationType === 'VAT') {
+    if (calculationType === "VAT") {
       return sum + (item.withVATAmount || 0); // Sum up VAT amounts
-    } else if (calculationType === 'PAN') {
-      return sum +(item.total_Amount); // Sum for NOBILL
+    } else if (calculationType === "PAN") {
+      return sum + item.total_Amount; // Sum for NOBILL
     } else {
-      return sum + item.unit_price * item.quantity; 
+      return sum + item.unit_price * item.quantity;
     }
   }, 0);
 }
@@ -30,9 +30,8 @@ function commonCalculation(billItems, paid_amount, res, calculationType) {
 // VAT calculation handler
 function vatCalculationHandler(billItems, paid_amount, res) {
   // Calculate the total VAT amount
-  const totalVATAmount = calculateTotalAmount(billItems, 'VAT');
+  const totalVATAmount = calculateTotalAmount(billItems, "VAT");
 
-    console.log(totalVATAmount);
   // Check if the paid amount is greater than the total VAT amount
   if (totalVATAmount < paid_amount) {
     return res.status(400).json({
@@ -48,30 +47,30 @@ function vatCalculationHandler(billItems, paid_amount, res) {
 
 // PAN calculation handler
 function panCalculationHandler(billItems, paid_amount, res) {
-  return commonCalculation(billItems, paid_amount, res, 'PAN');
+  return commonCalculation(billItems, paid_amount, res, "PAN");
 }
 
 // No Bill calculation handler
 function noBillCalculation(billItems, paid_amount, res) {
-  return commonCalculation(billItems, paid_amount, res, 'NOBILL');
+  return commonCalculation(billItems, paid_amount, res, "NOBILL");
 }
 
 // TDS calculation based on type (VAT or PAN)
 function tdsCalculation(total_amount, TDS, bill_type) {
-  if (bill_type === 'VAT') {
+  if (bill_type === "VAT") {
     if (TDS === 1.5) {
-      return total_amount * 0.015; 
+      return total_amount * 0.015;
     } else if (TDS === 0) {
       return 0;
     }
-  } else if (bill_type === 'PAN') {
+  } else if (bill_type === "PAN") {
     switch (TDS) {
       case 10:
-        return total_amount * 0.1; 
+        return total_amount * 0.1;
       case 15:
-        return total_amount * 0.15; 
+        return total_amount * 0.15;
       case 0:
-        return 0; 
+        return 0;
       default:
         throw new Error("Invalid PAN TDS percentage");
     }
@@ -81,7 +80,7 @@ function tdsCalculation(total_amount, TDS, bill_type) {
 
 // VAT calculation function
 function vatCalculation(total_amount, percentage) {
-  return total_amount + (total_amount * percentage);   
+  return total_amount + total_amount * percentage;
 }
 
 module.exports = {

@@ -1,5 +1,5 @@
 const prisma = require("../prismaClient");
-const NepaliDate = require('nepali-date-converter');
+const NepaliDate = require("nepali-date-converter");
 const {
   vatCalculationHandler,
   panCalculationHandler,
@@ -7,6 +7,7 @@ const {
   tdsCalculation,
   vatCalculation,
 } = require("../controllers/billMethods/billCalculationMethods");
+const { isUppercase } = require("validator");
 
 const billCalculationMethods = {
   VAT: vatCalculationHandler,
@@ -22,10 +23,13 @@ const addBill = async (req, res) => {
       invoice_no,
       paid_amount,
       vat_number,
-      bill_type,
       items,
-      TDS,
+      selectedOptions,
     } = req.body;
+
+    const TDS = Number(selectedOptions.split(" ")[1]);
+    console.log(TDS);
+    const bill_type = selectedOptions.split(" ")[0].toUpperCase();
 
     const existingBill = await prisma.bills.findUnique({
       where: { bill_no },
@@ -37,7 +41,9 @@ const addBill = async (req, res) => {
         .json({ error: "Bill with this number already exists" });
     }
 
-    const vendor = await prisma.vendors.findFirst({ where: { vat_number } });
+    const vendor = await prisma.vendors.findFirst({
+      where: { vat_number },
+    });
 
     if (!vendor) {
       return res.status(404).json({ error: "Vendor not found" });
@@ -86,7 +92,7 @@ const addBill = async (req, res) => {
           unit_price: item.unit_price,
           TDS_deduct_amount: tdsDeductAmount,
           withVATAmount: vatAmount,
-          total_Amount: bill_type == "VAT" ?vatAmount : tdsDeduct_total_amount,
+          total_Amount: bill_type == "VAT" ? vatAmount : tdsDeduct_total_amount,
           TDS: TDS,
         };
       })
@@ -105,7 +111,6 @@ const addBill = async (req, res) => {
       paid_amount,
       res
     );
-    console.log(totalSumAmount);
 
     if (!totalSumAmount && !pendingAmount) {
       return;
@@ -117,7 +122,7 @@ const addBill = async (req, res) => {
           bill_no,
           bill_date: new Date(bill_date),
           invoice_no,
-          paid_amount,
+          paid_amount: parseInt(paid_amount),
           left_amount: pendingAmount,
           bill_type,
           vendors: { connect: { vendor_id: vendor.vendor_id } },
@@ -157,7 +162,9 @@ const addBill = async (req, res) => {
           });
 
           if (!foundItem) {
-           return res.status(400).json({error:`Item ${item.item_name} not found for update`});
+            return res
+              .status(400)
+              .json({ error: `Item ${item.item_name} not found for update` });
           }
 
           return prisma.items.update({
@@ -176,9 +183,7 @@ const addBill = async (req, res) => {
       return { bill, updateVendor, updateItems };
     });
 
-    return res
-      .status(200)
-      .json({ message: "Successfully added bill", result });
+    return res.status(200).json({ message: "Successfully added bill", result });
   } catch (error) {
     console.log("Error:", error.message);
 
@@ -194,35 +199,34 @@ const getBill = async (req, res) => {
     const result = await prisma.bills.findMany({
       include: {
         vendors: true,
-        BillItems: true
+        BillItems: true,
       },
     });
 
-    return res.status(200).json({ bill:result });
+    return res.status(200).json({ bill: result });
   } catch (error) {
     console.log("Error:", error.message);
     return res.status(500).json({ error: "Internal Server Error!" });
   }
 };
 
-
-const getBillById = async (req,res)=>{
+const getBillById = async (req, res) => {
   try {
     const bill_id = req.params.id;
     const billData = await prisma.bills.findFirst({
-      where:{
-        id: bill_id
+      where: {
+        id: bill_id,
       },
-      include:{
-        BillItems:true
-      }
-    })
-    return res.status(200).json({ bill:billData });
+      include: {
+        BillItems: true,
+      },
+    });
+    return res.status(200).json({ bill: billData });
   } catch (error) {
     console.log("Error:", error.message);
     return res.status(500).json({ error: "Internal Server Error!" });
   }
-}
+};
 
 const updateBill = async (req, res) => {
   try {
@@ -341,8 +345,7 @@ const updateBill = async (req, res) => {
           );
 
           const quantityDifference =
-            item.quantity -
-            (existingBillItem ? existingBillItem.quantity : 0);
+            item.quantity - (existingBillItem ? existingBillItem.quantity : 0);
 
           await prisma.items.update({
             where: { item_id: foundItem.item_id },
@@ -390,11 +393,9 @@ const updateBill = async (req, res) => {
   }
 };
 
-
-
 module.exports = {
   addBill,
   getBill,
   updateBill,
-  getBillById
+  getBillById,
 };
