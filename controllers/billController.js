@@ -105,6 +105,7 @@ const addBill = async (req, res) => {
       paid_amount,
       res
     );
+    console.log(totalSumAmount);
 
     if (!totalSumAmount && !pendingAmount) {
       return;

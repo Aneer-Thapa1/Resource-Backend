@@ -14,7 +14,6 @@ model vendors {
   vendor_contact String
   vendor_profile String
   categories     String?
-
   last_purchase_date DateTime? @db.Date
   last_paid          DateTime? @db.Date
   payment_duration   Int?
@@ -70,7 +69,6 @@ model bills {
   bill_date     DateTime?   @db.Date
   invoice_no    String?     @db.VarChar(255)
   paid_amount   Float?      @db.Float
-  actual_Amount Float?
   left_amount   Float?      @db.Float
   vendors       vendors?    @relation(fields: [vendor_ID], references: [vendor_id], onDelete: Cascade)
   vendor_ID     Int?
