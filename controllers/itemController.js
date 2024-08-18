@@ -76,7 +76,6 @@ const getItems = async (req, res) => {
       include: {
         category: true,
         itemCategory: true,
-        BillItems: true,
         itemsOnFeatures: {
           include: {
             feature: true,
@@ -101,14 +100,6 @@ const getItems = async (req, res) => {
         JOIN resource.items i
         ON bi.item_id = i.item_id 
         WHERE i.item_id = ${item.item_id}`;
-    
-
-        // const specificPendingData = await prisma.$queryRaw`
-        //   SELECT SUM(bills.left_amount) as total_pending_amount 
-        //   FROM resource.bills 
-        //   JOIN resource.items 
-        //   ON bills.item_id = items.item_id 
-        //   WHERE items.item_id = ${item.item_id}`;
 
         return {
           ...item,
@@ -116,8 +107,7 @@ const getItems = async (req, res) => {
           itemsOnFeatures: featuresObject,
           category: item.category.category_name,
           itemCategory: item.itemCategory.item_category_name,
-          pending_payment: specificData[0]?.total_pending_amount || 0,
-          total_amount: specificData[0]?.total_purchase_amount || 0,
+          total_Amount: specificData[0]?.total_purchase_amount || 0
         };
       })
     );
@@ -128,7 +118,6 @@ const getItems = async (req, res) => {
     return res.status(400).json({ error: "Failed to retrieve items!" });
   }
 };
-
 const getItemsById = async (req, res) => {
   try {
     const item_id = Number(req.params.id);
@@ -139,9 +128,13 @@ const getItemsById = async (req, res) => {
       include: {
         category: true,
         itemCategory: true,
-        bills: {
+        BillItems: {
           include: {
-            vendors: true,
+            bill: {
+              include: {
+                vendors: true,
+              },
+            },
           },
         },
         itemsOnFeatures: {
@@ -151,24 +144,25 @@ const getItemsById = async (req, res) => {
         },
       },
     });
+
     if (!itemData) {
       return res.status(404).json({ error: "Item not found!" });
     }
+
     const stockStatus =
       itemData.quantity < itemData.low_limit ? "Low Stock" : "In Stock";
 
     const featuresObject = {};
-    itemData.itemsOnFeatures.map(({ feature, value }) => {
+    itemData.itemsOnFeatures.forEach(({ feature, value }) => {
       featuresObject[feature.feature_name] = value;
     });
 
     const specificData = await prisma.$queryRaw`
-      SELECT SUM(bills.actual_amount) as total_purchase_amount, 
-             SUM(bills.left_amount) as total_pending_amount 
-      FROM resource.bills 
-      JOIN resource.items 
-      ON bills.item_id = items.item_id 
-      WHERE items.item_id = ${item_id}`;
+      SELECT SUM(bi.total_Amount) as total_purchase_amount
+      FROM resource.billItems bi
+      JOIN resource.items i
+      ON bi.item_id = i.item_id 
+      WHERE i.item_id = ${itemData.item_id}`;
 
     const responseData = {
       ...itemData,
@@ -176,8 +170,24 @@ const getItemsById = async (req, res) => {
       itemsOnFeatures: featuresObject,
       category: itemData.category.category_name,
       itemCategory: itemData.itemCategory.item_category_name,
-      pending_payment: specificData[0]?.total_pending_amount || 0,
-      total_amount: specificData[0]?.total_purchase_amount || 0,
+      total_Amount: specificData[0]?.total_purchase_amount || 0,
+      BillItems: itemData.BillItems.map(billItem => ({
+        id: billItem.id,
+        bill_id: billItem.bill_id,
+        item_id: billItem.item_id,
+        quantity: billItem.quantity,
+        unit_price: billItem.unit_price,
+        withVATAmount: billItem.withVATAmount,
+        TDS_deduct_amount: billItem.TDS_deduct_amount,
+        total_Amount: billItem.total_Amount,
+        TDS: billItem.TDS,
+        bill_no: billItem.bill.bill_no,
+        bill_date: billItem.bill.bill_date,
+        bill_type: billItem.bill.bill_type,
+        created_At: billItem.bill.created_At,
+        vendor_name: billItem.bill.vendors.vendor_name,
+        vat_number: billItem.bill.vendors.vat_number,
+      }))
     };
 
     return res.status(200).json(responseData);
@@ -186,6 +196,7 @@ const getItemsById = async (req, res) => {
     return res.status(400).json({ error: "Failed to retrieve item!" });
   }
 };
+
 
 //function to update the item data
 const updateItem = async (req, res) => {
