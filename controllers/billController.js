@@ -28,7 +28,6 @@ const addBill = async (req, res) => {
     } = req.body;
 
     const TDS = Number(selectedOptions.split(" ")[1]);
-    console.log(TDS);
     const bill_type = selectedOptions.split(" ")[0].toUpperCase();
 
     const existingBill = await prisma.bills.findUnique({
@@ -83,6 +82,7 @@ const addBill = async (req, res) => {
         }
 
         const tdsDeduct_total_amount = total_amount - tdsDeductAmount;
+        console.log(tdsDeduct_total_amount);
         const vatAmount =
           bill_type === "VAT" ? vatCalculation(total_amount, 0.13) : 0;
 
@@ -93,9 +93,16 @@ const addBill = async (req, res) => {
           TDS_deduct_amount: tdsDeductAmount,
           withVATAmount: vatAmount,
           total_Amount: bill_type == "VAT" ? vatAmount : tdsDeduct_total_amount,
-          TDS: TDS,
+          TDS: TDS
         };
       })
+    );
+
+
+
+    const actualTotalAmount = billItems.reduce(
+      (acc, item) => acc + item.total_Amount,
+      0
     );
 
     // Determine the appropriate calculation method based on the bill type
@@ -124,6 +131,7 @@ const addBill = async (req, res) => {
           invoice_no,
           paid_amount: parseInt(paid_amount),
           left_amount: pendingAmount,
+          actual_Amount: actualTotalAmount,
           bill_type,
           vendors: { connect: { vendor_id: vendor.vendor_id } },
           BillItems: {
