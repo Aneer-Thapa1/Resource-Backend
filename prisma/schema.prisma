@@ -70,6 +70,7 @@ model bills {
   invoice_no  String?     @db.VarChar(255)
   paid_amount Float?      @db.Float
   left_amount Float?      @db.Float
+  actual_Amount Float?
   vendors     vendors?    @relation(fields: [vendor_ID], references: [vendor_id], onDelete: Cascade)
   vendor_ID   Int?
   bill_type   String?
