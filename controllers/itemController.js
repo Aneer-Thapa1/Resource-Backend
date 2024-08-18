@@ -76,7 +76,7 @@ const getItems = async (req, res) => {
       include: {
         category: true,
         itemCategory: true,
-        bills: true,
+        BillItems: true,
         itemsOnFeatures: {
           include: {
             feature: true,
@@ -96,12 +96,19 @@ const getItems = async (req, res) => {
         });
 
         const specificData = await prisma.$queryRaw`
-          SELECT SUM(bills.actual_amount) as total_purchase_amount, 
-                 SUM(bills.left_amount) as total_pending_amount 
-          FROM resource.bills 
-          JOIN resource.items 
-          ON bills.item_id = items.item_id 
-          WHERE items.item_id = ${item.item_id}`;
+        SELECT SUM(bi.total_Amount) as total_purchase_amount
+        FROM resource.billItems bi
+        JOIN resource.items i
+        ON bi.item_id = i.item_id 
+        WHERE i.item_id = ${item.item_id}`;
+    
+
+        // const specificPendingData = await prisma.$queryRaw`
+        //   SELECT SUM(bills.left_amount) as total_pending_amount 
+        //   FROM resource.bills 
+        //   JOIN resource.items 
+        //   ON bills.item_id = items.item_id 
+        //   WHERE items.item_id = ${item.item_id}`;
 
         return {
           ...item,
