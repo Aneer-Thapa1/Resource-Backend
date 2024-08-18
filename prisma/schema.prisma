@@ -53,6 +53,7 @@ model items {
   low_limit        Int?
   recent_purchase  DateTime?
   unit_price       Int?
+  total_Amount     Float?
   Status           Boolean?
   category         category?         @relation(fields: [category_id], references: [category_id])
   category_id      Int?
