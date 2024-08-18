@@ -69,42 +69,30 @@ const updateVendor = async (req, res) => {
     res.status(500).json({ error: "Error updating vendor" });
   }
 };
-
 const getAllVendors = async (req, res) => {
   try {
-    const getVendor = await prisma.vendors.findMany({
-      include: {
-        bills: {
-          include: {
-            items: true,
-          },
-        },
-      },
-    });
+    const getVendor = await prisma.vendors.findMany({});
 
-    if (req.query.search) {
-      const searchVendor = getVendor.filter((vendor) =>
-        vendor.vendor_name
-          .toLowerCase()
-          .includes(req.query.search.toLowerCase())
-      );
-      return res.status(201).json(searchVendor);
-    }
-
-    // Calculate total_pending_amount for each vendor
     const vendorsWithTotalPayment = await Promise.all(
       getVendor.map(async (vendor) => {
+        // Query to calculate the total purchase amount
         const specificData = await prisma.$queryRaw`
-          SELECT SUM(bills.actual_amount) as total_purchase_amount, 
-                 SUM(bills.left_amount) as total_pending_amount 
-          FROM resource.bills 
-          JOIN resource.vendors 
-          ON bills.vendor_ID = vendors.vendor_id 
-          WHERE vendors.vendor_id = ${vendor.vendor_id}`;
+        SELECT 
+          SUM(bi.total_Amount) as total_purchase_amount
+        FROM resource.bills b
+        JOIN resource.BillItems bi ON b.bill_id = bi.bill_id
+        WHERE b.vendor_ID = ${vendor.vendor_id}`;
 
+        // Query to calculate the total pending amount
+        const specificPendingData = await prisma.$queryRaw`
+        SELECT 
+          SUM(b.left_amount) as total_pending_amount 
+        FROM resource.bills b
+        WHERE b.vendor_ID = ${vendor.vendor_id}`;
+        
         return {
           ...vendor,
-          pending_payment: specificData[0]?.total_pending_amount || 0,
+          pending_payment: specificPendingData[0]?.total_pending_amount || 0,
           total_amount: specificData[0]?.total_purchase_amount || 0,
         };
       })
@@ -114,50 +102,56 @@ const getAllVendors = async (req, res) => {
       vendor: vendorsWithTotalPayment,
     });
   } catch (error) {
+    console.log(error);
     return res.status(500).json({ error: error.message });
   }
 };
 
-//get by ID
 const getVendorsByID = async (req, res) => {
   try {
     const vendor_id = req.params.vat;
 
+    // Find vendor by ID
     const VendorById = await prisma.vendors.findUnique({
       where: {
         vendor_id: Number(vendor_id),
       },
       include: {
-        bills: {
-          include: {
-            items: true,
-          },
-        },
+        bills: true,
       },
     });
-    //if vendor is not found this condition is called
+
+    // If vendor is not found
     if (!VendorById) {
-      return res.status(404).json({ error: "Vendor not found !" });
+      return res.status(404).json({ error: "Vendor not found!" });
     }
 
-    const specificData = await prisma.$queryRaw`
-        SELECT SUM(bills.actual_amount) as total_purchase_amount, 
-               SUM(bills.left_amount) as total_pending_amount 
-        FROM resource.bills 
-        JOIN resource.vendors 
-        ON bills.vendor_ID = vendors.vendor_id 
-        WHERE vendors.vendor_id = ${VendorById.vendor_id}`;
+    // Calculate total purchase amount and pending payment for the specific vendor
+    const [totalPurchaseAmount, totalPendingAmount] = await Promise.all([
+      prisma.$queryRaw`
+        SELECT 
+          SUM(bi.total_Amount) as total_purchase_amount
+        FROM resource.bills b
+        JOIN resource.BillItems bi ON b.bill_id = bi.bill_id
+        WHERE b.vendor_ID = ${vendor_id}`,
+      
+      prisma.$queryRaw`
+        SELECT 
+          SUM(b.left_amount) as total_pending_amount 
+        FROM resource.bills b
+        WHERE b.vendor_ID = ${vendor_id}`
+    ]);
 
-    const singleVendorWithDetail = {
+    // Respond with vendor details and calculated totals
+    return res.status(200).json({
       ...VendorById,
-      pending_payment: specificData[0]?.total_pending_amount || 0,
-      total_amount: specificData[0]?.total_purchase_amount || 0,
-    };
+      pending_payment: totalPendingAmount[0]?.total_pending_amount || 0,
+      total_amount: totalPurchaseAmount[0]?.total_purchase_amount || 0,
+    });
 
-    return res.status(200).json(singleVendorWithDetail);
   } catch (error) {
-    console.log(error);
-    return res.status(500).json({ error: "Failed to fetch vendor by id" });
+    console.error(error);
+    return res.status(500).json({ error: error.message });
   }
 };
 

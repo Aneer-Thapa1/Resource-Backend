@@ -3,8 +3,8 @@ function calculateTotalAmount(billItems, calculationType) {
   return billItems.reduce((sum, item) => {
     if (calculationType === 'VAT') {
       return sum + (item.withVATAmount || 0); // Sum up VAT amounts
-    } else if (calculationType === 'NOBILL') {
-      return sum + item.unit_price * item.quantity; // Sum for NOBILL
+    } else if (calculationType === 'PAN') {
+      return sum +(item.total_Amount); // Sum for NOBILL
     } else {
       return sum + item.unit_price * item.quantity; 
     }
