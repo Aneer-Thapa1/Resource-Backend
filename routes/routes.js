@@ -112,5 +112,7 @@ router.get("/getDepartment", departmentController.getDepartment);
 
 
 //export excel
-router.get("/bill/export", exportToExcel.exportBill)
+router.get("/bill/exportBill", exportToExcel.exportBill);
+router.get("/bill/exportItem", exportToExcel.exportItems);
+router.get("/bill/exportVendor", exportToExcel.exportVendors);
 module.exports = router;
