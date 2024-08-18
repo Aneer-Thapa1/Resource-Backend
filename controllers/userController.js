@@ -41,6 +41,7 @@ const addUser = async (req, res) => {
   if (!user_name || !user_email || !department) {
     return res.status(400).json({ error: "Please fill all the fields!" });
   }
+
   try {
     const checkDepartment = await prisma.department.findFirst({
       where: {
