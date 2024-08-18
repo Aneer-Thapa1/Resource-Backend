@@ -76,6 +76,7 @@ const addBill = async (req, res) => {
           return res.status(400).json({ error: error.message });
         }
 
+        const tdsDeduct_total_amount = total_amount - tdsDeductAmount;
         const vatAmount =
           bill_type === "VAT" ? vatCalculation(total_amount, 0.13) : 0;
 
@@ -85,6 +86,7 @@ const addBill = async (req, res) => {
           unit_price: item.unit_price,
           TDS_deduct_amount: tdsDeductAmount,
           withVATAmount: vatAmount,
+          total_Amount: bill_type == "VAT" ?vatAmount : tdsDeduct_total_amount,
           TDS: TDS,
         };
       })
