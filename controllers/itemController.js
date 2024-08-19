@@ -70,6 +70,9 @@ const addItem = async (req, res) => {
     return res.status(500).json({ error: "Failed adding item!" });
   }
 };
+
+//get items
+
 const getItems = async (req, res) => {
   try {
     const items = await prisma.items.findMany({
