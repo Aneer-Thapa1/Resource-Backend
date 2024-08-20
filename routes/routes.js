@@ -59,8 +59,13 @@ router.delete(
 router.post("/addBill", billController.addBill);
 router.get("/bill", billController.getBill);
 router.get("/singleBill/:bill_id", billController.getBillById);
-router.put("/updateBill/:id", authMiddleware(), billController.updateBill);
-router.put("/approveBill/:id",authMiddleware(),superAdminMiddleware, billController.approveBill);
+router.put("/updateBill/:bill_id", authMiddleware(), billController.updateBill);
+router.put(
+  "/approveBill/:bill_id",
+  // authMiddleware(),
+  // superAdminMiddleware,
+  billController.approveBill
+);
 
 // Request routes
 router.post("/addRequest", authMiddleware(), requestController.sentRequest);
@@ -111,7 +116,6 @@ router.post(
 //department
 router.post("/addDepartment", departmentController.addDepartment);
 router.get("/getDepartment", departmentController.getDepartment);
-
 
 //export excel
 router.get("/bill/exportBill", exportToExcel.exportBill);
