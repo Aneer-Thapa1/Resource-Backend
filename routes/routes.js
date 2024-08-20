@@ -8,6 +8,7 @@ const itemCategoryController = require("../controllers/itemCategoryController");
 const billController = require("../controllers/billController");
 const authMiddleware = require("../middleware/authMiddleware");
 const adminMiddleware = require("../middleware/adminMiddleware");
+const superAdminMiddleware = require("../middleware/superAdminMiddleware");
 const requestController = require("../controllers/requestController");
 const userController = require("../controllers/userController");
 const featureController = require("../controllers/featureContoller");
@@ -59,6 +60,7 @@ router.post("/addBill", billController.addBill);
 router.get("/bill", billController.getBill);
 router.get("/singleBill/:bill_id", billController.getBillById);
 router.put("/updateBill/:id", authMiddleware(), billController.updateBill);
+router.put("/approveBill/:id",authMiddleware(),superAdminMiddleware, billController.approveBill);
 
 // Request routes
 router.post("/addRequest", authMiddleware(), requestController.sentRequest);

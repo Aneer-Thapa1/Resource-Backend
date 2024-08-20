@@ -123,37 +123,79 @@ const addBill = async (req, res) => {
       return;
     }
 
-    const result = await prisma.$transaction(async (prisma) => {
-      const bill = await prisma.bills.create({
-        data: {
-          bill_no,
-          bill_date: new Date(bill_date),
-          invoice_no,
-          paid_amount: parseInt(paid_amount),
-          left_amount: pendingAmount,
-          actual_Amount: actualTotalAmount,
-          bill_type,
-          vendors: { connect: { vendor_id: vendor.vendor_id } },
-          BillItems: {
-            create: billItems,
-          },
+    const bill = await prisma.bills.create({
+      data: {
+        bill_no,
+        bill_date: new Date(bill_date),
+        invoice_no,
+        paid_amount: parseInt(paid_amount),
+        left_amount: pendingAmount,
+        actual_Amount: actualTotalAmount,
+        bill_type,
+        isApproved: false,
+        vendors: { connect: { vendor_id: vendor.vendor_id } },
+        BillItems: {
+          create: billItems,
         },
-        include: {
-          BillItems: true,
+      },
+      include: {
+        BillItems: true,
+      },
+    });
+
+    return res.status(200).json({ message: "Successfully added bill", bill });
+  } catch (error) {
+    console.log("Error:", error.message);
+    
+    // If the headers haven't been sent yet, return an internal server error response
+    if (!res.headersSent) {
+      return res.status(500).json({ error: "Internal Server Error!" });
+    }
+  }
+};
+
+const approveBill = async (req, res) => {
+  try {
+    const bill_no = req.params.id;
+
+    const bill = await prisma.bills.findUnique({
+      where: {
+        bill_no: bill_no,
+      },
+      include: {
+        vendors: true, 
+        BillItems: true, 
+      },
+    });
+
+    if (!bill) return res.status(400).json({ error: "Bill not found" });
+
+    const vendor = bill.vendors;
+
+    const result = await prisma.$transaction(async (prisma) => {
+   
+      const updatedBill = await prisma.bills.update({
+        where: {
+          bill_no: bill.bill_no,
+        },
+        data: {
+          isApproved: true,
         },
       });
 
+      // Calculate the next payment date based on the payment duration
       const addDays = (date, days) => {
         const result = new Date(date);
         result.setDate(result.getDate() + days);
         return result;
       };
 
-      const payment_day = addDays(new Date(bill_date), vendor.payment_duration);
+      const payment_day = addDays(new Date(bill.bill_date), vendor.payment_duration);
 
-      const updateVendor = await prisma.vendors.update({
+      // Update the vendor's purchase information
+      const updatedVendor = await prisma.vendors.update({
         where: {
-          vendor_id: bill.vendor_ID,
+          vendor_id: vendor.vendor_id,
         },
         data: {
           last_purchase_date: bill.bill_date,
@@ -162,17 +204,17 @@ const addBill = async (req, res) => {
         },
       });
 
-      // Loop through each item to update their quantity and recent purchase date
-      const updateItems = await Promise.all(
-        items.map(async (item) => {
-          const foundItem = await prisma.items.findFirst({
-            where: { item_name: item.item_name },
+      // Update each item's quantity and recent purchase date
+      await Promise.all(
+        bill.BillItems.map(async (billItem) => {
+          const foundItem = await prisma.items.findUnique({
+            where: {
+              item_id: billItem.item_id,
+            },
           });
 
           if (!foundItem) {
-            return res
-              .status(400)
-              .json({ error: `Item ${item.item_name} not found for update` });
+            throw new Error(`Item ${billItem.item_id} not found for update`);
           }
 
           return prisma.items.update({
@@ -181,26 +223,22 @@ const addBill = async (req, res) => {
             },
             data: {
               recent_purchase: bill.bill_date,
-              unit_price: item.unit_price,
-              quantity: foundItem.quantity + item.quantity,
+              quantity: foundItem.quantity + billItem.quantity,
+              unit_price: billItem.unit_price,
             },
           });
         })
       );
 
-      return { bill, updateVendor, updateItems };
+      return { updatedBill, updatedVendor };
     });
 
-    return res.status(200).json({ message: "Successfully added bill", result });
+    return res.status(200).json({ message: "Bill approved successfully", result });
   } catch (error) {
     console.log("Error:", error.message);
-
-    // If the headers haven't been sent yet, return an internal server error response
-    if (!res.headersSent) {
-      return res.status(500).json({ error: "Internal Server Error!" });
-    }
   }
 };
+
 
 const getBill = async (req, res) => {
   try {
@@ -406,4 +444,5 @@ module.exports = {
   getBill,
   updateBill,
   getBillById,
+  approveBill
 };

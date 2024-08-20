@@ -75,6 +75,7 @@ model bills {
   vendor_ID   Int?
   bill_type   String?
   created_At  DateTime    @default(now())
+  isApproved Boolean    @default(false)
   BillItems   BillItems[]
 }
 
