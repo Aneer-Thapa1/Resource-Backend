@@ -19,15 +19,18 @@ const adminMiddleware = async (req, res, next) => {
         user_id: decodedToken.id,
       },
     });
+
     if (!user) {
       return res.status(401).json({ message: "User not found" });
     }
+
     // Attach user object to the request for further use
-    req.user = user;
+    req.user = user_id;
     // Check if the user is an admin
     if (user.role === "admin" || user.role == "superadmin") {
       next();
     } else {
+      console.log(user.role);
       return res.status(403).json({ message: "Unauthorized access" });
     }
   } catch (err) {

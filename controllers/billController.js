@@ -93,12 +93,10 @@ const addBill = async (req, res) => {
           TDS_deduct_amount: tdsDeductAmount,
           withVATAmount: vatAmount,
           total_Amount: bill_type == "VAT" ? vatAmount : tdsDeduct_total_amount,
-          TDS: TDS
+          TDS: TDS,
         };
       })
     );
-
-
 
     const actualTotalAmount = billItems.reduce(
       (acc, item) => acc + item.total_Amount,
@@ -123,7 +121,7 @@ const addBill = async (req, res) => {
       return;
     }
 
-    const bill = await prisma.bills.create({
+    const result = await prisma.bills.create({
       data: {
         bill_no,
         bill_date: new Date(bill_date),
@@ -132,7 +130,7 @@ const addBill = async (req, res) => {
         left_amount: pendingAmount,
         actual_Amount: actualTotalAmount,
         bill_type,
-        isApproved: false,
+        isApproved: Boolean(false),
         vendors: { connect: { vendor_id: vendor.vendor_id } },
         BillItems: {
           create: billItems,
@@ -143,10 +141,10 @@ const addBill = async (req, res) => {
       },
     });
 
-    return res.status(200).json({ message: "Successfully added bill", bill });
+    return res.status(200).json({ message: "Successfully added bill", result });
   } catch (error) {
     console.log("Error:", error.message);
-    
+
     // If the headers haven't been sent yet, return an internal server error response
     if (!res.headersSent) {
       return res.status(500).json({ error: "Internal Server Error!" });
@@ -156,15 +154,15 @@ const addBill = async (req, res) => {
 
 const approveBill = async (req, res) => {
   try {
-    const bill_no = req.params.id;
+    const bill_id = req.params.bill_id;
 
     const bill = await prisma.bills.findUnique({
       where: {
-        bill_no: bill_no,
+        bill_id: Number(bill_id),
       },
       include: {
-        vendors: true, 
-        BillItems: true, 
+        vendors: true,
+        BillItems: true,
       },
     });
 
@@ -173,10 +171,9 @@ const approveBill = async (req, res) => {
     const vendor = bill.vendors;
 
     const result = await prisma.$transaction(async (prisma) => {
-   
       const updatedBill = await prisma.bills.update({
         where: {
-          bill_no: bill.bill_no,
+          bill_id: bill.bill_id,
         },
         data: {
           isApproved: true,
@@ -190,7 +187,10 @@ const approveBill = async (req, res) => {
         return result;
       };
 
-      const payment_day = addDays(new Date(bill.bill_date), vendor.payment_duration);
+      const payment_day = addDays(
+        new Date(bill.bill_date),
+        vendor.payment_duration
+      );
 
       // Update the vendor's purchase information
       const updatedVendor = await prisma.vendors.update({
@@ -233,12 +233,13 @@ const approveBill = async (req, res) => {
       return { updatedBill, updatedVendor };
     });
 
-    return res.status(200).json({ message: "Bill approved successfully", result });
+    return res
+      .status(200)
+      .json({ message: "Bill approved successfully", result });
   } catch (error) {
     console.log("Error:", error.message);
   }
 };
-
 
 const getBill = async (req, res) => {
   try {
@@ -258,10 +259,11 @@ const getBill = async (req, res) => {
 
 const getBillById = async (req, res) => {
   try {
-    const bill_id = req.params.id;
+    const bill_id = req.params.bill_id;
+    console.log(bill_id);
     const billData = await prisma.bills.findFirst({
       where: {
-        id: bill_id,
+        bill_id: Number(bill_id),
       },
       include: {
         BillItems: true,
@@ -444,5 +446,5 @@ module.exports = {
   getBill,
   updateBill,
   getBillById,
-  approveBill
+  approveBill,
 };

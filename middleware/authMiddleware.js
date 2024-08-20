@@ -1,10 +1,15 @@
 const jwt = require("jsonwebtoken");
 const { users } = require("../prismaClient");
 
-const authMiddleware =  (roles = []) => {
-  return async(req, res, next) => {
+const authMiddleware = (roles = []) => {
+  return async (req, res, next) => {
     const authorizationHeaderValue = req.headers["authorization"];
-    if (!authorizationHeaderValue || !authorizationHeaderValue.startsWith("Bearer ")) {
+
+    // console.log(authorizationHeaderValue);
+    if (
+      !authorizationHeaderValue ||
+      !authorizationHeaderValue.startsWith("Bearer ")
+    ) {
       return res.status(401).json({ error: "Access Denied" });
     }
     const token = authorizationHeaderValue.split("Bearer ")[1];
@@ -16,10 +21,10 @@ const authMiddleware =  (roles = []) => {
       const decoded = jwt.verify(token, process.env.SECRETKEY);
       console.log(decoded);
       const user = await users.findUnique({
-        where:{
-          user_id:decoded.id
-        }
-      })
+        where: {
+          user_id: decoded.id,
+        },
+      });
       req.user = user;
       if (roles.length && !roles.includes(req.user.role)) {
         return res.status(403).send("Forbidden");

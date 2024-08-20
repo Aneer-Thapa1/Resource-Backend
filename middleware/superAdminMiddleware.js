@@ -5,7 +5,7 @@ const prisma = new PrismaClient();
 
 const superAdminMiddleware = async (req, res, next) => {
   try {
-    const token = req.headers.authorization.split(" ")[1];
+    const token = req.headers.Authorization.split(" ")[1];
     if (!token) {
       return res
         .status(401)
@@ -24,10 +24,12 @@ const superAdminMiddleware = async (req, res, next) => {
     }
     // Attach user object to the request for further use
     req.user = user;
+
     // Check if the user is an admin
-    if ( user.role == "superadmin") {
+    if (user.role == "superadmin") {
       next();
     } else {
+      console.log(user.role);
       return res.status(403).json({ message: "Unauthorized access" });
     }
   } catch (err) {
