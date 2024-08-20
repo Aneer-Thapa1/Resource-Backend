@@ -290,8 +290,8 @@ const updateBill = async (req, res) => {
     } = req.body;
 
     const existingBill = await prisma.bills.findUnique({
-      where: { bill_id: id }, // Corrected from bill_no to bill_id
-      include: { BillItems: true }, // Include the current BillItems for comparison
+      where: { bill_id: id },
+      include: { BillItems: true },
     });
 
     if (!existingBill) {
