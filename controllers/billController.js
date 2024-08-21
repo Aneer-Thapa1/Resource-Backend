@@ -274,7 +274,14 @@ const getBillById = async (req, res) => {
         vendors:true
       },
     });
-    return res.status(200).json({ bill: billData, vendor_name: billData.vendors.vendor_name, vat_number: billData.vat_number  });
+    // Assuming you want the TDS of the first item in BillItems array
+    const TDS = billData.BillItems.length > 0 ? billData.BillItems[0].TDS : null;
+
+    return res.status(200).json({ 
+      bill: billData, 
+      vendor_name: billData.vendors.vendor_name, 
+      TDS: TDS 
+    });
   } catch (error) {
     console.log("Error:", error.message);
     return res.status(500).json({ error: "Internal Server Error!" });
