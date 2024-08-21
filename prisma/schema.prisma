@@ -168,18 +168,6 @@ model Message {
   conversationId Int
 }
 
-model userPool {
-  userPoolId Int       @id @default(autoincrement())
-  user_name  String
-  user_email String    @unique
-  department String
-  status     Boolean
-  otp        String?
-  created_at DateTime?
-  expire_at  DateTime?
-  verified   Boolean
-}
-
 model department {
   department_id   Int     @id @default(autoincrement())
   department_name String
