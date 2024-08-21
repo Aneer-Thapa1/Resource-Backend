@@ -265,16 +265,16 @@ const getBill = async (req, res) => {
 const getBillById = async (req, res) => {
   try {
     const bill_id = req.params.bill_id;
-    console.log(bill_id);
     const billData = await prisma.bills.findFirst({
       where: {
         bill_id: Number(bill_id),
       },
       include: {
         BillItems: true,
+        vendors:true
       },
     });
-    return res.status(200).json({ bill: billData });
+    return res.status(200).json({ bill: billData, vendor_name: billData.vendors.vendor_name, vat_number: billData.vat_number  });
   } catch (error) {
     console.log("Error:", error.message);
     return res.status(500).json({ error: "Internal Server Error!" });
