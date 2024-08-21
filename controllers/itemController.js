@@ -10,9 +10,16 @@ const addItem = async (req, res) => {
       low_limit,
     } = req.body;
 
-    if (!item_name || !measuring_unit || !category || !itemCategory || !features || !low_limit) {
+    if (
+      !item_name ||
+      !measuring_unit ||
+      !category ||
+      !itemCategory ||
+      !features ||
+      !low_limit
+    ) {
       return res.status(400).json({
-        error: "All fields are required !"
+        error: "All fields are required !",
       });
     }
 
@@ -32,7 +39,7 @@ const addItem = async (req, res) => {
     }
 
     // Process features: convert key-value pairs into feature records
-    const featureEntries = Object.entries(features); 
+    const featureEntries = Object.entries(features);
     const featureRecords = await Promise.all(
       featureEntries.map(async ([featureKey, featureValue]) => {
         let featureRecord = await prisma.feature.findFirst({
@@ -110,7 +117,7 @@ const getItems = async (req, res) => {
           itemsOnFeatures: featuresObject,
           category: item.category.category_name,
           itemCategory: item.itemCategory.item_category_name,
-          total_Amount: specificData[0]?.total_purchase_amount || 0
+          total_Amount: specificData[0]?.total_purchase_amount || 0,
         };
       })
     );
@@ -174,7 +181,7 @@ const getItemsById = async (req, res) => {
       category: itemData.category.category_name,
       itemCategory: itemData.itemCategory.item_category_name,
       total_Amount: specificData[0]?.total_purchase_amount || 0,
-      BillItems: itemData.BillItems.map(billItem => ({
+      BillItems: itemData.BillItems.map((billItem) => ({
         id: billItem.id,
         bill_id: billItem.bill_id,
         item_id: billItem.item_id,
@@ -190,7 +197,7 @@ const getItemsById = async (req, res) => {
         created_At: billItem.bill.created_At,
         vendor_name: billItem.bill.vendors.vendor_name,
         vat_number: billItem.bill.vendors.vat_number,
-      }))
+      })),
     };
 
     return res.status(200).json(responseData);
@@ -200,25 +207,103 @@ const getItemsById = async (req, res) => {
   }
 };
 
-
-//function to update the item data
 const updateItem = async (req, res) => {
   try {
-    const item_id = req.params.id;
-    const itemData = await prisma.items.update({
-      where: {
-        item_id: Number(item_id),
-      },
-      data: req.body,
-    });
-    if (!item_id) {
-      return res.status(500).json({ error: "Items not found !" });
+    const item_id = parseInt(req.params.id);
+    const {
+      item_name,
+      measuring_unit,
+      category,
+      itemCategory,
+      features,
+      low_limit,
+    } = req.body;
+
+    if (
+      !item_name ||
+      !measuring_unit ||
+      !category ||
+      !itemCategory ||
+      !features ||
+      !low_limit
+    ) {
+      return res.status(400).json({
+        error: "All fields are required!",
+      });
     }
+
+
+    const item = await prisma.items.findUnique({
+      where: { item_id },
+    });
+
+    if (!item) {
+      return res.status(404).json({ error: "Item not found!" });
+    }
+
+  
+    const categoryRecord = await prisma.category.findUnique({
+      where: { category_name: category },
+    });
+
+    const itemCategoryRecord = await prisma.itemCategory.findUnique({
+      where: { item_category_name: itemCategory },
+    });
+
+    // Validate category and item category
+    if (!categoryRecord || !itemCategoryRecord) {
+      return res
+        .status(400)
+        .json({ error: "Invalid category or item category name!" });
+    }
+
+    // Process features
+    const featureEntries = Object.entries(features);
+    const featureRecords = await Promise.all(
+      featureEntries.map(async ([featureKey, featureValue]) => {
+        const featureRecord = await prisma.feature.findUnique({
+          where: { feature_name: featureKey },
+        });
+
+        if (!featureRecord) {
+          return res.status(400).json({ error: `Feature '${featureKey}' not found!` });
+        }
+        return { feature: featureRecord, value: featureValue };
+      })
+    );
+
+  
+    await prisma.itemsOnFeatures.deleteMany({
+      where: {
+        item_id,
+      },
+    });
+
+    const updatedItem = await prisma.items.update({
+      where: {
+        item_id,
+      },
+      data: {
+        item_name,
+        measuring_unit,
+        category_id: categoryRecord.category_id,
+        item_category_id: itemCategoryRecord.item_category_id,
+        low_limit: parseInt(low_limit),
+        itemsOnFeatures: {
+          create: featureRecords.map(({ feature, value }) => ({
+            feature: { connect: { feature_id: feature.feature_id } },
+            value,
+          })),
+        },
+      },
+    });
+
     return res
-      .status(201)
-      .json({ message: "Item updated successfully !", itemData });
+      .status(200)
+      .json({ message: "Item updated successfully!", item: updatedItem });
   } catch (error) {
-    return res.status(500).json({ error: "Failed to update the items !" });
+    console.error(error);
+    return res.status(500).json({ error: "Failed to update the item!" });
   }
 };
 

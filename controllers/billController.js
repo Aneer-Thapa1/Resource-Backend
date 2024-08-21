@@ -289,12 +289,15 @@ const updateBill = async (req, res) => {
       invoice_no,
       paid_amount,
       vat_number,
-      bill_type,
-      items,
-      TDS,
+      selectedOptions,
+      items
     } = req.body;
 
-    const existingBill = await prisma.bills.findUnique({
+
+    const TDS = Number(selectedOptions.split(" ")[1]);
+    const bill_type = selectedOptions.split(" ")[0].toUpperCase();
+
+    const existingBill = await prisma.bills.findFirst({
       where: { bill_id: id },
       include: { BillItems: true },
     });
