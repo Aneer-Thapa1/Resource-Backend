@@ -45,15 +45,11 @@ router.delete("/deleteItem/:id", itemController.deleteItem);
 // Category routes
 router.get("/category", categoryController.getCategories);
 router.post("/addCategory", categoryController.addCategory);
-router.delete("/deleteCategory/:id", categoryController.deleteCategory);
+router.put("/editCategory/:id", categoryController.editCategory);
 
 // Item Category routes
 router.post("/addItemCategory", itemCategoryController.addItemCategory);
 router.get("/itemCategory", itemCategoryController.getItemCategory);
-router.delete(
-  "/deleteItemCategory/:id",
-  itemCategoryController.deleteItemCategory
-);
 
 // Bill routes
 router.post("/addBill", billController.addBill);
