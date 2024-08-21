@@ -59,7 +59,7 @@ router.delete(
 router.post("/addBill", billController.addBill);
 router.get("/bill", billController.getBill);
 router.get("/singleBill/:bill_id", billController.getBillById);
-router.put("/updateBill/:bill_id", authMiddleware(), billController.updateBill);
+router.put("/updateBill/:id", authMiddleware(), billController.updateBill);
 router.put(
   "/approveBill/:bill_id",
   // authMiddleware(),
