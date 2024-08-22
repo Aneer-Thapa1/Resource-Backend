@@ -219,6 +219,15 @@ const updateItem = async (req, res) => {
       low_limit,
     } = req.body;
 
+    console.log(
+      item_name,
+      measuring_unit,
+      category,
+      itemCategory,
+      features,
+      low_limit
+    );
+
     if (
       !item_name ||
       !measuring_unit ||
@@ -232,7 +241,6 @@ const updateItem = async (req, res) => {
       });
     }
 
-
     const item = await prisma.items.findUnique({
       where: { item_id },
     });
@@ -241,7 +249,6 @@ const updateItem = async (req, res) => {
       return res.status(404).json({ error: "Item not found!" });
     }
 
-  
     const categoryRecord = await prisma.category.findUnique({
       where: { category_name: category },
     });
@@ -266,13 +273,14 @@ const updateItem = async (req, res) => {
         });
 
         if (!featureRecord) {
-          return res.status(400).json({ error: `Feature '${featureKey}' not found!` });
+          return res
+            .status(400)
+            .json({ error: `Feature '${featureKey}' not found!` });
         }
         return { feature: featureRecord, value: featureValue };
       })
     );
 
-  
     await prisma.itemsOnFeatures.deleteMany({
       where: {
         item_id,

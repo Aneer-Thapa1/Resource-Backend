@@ -51,10 +51,11 @@ const addCategory = async (req, res) => {
 
 const editCategory = async (req, res) => {
   try {
-    const {type}  = req.body.type;
-    if (type === "Category") {
+    const { type, name } = req.body;
+    console.log(type, name);
+
+    if (type === "category") {
       const id = Number(req.params.id);
-      const name = req.body;
 
       const category = await prisma.category.findFirst({
         where: {
@@ -73,11 +74,11 @@ const editCategory = async (req, res) => {
           category_name: name,
         },
       });
-      return res.status(200).json({message:"category updated successfully !"});
-    }
-    else if (type == "ItemCategory") {
+      return res
+        .status(200)
+        .json({ message: "category updated successfully !" });
+    } else if (type == "ItemCategory") {
       const id = Number(req.params.id);
-      const name = req.body;
 
       const itemCategory = await prisma.itemCategory.findFirst({
         where: {
@@ -93,12 +94,13 @@ const editCategory = async (req, res) => {
           item_category_id: id,
         },
         data: {
-          item_category_id:name,
+          item_category_id: name,
         },
       });
-      return res.status(200).json({message:"Item Category updated successfully !"});
-    }
-    else if (type == "Feature") {
+      return res
+        .status(200)
+        .json({ message: "Item Category updated successfully !" });
+    } else if (type == "Feature") {
       const id = Number(req.params.id);
       const name = req.body;
 
@@ -108,22 +110,21 @@ const editCategory = async (req, res) => {
         },
       });
 
-      if (!feature)
-        return res.status(400).json({ error: "Feature not found" });
+      if (!feature) return res.status(400).json({ error: "Feature not found" });
 
       const data = await prisma.feature.update({
         where: {
           feature_id: id,
         },
         data: {
-          feature_name:name,
+          feature_name: name,
         },
       });
-      return res.status(200).json({message:"Feature updated successfully !"});
-    }
-    else{
-      return res.status(400).json({error:"invalid Type!"});
-
+      return res
+        .status(200)
+        .json({ message: "Feature updated successfully !" });
+    } else {
+      return res.status(400).json({ error: "invalid Type!" });
     }
   } catch (error) {
     console.log(error);
