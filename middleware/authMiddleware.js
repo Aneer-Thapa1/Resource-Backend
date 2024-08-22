@@ -19,13 +19,14 @@ const authMiddleware = (roles = []) => {
 
     try {
       const decoded = jwt.verify(token, process.env.SECRETKEY);
-      console.log(decoded);
       const user = await users.findUnique({
         where: {
           user_id: decoded.id,
         },
       });
+
       req.user = user;
+      console.log(req.user.user_id);
       if (roles.length && !roles.includes(req.user.role)) {
         return res.status(403).send("Forbidden");
       }
