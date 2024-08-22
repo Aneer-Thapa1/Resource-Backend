@@ -79,7 +79,6 @@ model bills {
   BillItems   BillItems[]
 }
 
-// Junction table to link items and bills
 model BillItems {
   id                Int    @id @default(autoincrement())
   bill_id           Int
@@ -93,7 +92,7 @@ model BillItems {
   bill              bills  @relation(fields: [bill_id], references: [bill_id], onDelete: Cascade)
   item              items  @relation(fields: [item_id], references: [item_id], onDelete: Cascade)
 
-  @@unique([bill_id, item_id]) // Ensure each item can appear only once per bill
+  @@unique([bill_id, item_id])
 }
 
 model itemsOnFeatures {

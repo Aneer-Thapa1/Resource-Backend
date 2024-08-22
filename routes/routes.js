@@ -52,7 +52,7 @@ router.post("/addItemCategory", itemCategoryController.addItemCategory);
 router.get("/itemCategory", itemCategoryController.getItemCategory);
 
 // Bill routes
-router.post("/addBill", billController.addBill);
+router.post("/addBill",authMiddleware(), billController.addBill);
 router.get("/bill", billController.getBill);
 router.get("/singleBill/:bill_id", billController.getBillById);
 router.put("/updateBill/:id", authMiddleware(), billController.updateBill);

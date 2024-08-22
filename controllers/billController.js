@@ -1,5 +1,7 @@
 const prisma = require("../prismaClient");
 const NepaliDate = require("nepali-date-converter");
+const { getIo } = require("../socket");
+
 const {
   vatCalculationHandler,
   panCalculationHandler,
@@ -27,7 +29,19 @@ const addBill = async (req, res) => {
       selectedOptions,
     } = req.body;
 
-    const TDS = Number(selectedOptions.split(" ")[1]);  
+    const userId = req.user.user_id;
+
+    console.log("User ID: " + userId);
+    const user = await prisma.users.findFirst({
+      where: { user_id: userId },
+      select: { user_name: true, department: true },
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found!" });
+    }
+
+    const TDS = Number(selectedOptions.split(" ")[1]);
     const bill_type = selectedOptions.split(" ")[0].toUpperCase();
 
     const existingBill = await prisma.bills.findFirst({
@@ -82,13 +96,14 @@ const addBill = async (req, res) => {
         }
 
         const vatAmount =
-        bill_type === "VAT" ? vatCalculation(total_amount, 0.13) : 0;
-        
+          bill_type === "VAT" ? vatCalculation(total_amount, 0.13) : 0;
+
         //total in VAT case
         const tdsDeduct_total_amount = vatAmount - tdsDeductAmount;
 
         //total in pan case
-        const panAmount = bill_type === "PAN" ? total_amount - tdsDeductAmount : 0; 
+        const panAmount =
+          bill_type === "PAN" ? total_amount - tdsDeductAmount : 0;
 
         return {
           item: { connect: { item_id: foundItem.item_id } },
@@ -125,7 +140,8 @@ const addBill = async (req, res) => {
       return;
     }
 
-    const result = await prisma.bills.create({
+    const result = await prisma.$transaction(async (prisma) => {
+    const resultData = await prisma.bills.create({
       data: {
         bill_no,
         bill_date: new Date(bill_date),
@@ -145,6 +161,22 @@ const addBill = async (req, res) => {
       },
     });
 
+    const notifyMessage = await prisma.notification.create({
+      data: {
+        message: `${resultData.bill_no} bill_no has added by ${user.user_name}`,
+        user_id: Number(userId),
+        created_at: new Date(),
+      },
+    });
+
+    const io = getIo();
+    io.emit("newBill", {
+      message: notifyMessage,
+    });
+
+
+    return { resultData, notifyMessage};
+  });
     return res.status(200).json({ message: "Successfully added bill", result });
   } catch (error) {
     console.log("Error:", error.message);
@@ -174,7 +206,8 @@ const approveBill = async (req, res) => {
 
     const vendor = bill.vendors;
 
-    if(bill.isApproved) return res.status(400).json({message:"bill alaready approved !"});
+    if (bill.isApproved)
+      return res.status(400).json({ message: "bill alaready approved !" });
     const result = await prisma.$transaction(async (prisma) => {
       const updatedBill = await prisma.bills.update({
         where: {
@@ -271,16 +304,17 @@ const getBillById = async (req, res) => {
       },
       include: {
         BillItems: true,
-        vendors:true
+        vendors: true,
       },
     });
     // Assuming you want the TDS of the first item in BillItems array
-    const TDS = billData.BillItems.length > 0 ? billData.BillItems[0].TDS : null;
+    const TDS =
+      billData.BillItems.length > 0 ? billData.BillItems[0].TDS : null;
 
-    return res.status(200).json({ 
-      bill: billData, 
-      vendor_name: billData.vendors.vendor_name, 
-      TDS: TDS 
+    return res.status(200).json({
+      bill: billData,
+      vendor_name: billData.vendors.vendor_name,
+      TDS: TDS,
     });
   } catch (error) {
     console.log("Error:", error.message);
@@ -304,14 +338,16 @@ const updateBill = async (req, res) => {
 
     // Fetch the existing bill and related items
     const existingBill = await prisma.bills.findFirst({
-      where: { 
-        bill_id
-       },
+      where: {
+        bill_id,
+      },
       include: { BillItems: true },
     });
 
     if (!existingBill) {
-      return res.status(404).json({ error: "Bill with this ID does not exist" });
+      return res
+        .status(404)
+        .json({ error: "Bill with this ID does not exist" });
     }
 
     // Fetch the vendor by VAT number
@@ -342,15 +378,15 @@ const updateBill = async (req, res) => {
           return res.status(400).json({ error: error.message });
         }
 
-      
         const vatAmount =
-        bill_type === "VAT" ? vatCalculation(total_amount, 0.13) : 0;
-        
+          bill_type === "VAT" ? vatCalculation(total_amount, 0.13) : 0;
+
         //total in VAT case
         const tdsDeduct_total_amount = vatAmount - tdsDeductAmount;
 
         //total in pan case
-        const panAmount = bill_type === "PAN" ? total_amount - tdsDeductAmount : 0; 
+        const panAmount =
+          bill_type === "PAN" ? total_amount - tdsDeductAmount : 0;
         return {
           item: { connect: { item_id: foundItem.item_id } },
           quantity: item.quantity,
@@ -393,8 +429,8 @@ const updateBill = async (req, res) => {
           bill_type,
           vendors: { connect: { vendor_id: vendor.vendor_id } },
           BillItems: {
-            deleteMany: { bill_id }, 
-            create: billItems, 
+            deleteMany: { bill_id },
+            create: billItems,
           },
         },
         include: { BillItems: true },
@@ -446,7 +482,9 @@ const updateBill = async (req, res) => {
       return { updatedBill, updateVendor };
     });
 
-    return res.status(200).json({ message: "Successfully updated bill", result });
+    return res
+      .status(200)
+      .json({ message: "Successfully updated bill", result });
   } catch (error) {
     console.error("Error:", error.message);
 
