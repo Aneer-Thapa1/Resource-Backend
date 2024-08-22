@@ -27,7 +27,7 @@ const addBill = async (req, res) => {
       selectedOptions,
     } = req.body;
 
-    const TDS = Number(selectedOptions.split(" ")[1]);
+    const TDS = Number(selectedOptions.split(" ")[1]);  
     const bill_type = selectedOptions.split(" ")[0].toUpperCase();
 
     const existingBill = await prisma.bills.findFirst({
