@@ -53,10 +53,9 @@ const editCategory = async (req, res) => {
   try {
     const { type, name } = req.body;
     console.log(type, name);
+    const id = Number(req.params.id);
 
     if (type === "category") {
-      const id = Number(req.params.id);
-
       const category = await prisma.category.findFirst({
         where: {
           category_id: id,
@@ -68,7 +67,7 @@ const editCategory = async (req, res) => {
 
       const data = await prisma.category.update({
         where: {
-          category_id: id,
+          category_id: parseInt(id),
         },
         data: {
           category_name: name,
@@ -78,11 +77,9 @@ const editCategory = async (req, res) => {
         .status(200)
         .json({ message: "category updated successfully !" });
     } else if (type == "ItemCategory") {
-      const id = Number(req.params.id);
-
       const itemCategory = await prisma.itemCategory.findFirst({
         where: {
-          item_category_id: id,
+          item_category_id: parseInt(id),
         },
       });
 
@@ -94,16 +91,14 @@ const editCategory = async (req, res) => {
           item_category_id: id,
         },
         data: {
-          item_category_id: name,
+          item_category_name: name,
         },
       });
       return res
         .status(200)
         .json({ message: "Item Category updated successfully !" });
     } else if (type == "Feature") {
-      const id = Number(req.params.id);
-      const name = req.body;
-
+      console.log("hi");
       const feature = await prisma.feature.findFirst({
         where: {
           feature_id: id,
