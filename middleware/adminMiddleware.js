@@ -13,7 +13,6 @@ const adminMiddleware = async (req, res, next) => {
     }
     // Verify the token
     const decodedToken = jwt.verify(token, process.env.SECRETKEY);
-
     const user = await prisma.users.findUnique({
       where: {
         user_id: decodedToken.id,
@@ -25,7 +24,7 @@ const adminMiddleware = async (req, res, next) => {
     }
 
     // Attach user object to the request for further use
-    req.user = user_id;
+    req.user = user.id;
     // Check if the user is an admin
     if (user.role === "admin" || user.role == "superadmin") {
       next();
