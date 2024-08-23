@@ -303,7 +303,12 @@ const getBillById = async (req, res) => {
         bill_id: Number(bill_id),
       },
       include: {
-        BillItems: true,
+        BillItems: {
+          include:{
+            item :true,
+          }
+        },
+        
         vendors: true,
       },
     });
@@ -314,7 +319,7 @@ const getBillById = async (req, res) => {
     return res.status(200).json({
       bill: billData,
       vendor_name: billData.vendors.vendor_name,
-      TDS: TDS,
+      TDS: TDS
     });
   } catch (error) {
     console.log("Error:", error.message);
