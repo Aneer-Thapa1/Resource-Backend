@@ -65,7 +65,7 @@ const addBill = async (req, res) => {
     const item = await prisma.items.findFirst({
       where: {
         OR: items.map((item) => ({
-          item_name: item.item_name,
+          item_id: item.item_id,
         })),
       },
     });
@@ -78,7 +78,7 @@ const addBill = async (req, res) => {
     const billItems = await Promise.all(
       items.map(async (item) => {
         const foundItem = await prisma.items.findFirst({
-          where: { item_name: item.item_name },
+          where: {   item_id: item.item_id },
         });
 
         if (!foundItem) {
