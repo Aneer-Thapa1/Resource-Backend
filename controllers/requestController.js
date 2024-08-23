@@ -4,9 +4,9 @@ const { getIo } = require("../socket");
 const sentRequest = async (req, res) => {
   try {
     const userId = req.user.user_id;
-    const { item_name, quantity, purpose, status } = req.body;
+    const { items, for_UserId, purpose} = req.body;
 
-    if (!item_name || !quantity || !purpose) {
+    if (!items || !purpose) {
       return res.status(400).json({
         error: "All fields are required !"
       });
@@ -20,14 +20,17 @@ const sentRequest = async (req, res) => {
     if (!user) {
       return res.status(404).json({ error: "User not found!" });
     }
-
-    const itemData = await prisma.items.findFirst({
-      where: { item_name: item_name },
+    
+    const ForUser = await prisma.users.findFirst({
+      where: { user_id: for_UserId },
+      select: { user_name: true, department: true },
     });
-
-    if (!itemData) {
-      return res.status(404).json({ error: "Item not found!" });
+    
+    if (!ForUser) {
+      return res.status(404).json({ error: "User not found!" });
     }
+
+    
 
     const result = await prisma.$transaction(async (prisma) => {
       const requestData = await prisma.request.create({
@@ -45,35 +48,7 @@ const sentRequest = async (req, res) => {
         },
       });
 
-      const notifyMessage = await prisma.notification.create({
-        data: {
-          message: `New request has been added by ${user.user_name}`,
-          user_id: Number(userId),
-          created_at: new Date(),
-        },
-      });
-
-      // Send message and data to admin via Socket.io
-      const io = getIo();
-      io.emit("newRequest", {
-        message: notifyMessage,
-      });
-
-      let updateItem;
-      let deductItem;
-
-      if (status === "accept") {
-        updateItem = await prisma.items.update({
-          where: {
-            item_id: requestData.item_id,
-          },
-          data: {
-            quantity: itemData.quantity - requestData.request_quantity,
-          },
-        });
-      }
-
-      return { requestData, notifyMessage, updateItem };
+      return { requestData, notifyMessage };
     });
 
     if (result.updateItem) {

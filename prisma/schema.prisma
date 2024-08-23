@@ -33,7 +33,8 @@ model users {
   isActive      Boolean?                  @default(false)
   department    department?               @relation(fields: [department_id], references: [department_id])
   department_id Int?
-  request       request[]
+  requestsMade     request[]  @relation("RequestedBy")
+  requestsReceived request[]  @relation("RequestedFor")
   notification  notification[]
   conversations ConversationParticipant[]
 }
@@ -107,27 +108,30 @@ model requestItems {
   @@unique([request_id, item_id])
 }
 
+model request {
+  request_id    Int            @id @default(autoincrement())
+  purpose       String?
+  user          users?         @relation("RequestedBy", fields: [user_id], references: [user_id], onDelete: Cascade)
+  requestedFor  users?         @relation("RequestedFor", fields: [requested_for], references: [user_id], onDelete: Cascade)
+  user_id       Int
+  requested_for Int
+  request_date  DateTime       @default(now())
+  status        String
+  isReturned    Boolean        @default(false)
+  item          items?         @relation(fields: [item_id], references: [item_id])
+  item_id       Int?
+  requestItems  requestItems[]
+}
+
+
 model itemsOnFeatures {
   item_id    Int
   feature_id Int
-  value      String? // Added to store the value of the feature
+  value      String?
   item       items   @relation(fields: [item_id], references: [item_id])
   feature    feature @relation(fields: [feature_id], references: [feature_id])
 
   @@id([item_id, feature_id])
-}
-
-model request {
-  request_id   Int            @id @default(autoincrement())
-  purpose      String?
-  users        users?         @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
-  user_id      Int
-  request_date DateTime       @default(now())
-  status       String
-  isReturned   Boolean        @default(false)
-  requestItems requestItems[]
-  items        items?         @relation(fields: [itemsItem_id], references: [item_id])
-  itemsItem_id Int?
 }
 
 model category {
