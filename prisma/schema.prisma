@@ -61,22 +61,23 @@ model items {
   itemsOnFeatures  itemsOnFeatures[]
   request          request[]
   BillItems        BillItems[]
+  requestItems     requestItems[]
 }
 
 model bills {
-  bill_id     Int         @id @default(autoincrement())
-  bill_no     String?     @unique @db.VarChar(255)
-  bill_date   DateTime?   @db.Date
-  invoice_no  String?     @db.VarChar(255)
-  paid_amount Float?      @db.Float
-  left_amount Float?      @db.Float
+  bill_id       Int         @id @default(autoincrement())
+  bill_no       String?     @unique @db.VarChar(255)
+  bill_date     DateTime?   @db.Date
+  invoice_no    String?     @db.VarChar(255)
+  paid_amount   Float?      @db.Float
+  left_amount   Float?      @db.Float
   actual_Amount Float?
-  vendors     vendors?    @relation(fields: [vendor_ID], references: [vendor_id], onDelete: Cascade)
-  vendor_ID   Int?
-  bill_type   String?
-  created_At  DateTime    @default(now())
-  isApproved Boolean    @default(false)
-  BillItems   BillItems[]
+  vendors       vendors?    @relation(fields: [vendor_ID], references: [vendor_id], onDelete: Cascade)
+  vendor_ID     Int?
+  bill_type     String?
+  created_At    DateTime    @default(now())
+  isApproved    Boolean     @default(false)
+  BillItems     BillItems[]
 }
 
 model BillItems {
@@ -95,6 +96,17 @@ model BillItems {
   @@unique([bill_id, item_id])
 }
 
+model requestItems {
+  id         Int     @id @default(autoincrement())
+  quantity   Int?
+  request    request @relation(fields: [request_id], references: [request_id], onDelete: Cascade)
+  request_id Int
+  item       items   @relation(fields: [item_id], references: [item_id], onDelete: Cascade)
+  item_id    Int
+
+  @@unique([request_id, item_id])
+}
+
 model itemsOnFeatures {
   item_id    Int
   feature_id Int
@@ -106,17 +118,16 @@ model itemsOnFeatures {
 }
 
 model request {
-  request_id        Int      @id @default(autoincrement())
-  request_item_name String
-  request_quantity  Int
-  purpose           String?
-  users             users?   @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
-  user_id           Int
-  item              items?   @relation(fields: [item_id], references: [item_id], onDelete: Cascade)
-  item_id           Int
-  request_date      DateTime @default(now())
-  status            String
-  isReturned        Boolean  @default(false)
+  request_id   Int            @id @default(autoincrement())
+  purpose      String?
+  users        users?         @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+  user_id      Int
+  request_date DateTime       @default(now())
+  status       String
+  isReturned   Boolean        @default(false)
+  requestItems requestItems[]
+  items        items?         @relation(fields: [itemsItem_id], references: [item_id])
+  itemsItem_id Int?
 }
 
 model category {
