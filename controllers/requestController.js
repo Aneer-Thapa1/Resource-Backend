@@ -4,11 +4,11 @@ const { getIo } = require("../socket");
 const sentRequest = async (req, res) => {
   try {
     const userId = req.user.user_id;
-    const { items, for_UserId, purpose} = req.body;
+    const { items, for_UserId, purpose } = req.body;
 
     if (!items || !purpose) {
       return res.status(400).json({
-        error: "All fields are required !"
+        error: "All fields are required !",
       });
     }
 
@@ -20,47 +20,27 @@ const sentRequest = async (req, res) => {
     if (!user) {
       return res.status(404).json({ error: "User not found!" });
     }
-    
+
     const ForUser = await prisma.users.findFirst({
       where: { user_id: for_UserId },
       select: { user_name: true, department: true },
     });
-    
+
     if (!ForUser) {
       return res.status(404).json({ error: "User not found!" });
     }
 
-    
-
-    const result = await prisma.$transaction(async (prisma) => {
-      const requestData = await prisma.request.create({
-        data: {
-          request_item_name: itemData.item_name,
-          request_quantity: parseInt(quantity),
-          user_id: userId,
-          item_id: itemData.item_id,
-          purpose: purpose,
-          request_date: new Date(),
-          status: "pending",
-        },
-        include: {
-          item: true,
-        },
-      });
-
-      return { requestData, notifyMessage };
-    });
-
-    if (result.updateItem) {
-      return res.status(200).json({
-        message: "Successfully requested and updated the items",
-        result,
-      });
-    } else {
-      return res
-        .status(200)
-        .json({ message: "Successfully requested the items", result });
-    }
+    const requestItems = await Promise.all(
+      items.map(async (item) => {
+        const foundItem = await prisma.items.findFirst({
+          where: { item_id: item.item_id },
+        });
+      })
+    );
+    console.log(requestItems);
+    return res
+      .status(200)
+      .json({ message: "Successfully requested the items", requestItems });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ error: "Failed to send the request!" });
@@ -137,11 +117,10 @@ const returnItem = async (req, res) => {
   }
 };
 
-
 const approveRequest = async (req, res) => {
   try {
     const id = Number(req.params.id);
-    const { replacementItems } = req.body; 
+    const { replacementItems } = req.body;
 
     const findRequest = await prisma.request.findUnique({
       where: {
@@ -156,7 +135,6 @@ const approveRequest = async (req, res) => {
       return res.status(404).json({ error: "Request not found!" });
     }
 
-   
     const itemInInventory = await prisma.items.findUnique({
       where: {
         item_id: findRequest.item_id,
@@ -165,11 +143,15 @@ const approveRequest = async (req, res) => {
 
     let updateItems = [];
 
-    if (!itemInInventory || itemInInventory.quantity < findRequest.request_quantity) {
+    if (
+      !itemInInventory ||
+      itemInInventory.quantity < findRequest.request_quantity
+    ) {
       // If the item is not available or quantity is insufficient, replace it with other items
       if (!replacementItems || replacementItems.length === 0) {
         return res.status(400).json({
-          error: "Replacement items are required since the requested item is not available!",
+          error:
+            "Replacement items are required since the requested item is not available!",
         });
       }
 
@@ -239,7 +221,6 @@ const approveRequest = async (req, res) => {
   }
 };
 
-
 const getRequest = async (req, res) => {
   try {
     const allData = await prisma.request.findMany({
@@ -267,7 +248,7 @@ const getRequest = async (req, res) => {
 
 module.exports = {
   sentRequest,
-  getRequest,   
+  getRequest,
   returnItem,
-  approveRequest
+  approveRequest,
 };
