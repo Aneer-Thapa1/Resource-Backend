@@ -305,7 +305,7 @@ const getBillById = async (req, res) => {
       include: {
         BillItems: {
           include:{
-            item :true,
+            item : true,
           }
         },
         
