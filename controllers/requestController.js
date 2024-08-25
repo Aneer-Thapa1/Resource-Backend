@@ -290,7 +290,11 @@ const singleRequest = async (req, res) => {
         request_id: requestData.request_id,
       },
       include: {
-        user: true,
+        user: {
+          include:{
+            department:true
+          }
+        },
         requestedFor: true,
         requestItems: {
           include: {
@@ -307,6 +311,7 @@ const singleRequest = async (req, res) => {
       request_id: allData.request_id,
       purpose: allData.purpose,
       user_name: allData.user.user_name,
+      department_name: allData.user.department.department_name,
       requested_for: allData.requestedFor.user_name,
       request_date: allData.request_date,
       status: allData.status,
