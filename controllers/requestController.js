@@ -32,8 +32,7 @@ const sentRequest = async (req, res) => {
     const requestItems = items.map((item) => {
       return {
         item_id: item.item_id,
-        quantity: item.quantity
-      
+        quantity: item.quantity,
       };
     });
 
@@ -62,7 +61,6 @@ const sentRequest = async (req, res) => {
     return res.status(500).json({ error: "Failed to send the request!" });
   }
 };
-
 
 const returnItem = async (req, res) => {
   try {
@@ -241,33 +239,85 @@ const approveRequest = async (req, res) => {
 const getRequest = async (req, res) => {
   try {
     const allData = await prisma.request.findMany({
-      include:{
-        user:true,
-        requestedFor:true,
-        requestItems:{
-          include:{
-            item:true,
-          }
-        }
-      }
+      include: {
+        user: true,
+        requestedFor: true,
+        requestItems: {
+          include: {
+            item: true,
+          },
+        },
+      },
     });
 
     // Map over allData to format each request
-    const response = allData.map(request => ({
+    const response = allData.map((request) => ({
       request_id: request.request_id,
       purpose: request.purpose,
       user_name: request.user.user_name,
-     requested_for: request.requestedFor.user_name,
+      requested_for: request.requestedFor.user_name,
       request_date: request.request_date,
       status: request.status,
       isReturned: request.isReturned,
-      requestItems: request.requestItems.map(requestItem => ({
+      requestItems: request.requestItems.map((requestItem) => ({
         id: requestItem.id,
         quantity: requestItem.quantity,
-        item_name: requestItem.item.item_name
-      }))
+        item_name: requestItem.item.item_name,
+      })),
+    }));
+    return res.status(200).json({ request: response });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: "Failed to get all requests!" });
+  }
+};
 
-        }));
+const singleRequest = async (req, res) => {
+  try {
+    const req_id = Number(req.params.id);
+    console.log(req_id);
+
+    const requestData = await prisma.request.findFirst({
+      where: {
+        request_id: req_id,
+      },
+    });
+
+    if(!requestData) return res.status(400).json({error:"request not found"});
+
+    const allData = await prisma.request.findFirst({
+      where: {
+        request_id: requestData.request_id,
+      },
+      include: {
+        user: true,
+        requestedFor: true,
+        requestItems: {
+          include: {
+            item: true,
+          },
+        },
+      },
+    });
+
+    console.log(allData);
+
+    // Map over allData to format each request
+    const response = {
+      request_id: allData.request_id,
+      purpose: allData.purpose,
+      user_name: allData.user.user_name,
+      requested_for: allData.requestedFor.user_name,
+      request_date: allData.request_date,
+      status: allData.status,
+      isReturned: allData.isReturned,
+      requestItems: allData.requestItems.map((requestItem) => ({
+        id: requestItem.id,
+        quantity: requestItem.quantity,
+        item_name: requestItem.item.item_name,
+      })),
+    };
+   
     return res.status(200).json({ request: response });
   } catch (error) {
     console.error(error);
@@ -277,6 +327,7 @@ const getRequest = async (req, res) => {
 
 module.exports = {
   sentRequest,
+  singleRequest,
   getRequest,
   returnItem,
   approveRequest,

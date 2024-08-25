@@ -66,6 +66,7 @@ router.put(
 // Request routes
 router.post("/addRequest", authMiddleware(), requestController.sentRequest);
 router.get("/request", authMiddleware(), requestController.getRequest);
+router.get("/singleRequest/:id", authMiddleware(), requestController. singleRequest);
 router.put("/returnRequest/:id", requestController.returnItem);
 router.put("/approveRequest/:id", requestController.approveRequest);
 

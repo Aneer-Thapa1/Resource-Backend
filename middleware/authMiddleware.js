@@ -26,7 +26,6 @@ const authMiddleware = (roles = []) => {
       });
 
       req.user = user;
-      console.log(req.user.user_id);
       if (roles.length && !roles.includes(req.user.role)) {
         return res.status(403).send("Forbidden");
       }
