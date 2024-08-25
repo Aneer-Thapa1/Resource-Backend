@@ -41,7 +41,7 @@ const sentRequest = async (req, res) => {
     const requestData = await prisma.request.create({
       data: {
         user_id: userId,
-        requested_for: forUser.user_id,
+        requested_for: Number(forUser.user_id),
         purpose: purpose,
         isReturned: false,
         status: "pending",
@@ -241,22 +241,34 @@ const approveRequest = async (req, res) => {
 const getRequest = async (req, res) => {
   try {
     const allData = await prisma.request.findMany({
-      include: {
-        item: {
-          select: {
-            item_name: true,
-          },
-        },
-        users: {
-          select: {
-            user_name: true,
-            department: true,
-          },
-        },
-      },
+      include:{
+        user:true,
+        requestedFor:true,
+        requestItems:{
+          include:{
+            item:true,
+          }
+        }
+      }
     });
 
-    return res.status(200).json({ request: allData });
+    // Map over allData to format each request
+    const response = allData.map(request => ({
+      request_id: request.request_id,
+      purpose: request.purpose,
+      user_name: request.user.user_name,
+     requested_for: request.requestedFor.user_name,
+      request_date: request.request_date,
+      status: request.status,
+      isReturned: request.isReturned,
+      requestItems: request.requestItems.map(requestItem => ({
+        id: requestItem.id,
+        quantity: requestItem.quantity,
+        item_name: requestItem.item.item_name
+      }))
+
+        }));
+    return res.status(200).json({ request: response });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ error: "Failed to get all requests!" });
