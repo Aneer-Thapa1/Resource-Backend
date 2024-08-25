@@ -243,7 +243,7 @@ const updateItem = async (req, res) => {
     const featureEntries = Object.entries(features);
     const featureRecords = await Promise.all(
       featureEntries.map(async ([featureKey, featureValue]) => {
-        const featureRecord = await prisma.feature.findUnique({
+        const featureRecord = await prisma.feature.findFirst({
           where: { feature_name: featureKey },
         });
 
@@ -309,7 +309,7 @@ const updateItem = async (req, res) => {
 
     return res.status(200).json(responseData);
   } catch (error) {
-    console.error(error);
+    console.error(error.message);
     return res.status(500).json({ error: "Internal server error!" });
   }
 };
