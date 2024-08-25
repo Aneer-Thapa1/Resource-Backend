@@ -63,6 +63,17 @@ model items {
   BillItems        BillItems[]
   requestItems     requestItems[]
 }
+model requestItems {
+  id         Int     @id @default(autoincrement())
+  quantity   Int?
+  request    request @relation(fields: [request_id], references: [request_id], onDelete: Cascade)
+  request_id Int
+  item       items   @relation(fields: [item_id], references: [item_id], onDelete: Cascade)
+  item_id    Int
+
+  @@unique([request_id, item_id])
+}
+
 
 model bills {
   bill_id       Int         @id @default(autoincrement())
@@ -96,16 +107,6 @@ model BillItems {
   @@unique([bill_id, item_id])
 }
 
-model requestItems {
-  id         Int     @id @default(autoincrement())
-  quantity   Int?
-  request    request @relation(fields: [request_id], references: [request_id], onDelete: Cascade)
-  request_id Int
-  item       items   @relation(fields: [item_id], references: [item_id], onDelete: Cascade)
-  item_id    Int
-
-  @@unique([request_id, item_id])
-}
 
 model request {
   request_id    Int            @id @default(autoincrement())

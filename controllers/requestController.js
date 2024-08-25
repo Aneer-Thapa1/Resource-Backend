@@ -8,7 +8,7 @@ const sentRequest = async (req, res) => {
 
     if (!items || !purpose) {
       return res.status(400).json({
-        error: "All fields are required !",
+        error: "All fields are required!",
       });
     }
 
@@ -21,43 +21,38 @@ const sentRequest = async (req, res) => {
       return res.status(404).json({ error: "User not found!" });
     }
 
-    const ForUser = await prisma.users.findFirst({
+    const forUser = await prisma.users.findFirst({
       where: { user_id: for_UserId },
-      select: { user_name: true, department: true },
     });
 
-    if (!ForUser) {
+    if (!forUser) {
       return res.status(404).json({ error: "User not found!" });
     }
 
-    const requestItems = await Promise.all(
-      items.map(async (item) => {
-        const foundItem = await prisma.items.findFirst({
-          where: { item_id: item.item_id },
-        });
-        if (!foundItem) {
-          throw new Error(`Item with ID ${item.item_id} not found.`);
-        }
-        return foundItem;
-      }
-      )
-    );
+    const requestItems = items.map((item) => {
+      return {
+        item_id: item.item_id,
+        quantity: item.quantity
+      
+      };
+    });
 
+    // Create the request with associated requestItems
     const requestData = await prisma.request.create({
-      data:{
+      data: {
         user_id: userId,
-        requested_for: Number(for_UserId),
+        requested_for: forUser.user_id,
         purpose: purpose,
         isReturned: false,
         status: "pending",
-        requestItems:{
-          create: requestItems
-        }
+        requestItems: {
+          create: requestItems,
+        },
       },
-      include:{
-        requestItems:true
-      }
-    })
+      include: {
+        requestItems: true,
+      },
+    });
 
     return res
       .status(200)
