@@ -206,36 +206,13 @@ const getItemsById = async (req, res) => {
     return res.status(400).json({ error: "Failed to retrieve item!" });
   }
 };
-
 const updateItem = async (req, res) => {
   try {
     const item_id = parseInt(req.params.id);
     const {
-      item_name,
-      measuring_unit,
-      category,
-      itemCategory,
-      features,
-      low_limit,
-    } = req.body;
+      item_name, measuring_unit, category, itemCategory, features, low_limit, } = req.body;
 
-    console.log(
-      item_name,
-      measuring_unit,
-      category,
-      itemCategory,
-      features,
-      low_limit
-    );
-
-    if (
-      !item_name ||
-      !measuring_unit ||
-      !category ||
-      !itemCategory ||
-      !features ||
-      !low_limit
-    ) {
+    if ( !item_name || !measuring_unit ||!category || !itemCategory || !features || !low_limit) {
       return res.status(400).json({
         error: "All fields are required!",
       });
@@ -257,14 +234,12 @@ const updateItem = async (req, res) => {
       where: { item_category_name: itemCategory },
     });
 
-    // Validate category and item category
     if (!categoryRecord || !itemCategoryRecord) {
       return res
         .status(400)
         .json({ error: "Invalid category or item category name!" });
     }
 
-    // Process features
     const featureEntries = Object.entries(features);
     const featureRecords = await Promise.all(
       featureEntries.map(async ([featureKey, featureValue]) => {
@@ -304,16 +279,41 @@ const updateItem = async (req, res) => {
           })),
         },
       },
+      include: {
+        category: true,
+        itemsOnFeatures: {
+          include: {
+            feature: true,
+          },
+        },
+        itemCategory: true,
+      },
     });
 
-    return res
-      .status(200)
-      .json({ message: "Item updated successfully!", item: updatedItem });
+    // Creating the featuresObject
+    const featuresObject = {};
+    updatedItem.itemsOnFeatures.map(({ feature, value }) => {
+      featuresObject[feature.feature_name] = value;
+    });
+
+    const responseData = {
+      item_id: updatedItem.item_id,
+      item_name: updatedItem.item_name,
+      measuring_unit: updatedItem.measuring_unit,
+      low_limit: updatedItem.low_limit,
+      category: updatedItem.category.category_name,
+      itemCategory: updatedItem.itemCategory.item_category_name,
+      features: featuresObject,
+      message: "Item updated successfully!",
+    };
+
+    return res.status(200).json(responseData);
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ error: "Failed to update the item!" });
+    return res.status(500).json({ error: "Internal server error!" });
   }
 };
+
 
 //to delete
 const deleteItem = async (req, res) => {

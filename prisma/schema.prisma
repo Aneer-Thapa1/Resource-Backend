@@ -60,7 +60,6 @@ model items {
   itemCategory     itemCategory?     @relation(fields: [item_category_id], references: [item_category_id])
   item_category_id Int?
   itemsOnFeatures  itemsOnFeatures[]
-  request          request[]
   BillItems        BillItems[]
   requestItems     requestItems[]
 }
@@ -118,8 +117,6 @@ model request {
   request_date  DateTime       @default(now())
   status        String
   isReturned    Boolean        @default(false)
-  item          items?         @relation(fields: [item_id], references: [item_id])
-  item_id       Int?
   requestItems  requestItems[]
 }
 

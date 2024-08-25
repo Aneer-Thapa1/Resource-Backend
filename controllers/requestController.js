@@ -35,17 +35,39 @@ const sentRequest = async (req, res) => {
         const foundItem = await prisma.items.findFirst({
           where: { item_id: item.item_id },
         });
-      })
+        if (!foundItem) {
+          throw new Error(`Item with ID ${item.item_id} not found.`);
+        }
+        return foundItem;
+      }
+      )
     );
-    console.log(requestItems);
+
+    const requestData = await prisma.request.create({
+      data:{
+        user_id: userId,
+        requested_for: Number(for_UserId),
+        purpose: purpose,
+        isReturned: false,
+        status: "pending",
+        requestItems:{
+          create: requestItems
+        }
+      },
+      include:{
+        requestItems:true
+      }
+    })
+
     return res
       .status(200)
-      .json({ message: "Successfully requested the items", requestItems });
+      .json({ message: "Successfully requested the items", requestData });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ error: "Failed to send the request!" });
   }
 };
+
 
 const returnItem = async (req, res) => {
   try {
