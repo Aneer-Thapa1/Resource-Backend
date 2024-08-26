@@ -32,7 +32,7 @@ const sentRequest = async (req, res) => {
     const requestItems = items.map((item) => {
       return {
         item_id: item.item_id,
-        quantity: Number(item.quantity),
+        quantity:parseInt(item.quantity),
       };
     });
 

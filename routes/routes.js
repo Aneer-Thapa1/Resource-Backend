@@ -52,7 +52,7 @@ router.post("/addItemCategory", itemCategoryController.addItemCategory);
 router.get("/itemCategory", itemCategoryController.getItemCategory);
 
 // Bill routes
-router.post("/addBill",authMiddleware(), billController.addBill);
+router.post("/addBill", authMiddleware(), billController.addBill);
 router.get("/bill", billController.getBill);
 router.get("/singleBill/:bill_id", billController.getBillById);
 router.put("/updateBill/:id", authMiddleware(), billController.updateBill);
@@ -66,7 +66,11 @@ router.put(
 // Request routes
 router.post("/addRequest", authMiddleware(), requestController.sentRequest);
 router.get("/request", authMiddleware(), requestController.getRequest);
-router.get("/singleRequest/:id", authMiddleware(), requestController. singleRequest);
+router.get(
+  "/singleRequest/:id",
+  authMiddleware(),
+  requestController.singleRequest
+);
 router.put("/returnRequest/:id", requestController.returnItem);
 router.put("/approveRequest/:id", authMiddleware(), requestController.approveRequest);
 

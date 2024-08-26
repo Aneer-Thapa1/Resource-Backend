@@ -77,7 +77,7 @@ const addBill = async (req, res) => {
     const billItems = await Promise.all(
       items.map(async (item) => {
         const foundItem = await prisma.items.findFirst({
-          where: {   item_id: item.item_id },
+          where: { item_id: item.item_id },
         });
 
         if (!foundItem) {
@@ -140,42 +140,41 @@ const addBill = async (req, res) => {
     }
 
     const result = await prisma.$transaction(async (prisma) => {
-    const resultData = await prisma.bills.create({
-      data: {
-        bill_no,
-        bill_date: new Date(bill_date),
-        invoice_no,
-        paid_amount: parseInt(paid_amount),
-        left_amount: pendingAmount,
-        actual_Amount: actualTotalAmount,
-        bill_type,
-        isApproved: Boolean(false),
-        vendors: { connect: { vendor_id: vendor.vendor_id } },
-        BillItems: {
-          create: billItems,
+      const resultData = await prisma.bills.create({
+        data: {
+          bill_no,
+          bill_date: new Date(bill_date),
+          invoice_no,
+          paid_amount: parseInt(paid_amount),
+          left_amount: pendingAmount,
+          actual_Amount: actualTotalAmount,
+          bill_type,
+          isApproved: Boolean(false),
+          vendors: { connect: { vendor_id: vendor.vendor_id } },
+          BillItems: {
+            create: billItems,
+          },
         },
-      },
-      include: {
-        BillItems: true,
-      },
+        include: {
+          BillItems: true,
+        },
+      });
+
+      const notifyMessage = await prisma.notification.create({
+        data: {
+          message: `${resultData.bill_no} bill_no has added by ${user.user_name}`,
+          user_id: Number(userId),
+          created_at: new Date(),
+        },
+      });
+
+      const io = getIo();
+      io.emit("newBill", {
+        message: notifyMessage,
+      });
+
+      return { resultData, notifyMessage };
     });
-
-    const notifyMessage = await prisma.notification.create({
-      data: {
-        message: `${resultData.bill_no} bill_no has added by ${user.user_name}`,
-        user_id: Number(userId),
-        created_at: new Date(),
-      },
-    });
-
-    const io = getIo();
-    io.emit("newBill", {
-      message: notifyMessage,
-    });
-
-
-    return { resultData, notifyMessage};
-  });
     return res.status(200).json({ message: "Successfully added bill", result });
   } catch (error) {
     console.log("Error:", error.message);
@@ -304,11 +303,11 @@ const getBillById = async (req, res) => {
       },
       include: {
         BillItems: {
-          include:{
-            item : true,
-          }
+          include: {
+            item: true,
+          },
         },
-        
+
         vendors: true,
       },
     });
@@ -319,7 +318,7 @@ const getBillById = async (req, res) => {
     return res.status(200).json({
       bill: billData,
       vendor_name: billData.vendors.vendor_name,
-      TDS: TDS
+      TDS: TDS,
     });
   } catch (error) {
     console.log("Error:", error.message);
@@ -328,18 +327,19 @@ const getBillById = async (req, res) => {
 };
 const updateBill = async (req, res) => {
   const bill_id = Number(req.params.id);
+
   try {
     const {
       bill_date,
       invoice_no,
       paid_amount,
       vat_number,
-      selectedOptions,
+      selectedOption,
       items,
     } = req.body;
 
-    const TDS = Number(selectedOptions.split(" ")[1]);
-    const bill_type = selectedOptions.split(" ")[0].toUpperCase();
+    const TDS = Number(selectedOption.split(" ")[1]);
+    const bill_type = selectedOption.split(" ")[0].toUpperCase();
 
     // Fetch the existing bill and related items
     const existingBill = await prisma.bills.findFirst({
@@ -362,11 +362,12 @@ const updateBill = async (req, res) => {
       return res.status(404).json({ error: "Vendor not found" });
     }
 
+    console.log("hi");
     // Process each item in the bill
     const billItems = await Promise.all(
       items.map(async (item) => {
         const foundItem = await prisma.items.findFirst({
-          where: { item_name: item.item_name },
+          where: { item_id: parseInt(item.item_id) },
         });
 
         if (!foundItem) {
@@ -393,7 +394,7 @@ const updateBill = async (req, res) => {
         const panAmount =
           bill_type === "PAN" ? total_amount - tdsDeductAmount : 0;
         return {
-          item: { connect: { item_id: foundItem.item_id } },
+          item: { connect: { item_id: parseInt(foundItem.item_id) } },
           quantity: item.quantity,
           unit_price: item.unit_price,
           TDS_deduct_amount: tdsDeductAmount,
@@ -445,18 +446,18 @@ const updateBill = async (req, res) => {
       await Promise.all(
         items.map(async (item) => {
           const foundItem = await prisma.items.findFirst({
-            where: { item_name: item.item_name },
+            where: { item_id: item.item_id },
           });
 
-          const existingBillItem = existingBill.BillItems.find(
-            (billItem) => billItem.item_id === foundItem.item_id
+          const existingBillItem = existingBill?.BillItems.find(
+            (billItem) => +billItem?.item_id === +foundItem.item_id
           );
 
           const quantityDifference =
             item.quantity - (existingBillItem?.quantity || 0);
 
           await prisma.items.update({
-            where: { item_id: foundItem.item_id },
+            where: { item_id: parseInt(foundItem.item_id) },
             data: {
               recent_purchase: updatedBill.bill_date,
               unit_price: item.unit_price,
@@ -498,6 +499,7 @@ const updateBill = async (req, res) => {
     }
   }
 };
+
 module.exports = {
   addBill,
   getBill,
