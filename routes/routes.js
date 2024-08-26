@@ -68,7 +68,7 @@ router.post("/addRequest", authMiddleware(), requestController.sentRequest);
 router.get("/request", authMiddleware(), requestController.getRequest);
 router.get("/singleRequest/:id", authMiddleware(), requestController. singleRequest);
 router.put("/returnRequest/:id", requestController.returnItem);
-router.put("/approveRequest/:id", requestController.approveRequest);
+router.put("/approveRequest/:id", authMiddleware(), requestController.approveRequest);
 
 // role User routes
 router.post("/role/addUser", userController.addUser);

@@ -31,7 +31,6 @@ const addBill = async (req, res) => {
 
     const userId = req.user.user_id;
 
-    console.log("User ID: " + userId);
     const user = await prisma.users.findFirst({
       where: { user_id: userId },
       select: { user_name: true, department: true },
@@ -262,6 +261,7 @@ const approveBill = async (req, res) => {
             data: {
               recent_purchase: bill.bill_date,
               quantity: foundItem.quantity + billItem.quantity,
+              remaining_quantity: foundItem.quantity + billItem.quantity,
               unit_price: billItem.unit_price,
             },
           });
