@@ -74,6 +74,7 @@ router.get(
 );
 router.put("/returnRequest/:id", requestController.returnItem);
 router.put("/approveRequest/:id", authMiddleware(), requestController.approveRequest);
+router.put("/deliverRequest/:id", authMiddleware(), requestController.deliverRequest);
 
 // role User routes
 router.post("/role/addUser", userController.addUser);
