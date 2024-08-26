@@ -414,7 +414,7 @@ const updateBill = async (req, res) => {
     // Calculate total and pending amounts
     const { totalSumAmount, pendingAmount } = calculationMethod(
       billItems,
-      paid_amount,
+      parseInt(paid_amount),
       res
     );
 
@@ -429,7 +429,7 @@ const updateBill = async (req, res) => {
         data: {
           bill_date: new Date(bill_date),
           invoice_no,
-          paid_amount,
+          paid_amount: parseInt(paid_amount),
           left_amount: pendingAmount,
           actual_Amount: totalSumAmount,
           bill_type,
