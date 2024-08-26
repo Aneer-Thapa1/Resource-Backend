@@ -10,6 +10,7 @@ const authMiddleware = require("../middleware/authMiddleware");
 const adminMiddleware = require("../middleware/adminMiddleware");
 const superAdminMiddleware = require("../middleware/superAdminMiddleware");
 const requestController = require("../controllers/requestController");
+const issueController = require("../controllers/issueController");
 const userController = require("../controllers/userController");
 const featureController = require("../controllers/featureContoller");
 const NotiController = require("../controllers/notificationController");
@@ -118,4 +119,15 @@ router.get("/getDepartment", departmentController.getDepartment);
 router.get("/bill/exportBill", exportToExcel.exportBill);
 router.get("/bill/exportItem", exportToExcel.exportItems);
 router.get("/bill/exportVendor", exportToExcel.exportVendors);
+
+
+//issue
+router.get("/issue", issueController.getIssue);
+
+
+
+
+
 module.exports = router;
+
+
