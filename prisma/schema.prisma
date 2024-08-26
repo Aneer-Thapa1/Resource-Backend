@@ -11,6 +11,7 @@ model vendors {
   vendor_id          Int       @id @default(autoincrement())
   vendor_name        String?   @db.VarChar(255)
   vat_number         String?   @db.VarChar(255)
+  TDS                 Int?
   vendor_contact     String
   vendor_profile     String
   categories         String?
