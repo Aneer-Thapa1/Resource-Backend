@@ -10,6 +10,7 @@ const authMiddleware = require("../middleware/authMiddleware");
 const adminMiddleware = require("../middleware/adminMiddleware");
 const superAdminMiddleware = require("../middleware/superAdminMiddleware");
 const requestController = require("../controllers/requestController");
+const dashboardController = require("../controllers/dashboardController");
 const issueController = require("../controllers/issueController");
 const userController = require("../controllers/userController");
 const featureController = require("../controllers/featureContoller");
@@ -126,10 +127,12 @@ router.get("/bill/exportItem", exportToExcel.exportItems);
 router.get("/bill/exportVendor", exportToExcel.exportVendors);
 
 
+
 //issue
 router.get("/issue", issueController.getIssue);
 
-
+//issue
+router.get("/dashboard", dashboardController.dashboard);
 
 
 
