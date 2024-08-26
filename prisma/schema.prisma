@@ -50,6 +50,7 @@ model items {
   item_name        String?           @db.VarChar(255)
   measuring_unit   String?           @db.VarChar(50)
   quantity         Int?
+  remaining_quantity Int?
   low_limit        Int?
   recent_purchase  DateTime?
   unit_price       Int?
@@ -115,9 +116,11 @@ model request {
   requestedFor  users?         @relation("RequestedFor", fields: [requested_for], references: [user_id], onDelete: Cascade)
   user_id       Int
   requested_for Int
+  approved_by   Int?
   request_date  DateTime       @default(now())
   status        String
   isReturned    Boolean        @default(false)
+  remarks        String?
   requestItems  requestItems[]
 }
 
