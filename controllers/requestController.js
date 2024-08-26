@@ -176,7 +176,6 @@ const approveRequest = async (req, res) => {
     
     }
 
-    const result = await prisma.$transaction(async (prisma) => {
       if (!allItemsAvailable) {
         await prisma.requestItems.deleteMany({
           where: {
@@ -195,25 +194,13 @@ const approveRequest = async (req, res) => {
           },
           data: {
             approved_by: userId,
+            remarks : remarks,
             status: "Holding",
             requestItems: {
               create: changedItem,
             },
           },
         });
-
-
-        for (const item of changedItem) {
-          const itemDetails = items.find((i) => i.item_id === item.item_id);
-          await prisma.issue.create({
-            data: {
-              issue_item: itemDetails.item_name, 
-              remarks: remarks,
-              request_Id: updateData.request_id,
-              Quantity: item.quantity,
-            },
-          });
-        }
 
         return res.status(200).json({ message: "Item changed", updateData });
       } else {
@@ -229,29 +216,73 @@ const approveRequest = async (req, res) => {
             requestItems: true,
           },
         });
-
-        for (const item of updateData.requestItems) {
-          const itemDetails = items.find((i) => i.item_id === item.item_id);
-          await prisma.issue.create({
-            data: {
-              issue_item: itemDetails.item_name, 
-              remarks: remarks,
-              request_Id: updateData.request_id,
-              Quantity: item.quantity,
-            },
-          });
-        }
-
         return res.status(200).json({ message: "Request processed", updateData });
       }
-    });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ error: "Internal Server Error!" });
   }
 };
 
+const deliverRequest = async (req, res) => {
+  try {
+    const id = Number(req.params.id);
 
+    const findRequest = await prisma.request.findFirst({
+      where: {
+        request_id: id
+      },
+      include: {
+        requestItems: {
+          include: {
+            item: true
+          }
+        }
+      }
+    });
+
+    if (!findRequest) return res.status(404).json({ error: "Request not found" });
+
+    if (findRequest.status === "Delivered") return res.status(400).json({ error: "Already delivered!" });
+    if (findRequest.status !== "Holding") return res.status(400).json({ error: "Request has not been approved!" });
+
+    // Update request status to "Delivered"
+    const result = await prisma.$transaction(async (prisma) => {
+      const updatedRequest = await prisma.request.update({
+        where: {
+          request_id: id
+        },
+        data: {
+          status: "Delivered"
+        },
+        include: {
+          requestItems: {
+            include: {
+              item: true
+            }
+          }
+        }
+      });
+    
+      for (const requestItem of updatedRequest.requestItems) {
+        await prisma.issue.create({
+          data: {
+            issue_item: requestItem.item.item_name,
+            request_Id: updatedRequest.request_id,
+            Quantity: requestItem.quantity,
+          },
+        });
+      }
+      return updatedRequest;
+    });
+    
+    return res.status(200).json({ message: "Request delivered successfully", result });
+
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: "Internal Server Error!" });
+  }
+}
 
 const getRequest = async (req, res) => {
   try {
@@ -275,6 +306,7 @@ const getRequest = async (req, res) => {
       requested_for: request.requestedFor.user_name,
       request_date: request.request_date,
       status: request.status,
+      remarks: request.remarks,
       isReturned: request.isReturned,
       requestItems: request.requestItems.map((requestItem) => ({
         id: requestItem.id,
@@ -351,4 +383,5 @@ module.exports = {
   getRequest,
   returnItem,
   approveRequest,
+  deliverRequest
 };
