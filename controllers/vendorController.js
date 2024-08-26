@@ -101,7 +101,7 @@ const getAllVendors = async (req, res) => {
       return {
         ...vendor,
         pending_payment: specificPendingData[0]?.total_pending_amount || 0,
-        purchase_amount: specificData[0]?.total_purchase_amount || 0,
+        total_amount: specificData[0]?.total_purchase_amount || 0,
         TDS: totalTDSData[0]?.total_TDS || 0,
       };
     }));
