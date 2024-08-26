@@ -23,20 +23,20 @@ model vendors {
 }
 
 model users {
-  user_id       Int                       @id @default(autoincrement())
-  user_name     String                    @db.VarChar(95)
-  user_email    String                    @unique @db.VarChar(65)
-  password      String                    @db.VarChar(255)
-  role          String                    @default("user")
-  otp           String?
-  otp_expiry    DateTime?
-  isActive      Boolean?                  @default(false)
-  department    department?               @relation(fields: [department_id], references: [department_id])
-  department_id Int?
-  requestsMade     request[]  @relation("RequestedBy")
-  requestsReceived request[]  @relation("RequestedFor")
-  notification  notification[]
-  conversations ConversationParticipant[]
+  user_id          Int                       @id @default(autoincrement())
+  user_name        String                    @db.VarChar(95)
+  user_email       String                    @unique @db.VarChar(65)
+  password         String                    @db.VarChar(255)
+  role             String                    @default("user")
+  otp              String?
+  otp_expiry       DateTime?
+  isActive         Boolean?                  @default(false)
+  department       department?               @relation(fields: [department_id], references: [department_id])
+  department_id    Int?
+  requestsMade     request[]                 @relation("RequestedBy")
+  requestsReceived request[]                 @relation("RequestedFor")
+  notification     notification[]
+  conversations    ConversationParticipant[]
 }
 
 model feature {
@@ -46,24 +46,25 @@ model feature {
 }
 
 model items {
-  item_id          Int               @id @default(autoincrement())
-  item_name        String?           @db.VarChar(255)
-  measuring_unit   String?           @db.VarChar(50)
-  quantity         Int?
+  item_id            Int               @id @default(autoincrement())
+  item_name          String?           @db.VarChar(255)
+  measuring_unit     String?           @db.VarChar(50)
+  quantity           Int?
   remaining_quantity Int?
-  low_limit        Int?
-  recent_purchase  DateTime?
-  unit_price       Int?
-  total_Amount     Float?
-  Status           Boolean?
-  category         category?         @relation(fields: [category_id], references: [category_id])
-  category_id      Int?
-  itemCategory     itemCategory?     @relation(fields: [item_category_id], references: [item_category_id])
-  item_category_id Int?
-  itemsOnFeatures  itemsOnFeatures[]
-  BillItems        BillItems[]
-  requestItems     requestItems[]
+  low_limit          Int?
+  recent_purchase    DateTime?
+  unit_price         Int?
+  total_Amount       Float?
+  Status             Boolean?
+  category           category?         @relation(fields: [category_id], references: [category_id])
+  category_id        Int?
+  itemCategory       itemCategory?     @relation(fields: [item_category_id], references: [item_category_id])
+  item_category_id   Int?
+  itemsOnFeatures    itemsOnFeatures[]
+  BillItems          BillItems[]
+  requestItems       requestItems[]
 }
+
 model requestItems {
   id         Int     @id @default(autoincrement())
   quantity   Int?
@@ -74,7 +75,6 @@ model requestItems {
 
   @@unique([request_id, item_id])
 }
-
 
 model bills {
   bill_id       Int         @id @default(autoincrement())
@@ -108,7 +108,6 @@ model BillItems {
   @@unique([bill_id, item_id])
 }
 
-
 model request {
   request_id    Int            @id @default(autoincrement())
   purpose       String?
@@ -120,10 +119,9 @@ model request {
   request_date  DateTime       @default(now())
   status        String
   isReturned    Boolean        @default(false)
-  remarks        String?
   requestItems  requestItems[]
+  issue issue[]
 }
-
 
 model itemsOnFeatures {
   item_id    Int
@@ -187,4 +185,14 @@ model department {
   department_id   Int     @id @default(autoincrement())
   department_name String
   users           users[]
+}
+
+model issue {
+  id         Int      @id @default(autoincrement())
+  issue_item String
+  issue_Date DateTime @default(now())
+  Quantity   Int
+  remarks    String?
+  request   request @relation(fields: [request_Id], references: [request_id])
+  request_Id Int
 }

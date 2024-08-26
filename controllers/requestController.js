@@ -135,7 +135,7 @@ const approveRequest = async (req, res) => {
   try {
     const id = Number(req.params.id);
     const userId = req.user.user_id;
-    const { replaceItems,remarks } = req.body;
+    const { replaceItems, remarks } = req.body;
 
 
     const findRequest = await prisma.request.findFirst({
@@ -148,9 +148,11 @@ const approveRequest = async (req, res) => {
     });
 
     if (!findRequest) {
-      return res.status(400).json({ error: "Request not Found !" });
+      return res.status(400).json({ error: "Request not Found!" });
     }
 
+    if(findRequest.status == "Holding") return res.status(400).json({message:'request already approved !'});
+    
     const itemIds = findRequest.requestItems.map((item) => item.item_id);
 
     const items = await prisma.items.findMany({
@@ -161,66 +163,94 @@ const approveRequest = async (req, res) => {
       },
     });
 
-    // Create a flag to determine if all requested items are available in sufficient quantity
     let allItemsAvailable = true;
 
     for (const requestedItem of findRequest.requestItems) {
       const matchedItem = items.find(
         (inventoryItem) => inventoryItem.item_id === requestedItem.item_id
       );
-    
+
       if (!matchedItem || requestedItem.quantity > matchedItem.quantity) {
         allItemsAvailable = false;
-        // break; // Stop checking further if any item is not available in sufficient quantity
       }
+    
     }
-    
-    if (!allItemsAvailable) {
-      await prisma.requestItems.deleteMany({
-        where: {
-          request_id: findRequest.request_id,
-        },
-      });
-    
-      // Map the replaceItems from the request body
-      const changedItem = replaceItems.map((item) => ({
-        item_id: item.item_id,
-        quantity: item.quantity,
-      }));
-    
-      const updateData = await prisma.request.update({
-        where: {
-          request_id: id,
-        },
-        data: {
-          remarks: remarks,
-          approved_by: userId,
-          status: "Holding",
-          requestItems: {
-            create: changedItem,
+
+    const result = await prisma.$transaction(async (prisma) => {
+      if (!allItemsAvailable) {
+        await prisma.requestItems.deleteMany({
+          where: {
+            request_id: findRequest.request_id,
           },
-        },
-      });
-    
-      return res.status(200).json({ message: "Item changed", updateData });
-    } else {
-      const updateData = await prisma.request.update({
-        where: {
-          request_id: id,
-        },
-        data: {
-          status: "Holding",
-          approved_by: userId,
-        },
-      });
-      return res.status(200).json({ message: "Request processed", updateData });
-    }
-    
+        });
+
+        const changedItem = replaceItems.map((item) => ({
+          item_id: item.item_id,
+          quantity: item.quantity,
+        }));
+
+        const updateData = await prisma.request.update({
+          where: {
+            request_id: id,
+          },
+          data: {
+            approved_by: userId,
+            status: "Holding",
+            requestItems: {
+              create: changedItem,
+            },
+          },
+        });
+
+
+        for (const item of changedItem) {
+          const itemDetails = items.find((i) => i.item_id === item.item_id);
+          await prisma.issue.create({
+            data: {
+              issue_item: itemDetails.item_name, 
+              remarks: remarks,
+              request_Id: updateData.request_id,
+              Quantity: item.quantity,
+            },
+          });
+        }
+
+        return res.status(200).json({ message: "Item changed", updateData });
+      } else {
+        const updateData = await prisma.request.update({
+          where: {
+            request_id: id,
+          },
+          data: {
+            status: "Holding",
+            approved_by: userId,
+          },
+          include: {
+            requestItems: true,
+          },
+        });
+
+        for (const item of updateData.requestItems) {
+          const itemDetails = items.find((i) => i.item_id === item.item_id);
+          await prisma.issue.create({
+            data: {
+              issue_item: itemDetails.item_name, 
+              remarks: remarks,
+              request_Id: updateData.request_id,
+              Quantity: item.quantity,
+            },
+          });
+        }
+
+        return res.status(200).json({ message: "Request processed", updateData });
+      }
+    });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ error: "Internal Server Error!" });
   }
 };
+
 
 
 const getRequest = async (req, res) => {
