@@ -130,6 +130,7 @@ router.get("/bill/exportVendor", exportToExcel.exportVendors);
 
 //issue
 router.get("/issue", issueController.getIssue);
+router.post("/addIssue", issueController.addIssue);
 
 //issue
 router.get("/dashboard", dashboardController.dashboard);
