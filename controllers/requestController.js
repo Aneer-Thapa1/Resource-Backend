@@ -131,11 +131,13 @@ const returnItem = async (req, res) => {
     return res.status(500).json({ error: "Failed to send the request!" });
   }
 };
+
 const approveRequest = async (req, res) => {
   try {
     const id = Number(req.params.id);
     const userId = req.user.user_id;
     const { replaceItems, remarks } = req.body;
+
 
     const findRequest = await prisma.request.findFirst({
       where: {
@@ -187,11 +189,11 @@ const approveRequest = async (req, res) => {
 
       const updateData = await prisma.request.update({
         where: {
-          request_id: id,
+          request_id: parseInt(id),
         },
         data: {
-          approved_by: userId,
-          remarks: remarks,
+          approved_by: parseInt(userId),
+          remarks: remarks.remarks,
           status: "Holding",
           requestItems: {
             create: changedItem,
@@ -200,7 +202,7 @@ const approveRequest = async (req, res) => {
       });
 
       return res.status(200).json({ message: "Item changed", updateData });
-    
+
   } catch (error) {
     console.error(error);
     return res.status(500).json({ error: "Internal Server Error!" });
@@ -361,6 +363,7 @@ const singleRequest = async (req, res) => {
       isReturned: allData.isReturned,
       requestItems: allData.requestItems.map((requestItem) => ({
         id: requestItem.id,
+        item_id: requestItem.item.item_id,
         quantity: requestItem.quantity,
         item_name: requestItem.item.item_name,
         item_id: requestItem.item.item_id,
