@@ -91,8 +91,6 @@ const updateVendor = async (req, res) => {
         .json({ error: "One or more categories not found!" });
     }
 
-    // const deleteVendorCategory = await
-
     const updateData = await prisma.vendors.update({
       where: {
         vendor_id:vendor_id,
