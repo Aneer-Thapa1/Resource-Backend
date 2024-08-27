@@ -92,7 +92,7 @@ const getAllVendors = async (req, res) => {
       // Query to calculate the total TDS
       const totalTDSData = await prisma.$queryRaw`
         SELECT
-          COALESCE(SUM(bi.TDS), 0) AS total_TDS
+          COALESCE(SUM(bi.TDS_deduct_amount), 0) AS total_TDS
         FROM vendors v
         JOIN bills b ON v.vendor_id = b.vendor_ID
         JOIN BillItems bi ON b.bill_id = bi.bill_id
