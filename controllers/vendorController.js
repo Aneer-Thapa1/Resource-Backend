@@ -36,9 +36,10 @@ const addVendor = async (req, res) => {
       )
     );
 
-    // Check if any category was not found
     if (checkCategory.includes(null)) {
-      return res.status(404).json({ message: "One or more categories not found!" });
+      return res
+        .status(404)
+        .json({ error: "One or more categories not found!" });
     }
 
     const vendorData = await prisma.vendors.create({
@@ -67,20 +68,47 @@ const addVendor = async (req, res) => {
   }
 };
 
-
 //update vendor
 const updateVendor = async (req, res) => {
-  const { vendor_name, vendor_contact, vat_number } = req.body;
+  const { vendor_name, vendor_contact, vat_number, categories } = req.body;
   try {
-    const vendor_id = req.params.id;
+    console.log(categories);
+    const vendor_id =  Number(req.params.id);
+
+    const checkCategory = await Promise.all(
+      categories.map((category) =>
+        prisma.itemCategory.findFirst({
+          where: {
+            item_category_id: category.item_category_id,
+          },
+        })
+      )
+    );
+
+    if (checkCategory.includes(null)) {
+      return res
+        .status(404)
+        .json({ error: "One or more categories not found!" });
+    }
+
+    // const deleteVendorCategory = await
+
     const updateData = await prisma.vendors.update({
       where: {
-        vendor_id: Number(vendor_id),
+        vendor_id:vendor_id,
       },
       data: {
         vendor_name,
         vat_number,
         vendor_contact: vendor_contact,
+        vendorCategory: {
+          deleteMany: { vendor_id },
+          create: categories.map((category) => ({
+            category: {
+              connect: { item_category_id: category.item_category_id },
+            },
+          })),
+        },
       },
     });
     return res
@@ -95,41 +123,41 @@ const getAllVendors = async (req, res) => {
   try {
     const getVendor = await prisma.vendors.findMany({});
 
-    const vendorsWithTotalPayment = await Promise.all(getVendor.map(async (vendor) => {
-      // Query to calculate the total purchase amount
-      const specificData = await prisma.$queryRaw`
+    const vendorsWithTotalPayment = await Promise.all(
+      getVendor.map(async (vendor) => {
+        // Query to calculate the total purchase amount
+        const specificData = await prisma.$queryRaw`
         SELECT 
           SUM(bi.total_Amount) as total_purchase_amount
         FROM resource.bills b
         JOIN resource.BillItems bi ON b.bill_id = bi.bill_id
         WHERE b.vendor_ID = ${vendor.vendor_id}`;
-    
-      // Query to calculate the total pending amount
-      const specificPendingData = await prisma.$queryRaw`
+
+        // Query to calculate the total pending amount
+        const specificPendingData = await prisma.$queryRaw`
         SELECT 
           SUM(b.left_amount) as total_pending_amount 
         FROM resource.bills b
         WHERE b.vendor_ID = ${vendor.vendor_id}`;
-    
-      // Query to calculate the total TDS
-      const totalTDSData = await prisma.$queryRaw`
+
+        // Query to calculate the total TDS
+        const totalTDSData = await prisma.$queryRaw`
         SELECT
           COALESCE(SUM(bi.TDS_deduct_amount), 0) AS total_TDS
         FROM vendors v
         JOIN bills b ON v.vendor_id = b.vendor_ID
         JOIN BillItems bi ON b.bill_id = bi.bill_id
         WHERE v.vendor_id = ${vendor.vendor_id}`;
-    
-      return {
-        ...vendor,
-        pending_payment: specificPendingData[0]?.total_pending_amount || 0,
-        total_amount: specificData[0]?.total_purchase_amount || 0,
-        TDS: totalTDSData[0]?.total_TDS || 0,
-      };
-    }));
-    
-    console.log(vendorsWithTotalPayment);
-    
+
+        return {
+          ...vendor,
+          pending_payment: specificPendingData[0]?.total_pending_amount || 0,
+          total_amount: specificData[0]?.total_purchase_amount || 0,
+          TDS: totalTDSData[0]?.total_TDS || 0,
+        };
+      })
+    );
+
     return res.status(201).json({
       vendor: vendorsWithTotalPayment,
     });
