@@ -1,6 +1,4 @@
 const prisma = require("../prismaClient");
-
-// createing the vendor
 const addVendor = async (req, res) => {
   const {
     vendor_name,
@@ -10,6 +8,7 @@ const addVendor = async (req, res) => {
     payment_duration,
     categories,
   } = req.body;
+
   if (!vendor_name || !vat_number || !vendor_contact) {
     return res
       .status(400)
@@ -23,10 +22,25 @@ const addVendor = async (req, res) => {
   });
 
   if (existingVAT) {
-    return res.status(300).json({ message: "VAT Number already exisit !" });
+    return res.status(300).json({ message: "VAT Number already exists!" });
   }
 
   try {
+    const checkCategory = await Promise.all(
+      categories.map((category) =>
+        prisma.itemCategory.findFirst({
+          where: {
+            item_category_id: category.item_category_id,
+          },
+        })
+      )
+    );
+
+    // Check if any category was not found
+    if (checkCategory.includes(null)) {
+      return res.status(404).json({ message: "One or more categories not found!" });
+    }
+
     const vendorData = await prisma.vendors.create({
       data: {
         vendor_name,
@@ -34,9 +48,16 @@ const addVendor = async (req, res) => {
         vendor_profile,
         vendor_contact: vendor_contact,
         payment_duration: parseInt(payment_duration),
-        categories,
+        vendorCategory: {
+          create: categories.map((category) => ({
+            category: {
+              connect: { item_category_id: category.item_category_id },
+            },
+          })),
+        },
       },
     });
+
     return res
       .status(201)
       .json({ message: "New Vendor added successfully!", vendorData });
@@ -45,6 +66,7 @@ const addVendor = async (req, res) => {
     return res.status(500).json({ error: "Failed to add the vendor!" });
   }
 };
+
 
 //update vendor
 const updateVendor = async (req, res) => {
