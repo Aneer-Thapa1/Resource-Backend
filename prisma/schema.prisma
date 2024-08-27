@@ -127,8 +127,10 @@ model issue {
   issue_item String
   issue_Date DateTime @default(now())
   Quantity   Int
-  request    request  @relation(fields: [request_Id], references: [request_id])
-  request_Id Int
+  purpose    String?
+  issue_to String?
+  request    request?  @relation(fields: [request_Id], references: [request_id])
+  request_Id Int?
 }
 
 model requestItems {
