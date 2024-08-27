@@ -275,7 +275,11 @@ const getRequest = async (req, res) => {
   try {
     const allData = await prisma.request.findMany({
       include: {
-        user: true,
+        user: {
+          include:{
+            department:true
+          }
+        },
         requestedFor: true,
         requestItems: {
           include: {
@@ -290,6 +294,7 @@ const getRequest = async (req, res) => {
       request_id: request.request_id,
       purpose: request.purpose,
       user_name: request.user.user_name,
+      department_name: request.user.department.department_name,
       requested_for: request.requestedFor.user_name,
       request_date: request.request_date,
       status: request.status,
@@ -358,6 +363,7 @@ const singleRequest = async (req, res) => {
         id: requestItem.id,
         quantity: requestItem.quantity,
         item_name: requestItem.item.item_name,
+        item_id: requestItem.item.item_id,
       })),
     };
 
