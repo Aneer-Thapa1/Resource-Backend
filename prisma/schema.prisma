@@ -8,18 +8,27 @@ datasource db {
 }
 
 model vendors {
-  vendor_id          Int       @id @default(autoincrement())
-  vendor_name        String?   @db.VarChar(255)
-  vat_number         String?   @db.VarChar(255)
+  vendor_id          Int              @id @default(autoincrement())
+  vendor_name        String?          @db.VarChar(255)
+  vat_number         String?          @db.VarChar(255)
   vendor_contact     String
   vendor_profile     String
   categories         String?
-  last_purchase_date DateTime? @db.Date
-  last_paid          DateTime? @db.Date
+  last_purchase_date DateTime?        @db.Date
+  last_paid          DateTime?        @db.Date
   payment_duration   Int?
-  next_payment_date  DateTime? @db.Date
+  next_payment_date  DateTime?        @db.Date
   black_list         Boolean?
   bills              bills[]
+  vendorCategory     vendorCategory[]
+}
+
+model vendorCategory {
+  id              Int          @id @default(autoincrement())
+  vendor          vendors      @relation(fields: [vendor_id], references: [vendor_id])
+  vendor_id       Int
+  category        itemCategory @relation(fields: [itemCategory_id], references: [item_category_id])
+  itemCategory_id Int
 }
 
 model users {
@@ -65,7 +74,6 @@ model items {
   requestItems       requestItems[]
 }
 
-
 model bills {
   bill_id       Int         @id @default(autoincrement())
   bill_no       String?     @unique @db.VarChar(255)
@@ -106,21 +114,23 @@ model request {
   user_id       Int
   requested_for Int
   approved_by   Int?
-  remarks    String?
+  remarks       String?
   request_date  DateTime       @default(now())
   status        String
   isReturned    Boolean        @default(false)
   requestItems  requestItems[]
-  issue issue[]
+  issue         issue[]
 }
+
 model issue {
   id         Int      @id @default(autoincrement())
   issue_item String
   issue_Date DateTime @default(now())
   Quantity   Int
-  request   request @relation(fields: [request_Id], references: [request_id])
+  request    request  @relation(fields: [request_Id], references: [request_id])
   request_Id Int
 }
+
 model requestItems {
   id         Int     @id @default(autoincrement())
   quantity   Int?
@@ -152,6 +162,8 @@ model itemCategory {
   item_category_id   Int     @id @default(autoincrement())
   item_category_name String  @unique
   items              items[]
+
+  vendorCategory vendorCategory[]
 }
 
 model notification {
@@ -195,5 +207,3 @@ model department {
   department_name String
   users           users[]
 }
-
-
