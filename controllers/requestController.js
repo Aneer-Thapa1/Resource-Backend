@@ -32,7 +32,7 @@ const sentRequest = async (req, res) => {
     const requestItems = items.map((item) => {
       return {
         item_id: item.item_id,
-        quantity:parseInt(item.quantity),
+        quantity: parseInt(item.quantity),
       };
     });
 
@@ -137,7 +137,6 @@ const approveRequest = async (req, res) => {
     const userId = req.user.user_id;
     const { replaceItems, remarks } = req.body;
 
-
     const findRequest = await prisma.request.findFirst({
       where: {
         request_id: id,
@@ -151,73 +150,57 @@ const approveRequest = async (req, res) => {
       return res.status(400).json({ error: "Request not Found!" });
     }
 
-    if(findRequest.status == "Holding") return res.status(400).json({message:'request already approved !'});
-    
-    const itemIds = findRequest.requestItems.map((item) => item.item_id);
+    if (findRequest.status == "Holding")
+      return res.status(400).json({ message: "request already approved !" });
 
-    const items = await prisma.items.findMany({
-      where: {
-        item_id: {
-          in: itemIds,
+
+    // const itemIds = findRequest.requestItems.map((item) => item.item_id);
+    // console.log(itemIds);
+    // const items = await prisma.items.findMany({
+    //   where: {
+    //     item_id: {
+    //       in: itemIds,
+    //     },
+    //   },
+    // });
+    // let matchRequestedItem = true;
+
+    // for (const requestedItem of findRequest.requestItems) {
+    //   const matchedItem = items.find(
+    //     (inventoryItem) => inventoryItem.item_id === requestedItem.item_id
+    //   );
+    //   if (!matchedItem) {
+    //     matchRequestedItem = false;
+    //   }
+    // }
+ 
+      await prisma.requestItems.deleteMany({
+        where: {
+          request_id: findRequest.request_id,
         },
-      },
-    });
+      });
 
-    let allItemsAvailable = true;
+      const changedItem = replaceItems.map((item) => ({
+        item_id: item.item_id,
+        quantity: item.quantity,
+      }));
 
-    for (const requestedItem of findRequest.requestItems) {
-      const matchedItem = items.find(
-        (inventoryItem) => inventoryItem.item_id === requestedItem.item_id
-      );
+      const updateData = await prisma.request.update({
+        where: {
+          request_id: id,
+        },
+        data: {
+          approved_by: userId,
+          remarks: remarks,
+          status: "Holding",
+          requestItems: {
+            create: changedItem,
+          },
+        },
+      });
 
-      if (!matchedItem || requestedItem.quantity > matchedItem.quantity) {
-        allItemsAvailable = false;
-      }
+      return res.status(200).json({ message: "Item changed", updateData });
     
-    }
-
-      if (!allItemsAvailable) {
-        await prisma.requestItems.deleteMany({
-          where: {
-            request_id: findRequest.request_id,
-          },
-        });
-
-        const changedItem = replaceItems.map((item) => ({
-          item_id: item.item_id,
-          quantity: item.quantity,
-        }));
-
-        const updateData = await prisma.request.update({
-          where: {
-            request_id: id,
-          },
-          data: {
-            approved_by: userId,
-            remarks : remarks,
-            status: "Holding",
-            requestItems: {
-              create: changedItem,
-            },
-          },
-        });
-
-        return res.status(200).json({ message: "Item changed", updateData });
-      } else {
-        const updateData = await prisma.request.update({
-          where: {
-            request_id: id,
-          },
-          data: {
-            status: "Holding",
-            approved_by: userId,
-          },
-          include: {
-            requestItems: true,
-          },
-        });
-        return res.status(200).json({ message: "Request processed", updateData });
-      }
   } catch (error) {
     console.error(error);
     return res.status(500).json({ error: "Internal Server Error!" });
@@ -230,40 +213,43 @@ const deliverRequest = async (req, res) => {
 
     const findRequest = await prisma.request.findFirst({
       where: {
-        request_id: id
+        request_id: id,
       },
       include: {
         requestItems: {
           include: {
-            item: true
-          }
-        }
-      }
+            item: true,
+          },
+        },
+      },
     });
 
-    if (!findRequest) return res.status(404).json({ error: "Request not found" });
+    if (!findRequest)
+      return res.status(404).json({ error: "Request not found" });
 
-    if (findRequest.status === "Delivered") return res.status(400).json({ error: "Already delivered!" });
-    if (findRequest.status !== "Holding") return res.status(400).json({ error: "Request has not been approved!" });
+    if (findRequest.status === "Delivered")
+      return res.status(400).json({ error: "Already delivered!" });
+    if (findRequest.status !== "Holding")
+      return res.status(400).json({ error: "Request has not been approved!" });
 
     // Update request status to "Delivered"
     const result = await prisma.$transaction(async (prisma) => {
       const updatedRequest = await prisma.request.update({
         where: {
-          request_id: id
+          request_id: id,
         },
         data: {
-          status: "Delivered"
+          status: "Delivered",
         },
         include: {
           requestItems: {
             include: {
-              item: true
-            }
-          }
-        }
+              item: true,
+            },
+          },
+        },
       });
-    
+
       for (const requestItem of updatedRequest.requestItems) {
         await prisma.issue.create({
           data: {
@@ -275,14 +261,15 @@ const deliverRequest = async (req, res) => {
       }
       return updatedRequest;
     });
-    
-    return res.status(200).json({ message: "Request delivered successfully", result });
 
+    return res
+      .status(200)
+      .json({ message: "Request delivered successfully", result });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ error: "Internal Server Error!" });
   }
-}
+};
 
 const getRequest = async (req, res) => {
   try {
@@ -348,7 +335,11 @@ const singleRequest = async (req, res) => {
         requestedFor: true,
         requestItems: {
           include: {
-            item: true,
+            item: {
+              include: {
+                itemsOnFeatures: true,
+              },
+            },
           },
         },
       },
@@ -383,5 +374,5 @@ module.exports = {
   getRequest,
   returnItem,
   approveRequest,
-  deliverRequest
+  deliverRequest,
 };
