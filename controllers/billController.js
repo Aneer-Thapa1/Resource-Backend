@@ -334,13 +334,16 @@ const updateBill = async (req, res) => {
       invoice_no,
       paid_amount,
       vat_number,
-      selectedOption,
+      selectedOptions,
       items,
     } = req.body;
 
-    const TDS = Number(selectedOption.split(" ")[1]);
-    const bill_type = selectedOption.split(" ")[0].toUpperCase();
 
+    const TDS = Number(selectedOptions.split(" ")[1]);
+    const bill_type = selectedOptions.split(" ")[0].toUpperCase();
+
+      console.log(`Bill Type: ${bill_type}, TDS: ${TDS}`);
+    
     // Fetch the existing bill and related items
     const existingBill = await prisma.bills.findFirst({
       where: {
@@ -439,7 +442,11 @@ const updateBill = async (req, res) => {
             create: billItems,
           },
         },
-        include: { BillItems: true },
+        include: { BillItems: {
+          include:{
+            item:true
+          }
+        }},
       });
 
       // Update the quantities of the related items
@@ -485,7 +492,7 @@ const updateBill = async (req, res) => {
         },
       });
 
-      return { updatedBill, updateVendor };
+      return { bill:updatedBill, updateVendor };
     });
 
     return res
