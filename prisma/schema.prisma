@@ -131,7 +131,7 @@ model issue {
   issued_to   String?
   request     request? @relation(fields: [request_Id], references: [request_id])
   request_Id  Int?
-  approved_by Int?
+  approved_by String?
 }
 
 model requestItems {
