@@ -138,6 +138,7 @@ const approveRequest = async (req, res) => {
     const userId = req.user.user_id;
     const { replaceItems, remarks } = req.body;
 
+    console.log(replaceItems, remarks);
 
     const findRequest = await prisma.request.findFirst({
       where: {
@@ -154,7 +155,6 @@ const approveRequest = async (req, res) => {
 
     if (findRequest.status == "Holding")
       return res.status(400).json({ message: "request already approved !" });
-
 
     // const itemIds = findRequest.requestItems.map((item) => item.item_id);
     // console.log(itemIds);
@@ -175,34 +175,33 @@ const approveRequest = async (req, res) => {
     //     matchRequestedItem = false;
     //   }
     // }
- 
-      await prisma.requestItems.deleteMany({
-        where: {
-          request_id: findRequest.request_id,
+
+    await prisma.requestItems.deleteMany({
+      where: {
+        request_id: findRequest.request_id,
+      },
+    });
+
+    const changedItem = replaceItems.map((item) => ({
+      item_id: parseInt(item.item_id),
+      quantity: parseInt(item.quantity),
+    }));
+
+    const updateData = await prisma.request.update({
+      where: {
+        request_id: parseInt(id),
+      },
+      data: {
+        approved_by: parseInt(userId),
+        remarks: remarks,
+        status: "Holding",
+        requestItems: {
+          create: changedItem,
         },
-      });
+      },
+    });
 
-      const changedItem = replaceItems.map((item) => ({
-        item_id: item.item_id,
-        quantity: item.quantity,
-      }));
-
-      const updateData = await prisma.request.update({
-        where: {
-          request_id: parseInt(id),
-        },
-        data: {
-          approved_by: parseInt(userId),
-          remarks: remarks.remarks,
-          status: "Holding",
-          requestItems: {
-            create: changedItem,
-          },
-        },
-      });
-
-      return res.status(200).json({ message: "Item changed", updateData });
-
+    return res.status(200).json({ message: "Item changed", updateData });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ error: "Internal Server Error!" });
@@ -278,9 +277,9 @@ const getRequest = async (req, res) => {
     const allData = await prisma.request.findMany({
       include: {
         user: {
-          include:{
-            department:true
-          }
+          include: {
+            department: true,
+          },
         },
         requestedFor: true,
         requestItems: {

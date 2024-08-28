@@ -210,9 +210,22 @@ const updateItem = async (req, res) => {
   try {
     const item_id = parseInt(req.params.id);
     const {
-      item_name, measuring_unit, category, itemCategory, features, low_limit, } = req.body;
+      item_name,
+      measuring_unit,
+      category,
+      itemCategory,
+      features,
+      low_limit,
+    } = req.body;
 
-    if ( !item_name || !measuring_unit ||!category || !itemCategory || !features || !low_limit) {
+    if (
+      !item_name ||
+      !measuring_unit ||
+      !category ||
+      !itemCategory ||
+      !features ||
+      !low_limit
+    ) {
       return res.status(400).json({
         error: "All fields are required!",
       });
@@ -303,7 +316,7 @@ const updateItem = async (req, res) => {
       low_limit: updatedItem.low_limit,
       category: updatedItem.category.category_name,
       itemCategory: updatedItem.itemCategory.item_category_name,
-      features: featuresObject,
+      itemsOnFeatures: featuresObject,
       message: "Item updated successfully!",
     };
 
@@ -313,7 +326,6 @@ const updateItem = async (req, res) => {
     return res.status(500).json({ error: "Internal server error!" });
   }
 };
-
 
 //to delete
 const deleteItem = async (req, res) => {
