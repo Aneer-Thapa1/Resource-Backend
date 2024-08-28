@@ -24,7 +24,7 @@ const addBill = async (req, res) => {
       bill_date,
       invoice_no,
       paid_amount,
-      vat_number,
+      vat_number, // Explicitly include vat_number
       items,
       selectedOptions,
     } = req.body;
@@ -54,9 +54,13 @@ const addBill = async (req, res) => {
       return res.status(400).json({ error: "Bill with this number already exists" });
     }
 
-    // Find vendor only if the bill type is not NOBILL
+    // Validate that VAT number is provided when bill type is VAT
     let vendor = null;
-    if (bill_type !== "NOBILL") {
+    if (bill_type === "VAT" || bill_type === "PAN") {
+      if (!vat_number) {
+      return res.status(400).json({ error: "VAT number is required !" });
+
+      }
       vendor = await prisma.vendors.findFirst({
         where: { vat_number },
       });
@@ -64,8 +68,7 @@ const addBill = async (req, res) => {
       if (!vendor) {
         return res.status(404).json({ error: "Vendor not found" });
       }
-    }
-
+    } 
 
     const item = await prisma.items.findFirst({
       where: {
@@ -76,7 +79,7 @@ const addBill = async (req, res) => {
     });
 
     if (!item) {
-      return res.status(400).json({ error: "Item not found !" });
+      return res.status(400).json({ error: "Item not found!" });
     }
 
     // Loop through each item in the request body to process them
@@ -100,15 +103,13 @@ const addBill = async (req, res) => {
           return res.status(400).json({ error: error.message });
         }
 
-        const vatAmount =
-          bill_type === "VAT" ? vatCalculation(total_amount, 0.13) : 0;
+        const vatAmount = bill_type === "VAT" ? vatCalculation(total_amount, 0.13) : 0;
 
-        //total in VAT case
+        // Total in VAT case
         const tdsDeduct_total_amount = vatAmount - tdsDeductAmount;
 
-        //total in pan case
-        const panAmount =
-          bill_type === "PAN" ? total_amount - tdsDeductAmount : 0;
+        // Total in PAN case
+        const panAmount =  bill_type === "PAN" ? total_amount - tdsDeductAmount : 0;
 
         return {
           item: { connect: { item_id: foundItem.item_id } },
@@ -116,7 +117,7 @@ const addBill = async (req, res) => {
           unit_price: item.unit_price,
           TDS_deduct_amount: tdsDeductAmount,
           withVATAmount: vatAmount,
-          total_Amount: bill_type == "VAT" ? tdsDeduct_total_amount : panAmount,
+          total_Amount: bill_type === "VAT" ? tdsDeduct_total_amount : bill_type === "VAT" ? panAmount : total_amount,
           TDS: TDS,
         };
       })
@@ -148,7 +149,7 @@ const addBill = async (req, res) => {
     const result = await prisma.$transaction(async (prisma) => {
       const resultData = await prisma.bills.create({
         data: {
-          bill_no,
+          bill_no : bill_type === "NOBILL" ? "NO BILL" : bill_no,
           bill_date: new Date(bill_date),
           invoice_no,
           paid_amount: parseInt(paid_amount),
@@ -156,7 +157,7 @@ const addBill = async (req, res) => {
           actual_Amount: actualTotalAmount,
           bill_type,
           isApproved: Boolean(false),
-          vendors: { connect: { vendor_id: vendor.vendor_id } },
+          vendor_ID: vendor ? vendor.vendor_id : null,
           BillItems: {
             create: billItems,
           },
@@ -208,14 +209,19 @@ const approveBill = async (req, res) => {
 
     if (!bill) return res.status(400).json({ error: "Bill not found" });
 
+    // If the bill is already approved
+    if (bill.isApproved)
+      return res.status(400).json({ message: "Bill already approved!" });
+
     const vendor = bill.vendors;
 
-    if (bill.isApproved)
-      return res.status(400).json({ message: "bill alaready approved !" });
-   
-   
-   
+    // Handle the case where there is no vendor (NOBILL case)
+    if (!vendor && bill.bill_type !== "NOBILL") {
+      return res.status(400).json({ error: "Vendor not found for this bill" });
+    }
+
     const result = await prisma.$transaction(async (prisma) => {
+      // Update the bill to mark it as approved
       const updatedBill = await prisma.bills.update({
         where: {
           bill_id: bill.bill_id,
@@ -225,29 +231,33 @@ const approveBill = async (req, res) => {
         },
       });
 
-      // Calculate the next payment date based on the payment duration
-      const addDays = (date, days) => {
-        const result = new Date(date);
-        result.setDate(result.getDate() + days);
-        return result;
-      };
+      let updatedVendor;
 
-      const payment_day = addDays(
-        new Date(bill.bill_date),
-        vendor.payment_duration
-      );
+      if (vendor) {
+        // Calculate the next payment date based on the payment duration
+        const addDays = (date, days) => {
+          const result = new Date(date);
+          result.setDate(result.getDate() + days);
+          return result;
+        };
 
-      // Update the vendor's purchase information
-      const updatedVendor = await prisma.vendors.update({
-        where: {
-          vendor_id: vendor.vendor_id,
-        },
-        data: {
-          last_purchase_date: bill.bill_date,
-          next_payment_date: payment_day,
-          last_paid: bill.bill_date,
-        },
-      });
+        const payment_day = addDays(
+          new Date(bill.bill_date),
+          vendor.payment_duration
+        );
+
+        // Update the vendor's purchase information
+        updatedVendor = await prisma.vendors.update({
+          where: {
+            vendor_id: vendor.vendor_id,
+          },
+          data: {
+            last_purchase_date: bill.bill_date,
+            next_payment_date: payment_day,
+            last_paid: bill.bill_date,
+          },
+        });
+      }
 
       // Update each item's quantity and recent purchase date
       await Promise.all(
@@ -284,8 +294,10 @@ const approveBill = async (req, res) => {
       .json({ message: "Bill approved successfully", result });
   } catch (error) {
     console.log("Error:", error.message);
+    return res.status(500).json({ error: "Internal Server Error!" });
   }
 };
+
 
 const getBill = async (req, res) => {
   try {
@@ -306,6 +318,7 @@ const getBill = async (req, res) => {
 const getBillById = async (req, res) => {
   try {
     const bill_id = req.params.bill_id;
+
     const billData = await prisma.bills.findFirst({
       where: {
         bill_id: Number(bill_id),
@@ -316,17 +329,23 @@ const getBillById = async (req, res) => {
             item: true,
           },
         },
-
         vendors: true,
       },
     });
-    // Assuming you want the TDS of the first item in BillItems array
+
+    if (!billData) {
+      return res.status(404).json({ error: "Bill not found" });
+    }
+
     const TDS =
       billData.BillItems.length > 0 ? billData.BillItems[0].TDS : null;
 
+
+    const vendor_name = billData.vendors ? billData.vendors.vendor_name : null;
+
     return res.status(200).json({
       bill: billData,
-      vendor_name: billData.vendors.vendor_name,
+      vendor_name: vendor_name,
       TDS: TDS,
     });
   } catch (error) {
@@ -334,43 +353,63 @@ const getBillById = async (req, res) => {
     return res.status(500).json({ error: "Internal Server Error!" });
   }
 };
+
+
 const updateBill = async (req, res) => {
   const bill_id = Number(req.params.id);
 
   try {
     const {
+      bill_no,
       bill_date,
       invoice_no,
       paid_amount,
       vat_number,
-      selectedOption,
+      selectedOptions,
       items,
     } = req.body;
 
-    console.log(selectedOption);
-    const TDS = Number(selectedOption.split(" ")[1]);
-    const bill_type = selectedOption.split(" ")[0].toUpperCase();
+    const TDS = Number(selectedOptions.split(" ")[1]);
+    const bill_type = selectedOptions.split(" ")[0].toUpperCase();
 
     console.log(`Bill Type: ${bill_type}, TDS: ${TDS}`);
 
-    // Fetch the existing bill and related items
-    const existingBill = await prisma.bills.findFirst({
-      where: {
-        bill_id,
-      },
-      include: { BillItems: true },
-    });
-
-    if (!existingBill) {
-      return res
-        .status(404)
-        .json({ error: "Bill with this ID does not exist" });
+    let existingBill = null;
+    if (bill_type !== "NOBILL") {
+      existingBill = await prisma.bills.findFirst({
+        where: {
+          bill_id,
+        },
+        include: {
+          BillItems: true,
+        },
+      });
     }
 
-    // Fetch the vendor by VAT number
-    const vendor = await prisma.vendors.findFirst({ where: { vat_number } });
+    if (!existingBill) {
+      return res.status(400).json({ error: "Invalid Bill " });
+    }
 
-    if (!vendor) {
+    // Validate VAT number and fetch vendor
+    let vendor = null;
+    if (bill_type === "VAT" || bill_type === "PAN") {
+      if (!vat_number ) {
+        return res.status(400).json({ error: "VAT number  is required!" });
+      }
+      if (!bill_no ) {
+        return res.status(400).json({ error: " bill no  is required!" });
+      }
+
+      vendor = await prisma.vendors.findFirst({
+        where: { vat_number },
+      });
+
+      if (!vendor) {
+        return res.status(404).json({ error: "Vendor not found" });
+      }
+    }
+
+    if (!vendor && (bill_type === "VAT" || bill_type === "PAN")) {
       return res.status(404).json({ error: "Vendor not found" });
     }
 
@@ -398,19 +437,20 @@ const updateBill = async (req, res) => {
         const vatAmount =
           bill_type === "VAT" ? vatCalculation(total_amount, 0.13) : 0;
 
-        //total in VAT case
+        // Total in VAT case
         const tdsDeduct_total_amount = vatAmount - tdsDeductAmount;
 
-        //total in pan case
+        // Total in PAN case
         const panAmount =
-          bill_type === "PAN" ? total_amount - tdsDeductAmount : 0;
+          bill_type === "PAN" ? total_amount - tdsDeductAmount : total_amount;
+
         return {
           item: { connect: { item_id: parseInt(foundItem.item_id) } },
           quantity: item.quantity,
           unit_price: item.unit_price,
           TDS_deduct_amount: tdsDeductAmount,
           withVATAmount: vatAmount,
-          total_Amount: bill_type == "VAT" ? tdsDeduct_total_amount : panAmount,
+          total_Amount: bill_type === "VAT" ? tdsDeduct_total_amount : panAmount,
           TDS: TDS,
         };
       })
@@ -438,13 +478,14 @@ const updateBill = async (req, res) => {
       const updatedBill = await prisma.bills.update({
         where: { bill_id },
         data: {
+          bill_no: bill_no,
           bill_date: new Date(bill_date),
           invoice_no,
           paid_amount: parseInt(paid_amount),
           left_amount: pendingAmount,
           actual_Amount: totalSumAmount,
           bill_type,
-          vendors: { connect: { vendor_id: vendor.vendor_id } },
+          vendors: vendor ? { connect: { vendor_id: vendor.vendor_id } } : undefined,
           BillItems: {
             deleteMany: { bill_id },
             create: billItems,
@@ -492,20 +533,21 @@ const updateBill = async (req, res) => {
         return result;
       };
 
-      const payment_day = addDays(new Date(bill_date), vendor.payment_duration);
+      const payment_day = addDays(new Date(bill_date), vendor ? vendor.payment_duration : 0);
 
-      const updateVendor = await prisma.vendors.update({
+      const updatedVendor = vendor ? await prisma.vendors.update({
         where: { vendor_id: vendor.vendor_id },
         data: {
           last_purchase_date: updatedBill.bill_date,
           next_payment_date: payment_day,
           last_paid: updatedBill.bill_date,
         },
-      });
+      }) : null;
 
       return {
         bill: updatedBill,
-        vendor_name: updateVendor.vendor_name,
+        vendor: updatedVendor,
+        vendor_name: updatedVendor ? updatedVendor.vendor_name : "N/A",
         TDS: TDS,
       };
     });
