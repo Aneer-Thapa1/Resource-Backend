@@ -123,14 +123,15 @@ model request {
 }
 
 model issue {
-  id         Int      @id @default(autoincrement())
-  issue_item String
-  issue_Date DateTime @default(now())
-  Quantity   Int
-  purpose    String?
-  issued_to String?
-  request    request?  @relation(fields: [request_Id], references: [request_id])
-  request_Id Int?
+  id          Int      @id @default(autoincrement())
+  issue_item  String
+  issue_Date  DateTime @default(now())
+  Quantity    Int
+  purpose     String?
+  issued_to   String?
+  request     request? @relation(fields: [request_Id], references: [request_id])
+  request_Id  Int?
+  approved_by Int?
 }
 
 model requestItems {
