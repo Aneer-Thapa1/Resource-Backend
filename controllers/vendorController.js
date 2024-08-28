@@ -9,6 +9,8 @@ const addVendor = async (req, res) => {
     categories,
   } = req.body;
 
+  console.log(categories);
+
   if (!vendor_name || !vat_number || !vendor_contact) {
     return res
       .status(400)
@@ -27,7 +29,7 @@ const addVendor = async (req, res) => {
 
   try {
     const checkCategory = await Promise.all(
-      categories.map((category) =>
+      JSON.parse(categories).map((category) =>
         prisma.itemCategory.findFirst({
           where: {
             item_category_id: category.item_category_id,
@@ -50,7 +52,7 @@ const addVendor = async (req, res) => {
         vendor_contact: vendor_contact,
         payment_duration: parseInt(payment_duration),
         vendorCategory: {
-          create: categories.map((category) => ({
+          create: JSON.parse(categories).map((category) => ({
             category: {
               connect: { item_category_id: category.item_category_id },
             },
@@ -73,7 +75,7 @@ const updateVendor = async (req, res) => {
   const { vendor_name, vendor_contact, vat_number, categories } = req.body;
   try {
     console.log(categories);
-    const vendor_id =  Number(req.params.id);
+    const vendor_id = Number(req.params.id);
 
     const checkCategory = await Promise.all(
       categories.map((category) =>
@@ -93,7 +95,7 @@ const updateVendor = async (req, res) => {
 
     const updateData = await prisma.vendors.update({
       where: {
-        vendor_id:vendor_id,
+        vendor_id: vendor_id,
       },
       data: {
         vendor_name,
