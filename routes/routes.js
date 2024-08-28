@@ -8,10 +8,16 @@ const itemCategoryController = require("../controllers/itemCategoryController");
 const billController = require("../controllers/billController");
 const authMiddleware = require("../middleware/authMiddleware");
 const adminMiddleware = require("../middleware/adminMiddleware");
+const superAdminMiddleware = require("../middleware/superAdminMiddleware");
 const requestController = require("../controllers/requestController");
+const dashboardController = require("../controllers/dashboardController");
+const issueController = require("../controllers/issueController");
 const userController = require("../controllers/userController");
 const featureController = require("../controllers/featureContoller");
 const NotiController = require("../controllers/notificationController");
+const messageController = require("../controllers/messagesController");
+const departmentController = require("../controllers/departmentController");
+const exportToExcel = require("../controllers/exportToExcel");
 
 // Authentication routes
 router.post("/signup", authController.signup);
@@ -19,7 +25,12 @@ router.post("/login", authController.login);
 router.post("/logout", authController.logout);
 
 // Vendor routes
-router.post("/addVendor", authMiddleware(), adminMiddleware, vendorController.addVendor);
+router.post(
+  "/addVendor",
+  authMiddleware(),
+  adminMiddleware,
+  vendorController.addVendor
+);
 router.delete("/deleteVendor/:id", vendorController.deleteVendor);
 router.get("/vendor", authMiddleware(), vendorController.getAllVendors);
 router.get("/vendor/:vat", vendorController.getVendorsByID);
@@ -36,35 +47,96 @@ router.delete("/deleteItem/:id", itemController.deleteItem);
 // Category routes
 router.get("/category", categoryController.getCategories);
 router.post("/addCategory", categoryController.addCategory);
-router.delete("/deleteCategory/:id", categoryController.deleteCategory);
+router.put("/editCategory/:id", categoryController.editCategory);
 
 // Item Category routes
 router.post("/addItemCategory", itemCategoryController.addItemCategory);
 router.get("/itemCategory", itemCategoryController.getItemCategory);
-router.delete("/deleteItemCategory/:id", itemCategoryController.deleteItemCategory);
 
 // Bill routes
-router.post("/addBill", billController.addBill);
+router.post("/addBill", authMiddleware(), billController.addBill);
 router.get("/bill", billController.getBill);
 router.get("/singleBill/:bill_id", billController.getBillById);
 router.put("/updateBill/:id", authMiddleware(), billController.updateBill);
+router.put(
+  "/approveBill/:bill_id",
+  // authMiddleware(),
+  // superAdminMiddleware,
+  billController.approveBill
+);
 
 // Request routes
 router.post("/addRequest", authMiddleware(), requestController.sentRequest);
 router.get("/request", authMiddleware(), requestController.getRequest);
+router.get(
+  "/singleRequest/:id",
+  authMiddleware(),
+  requestController.singleRequest
+);
+router.put("/returnRequest/:id", requestController.returnItem);
+router.put("/approveRequest/:id", authMiddleware(), requestController.approveRequest);
+router.put("/deliverRequest/:id", authMiddleware(), requestController.deliverRequest);
 
-// User routes
-router.get("/allUsers", authMiddleware(), userController.getUser);
+// role User routes
+router.post("/role/addUser", userController.addUser);
+router.get("/role/allUsers", userController.getUser);
+router.put("/role/activateUser/:user_id", userController.setActiveUser);
+router.put("/role/deactivateUser/:user_id", userController.setInActiveUser);
+router.put("/role/updateRole/:user_id", userController.updateUserRole);
 
 // Feature routes
 router.post("/addFeature", authMiddleware(), featureController.addFeature);
 router.get("/feature", authMiddleware(), featureController.getFeature);
-router.delete("/deleteFeature/:id", authMiddleware(), featureController.deleteFeature);
+router.delete(
+  "/deleteFeature/:id",
+  authMiddleware(),
+  featureController.deleteFeature
+);
 
 // Feature routes
 router.get("/notificaiton", authMiddleware(), NotiController.getNotification);
-router.put("/updateNotification/:id", authMiddleware(), NotiController.updateNotification);
+router.put(
+  "/updateNotification/:id",
+  authMiddleware(),
+  NotiController.updateNotification
+);
 router.put("/updateNotification", NotiController.updateNotification);
 router.put("/singleNotification/:id", NotiController.singleUpdateNotification);
 
+//message
+
+router.get("/messages/:id", authMiddleware(), messageController.getMessages);
+router.get(
+  "/message/allUser",
+  authMiddleware(),
+  userController.allUserForMessage
+);
+router.post(
+  "/messages/send/:id",
+  authMiddleware(),
+  messageController.sendMessage
+);
+
+//department
+router.post("/addDepartment", departmentController.addDepartment);
+router.get("/getDepartment", departmentController.getDepartment);
+
+//export excel
+router.get("/bill/exportBill", exportToExcel.exportBill);
+router.get("/bill/exportItem", exportToExcel.exportItems);
+router.get("/bill/exportVendor", exportToExcel.exportVendors);
+
+
+
+//issue
+router.get("/issue", issueController.getIssue);
+router.post("/addIssue", issueController.addIssue);
+
+//issue
+router.get("/dashboard", dashboardController.dashboard);
+
+
+
 module.exports = router;
+
+

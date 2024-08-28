@@ -1,9 +1,14 @@
 const prisma = require("../prismaClient");
-
-// createing the vendor
 const addVendor = async (req, res) => {
-  const { vendor_name, vat_number, vendor_contact, payment_duration} =
-    req.body;
+  const {
+    vendor_name,
+    vat_number,
+    vendor_contact,
+    vendor_profile,
+    payment_duration,
+    categories,
+  } = req.body;
+
   if (!vendor_name || !vat_number || !vendor_contact) {
     return res
       .status(400)
@@ -17,19 +22,43 @@ const addVendor = async (req, res) => {
   });
 
   if (existingVAT) {
-    return res.status(300).json({ message: "VAT Number already exisit !" });
+    return res.status(300).json({ message: "VAT Number already exists!" });
   }
 
   try {
+    const checkCategory = await Promise.all(
+      categories.map((category) =>
+        prisma.itemCategory.findFirst({
+          where: {
+            item_category_id: category.item_category_id,
+          },
+        })
+      )
+    );
+
+    if (checkCategory.includes(null)) {
+      return res
+        .status(404)
+        .json({ error: "One or more categories not found!" });
+    }
+
     const vendorData = await prisma.vendors.create({
       data: {
         vendor_name,
         vat_number,
-        vendor_contact: parseInt(vendor_contact),
+        vendor_profile,
+        vendor_contact: vendor_contact,
         payment_duration: parseInt(payment_duration),
-      
+        vendorCategory: {
+          create: categories.map((category) => ({
+            category: {
+              connect: { item_category_id: category.item_category_id },
+            },
+          })),
+        },
       },
     });
+
     return res
       .status(201)
       .json({ message: "New Vendor added successfully!", vendorData });
@@ -41,17 +70,43 @@ const addVendor = async (req, res) => {
 
 //update vendor
 const updateVendor = async (req, res) => {
-  const { vendor_name, vendor_contact, vat_number } = req.body;
+  const { vendor_name, vendor_contact, vat_number, categories } = req.body;
   try {
-    const vendor_id = req.params.id;
+    console.log(categories);
+    const vendor_id =  Number(req.params.id);
+
+    const checkCategory = await Promise.all(
+      categories.map((category) =>
+        prisma.itemCategory.findFirst({
+          where: {
+            item_category_id: category.item_category_id,
+          },
+        })
+      )
+    );
+
+    if (checkCategory.includes(null)) {
+      return res
+        .status(404)
+        .json({ error: "One or more categories not found!" });
+    }
+
     const updateData = await prisma.vendors.update({
       where: {
-        vendor_id: Number(vendor_id),
+        vendor_id:vendor_id,
       },
       data: {
         vendor_name,
         vat_number,
-        vendor_contact: parseInt(vendor_contact),
+        vendor_contact: vendor_contact,
+        vendorCategory: {
+          deleteMany: { vendor_id },
+          create: categories.map((category) => ({
+            category: {
+              connect: { item_category_id: category.item_category_id },
+            },
+          })),
+        },
       },
     });
     return res
@@ -62,96 +117,98 @@ const updateVendor = async (req, res) => {
     res.status(500).json({ error: "Error updating vendor" });
   }
 };
-
-
 const getAllVendors = async (req, res) => {
   try {
-    const getVendor = await prisma.vendors.findMany({
-      include: {
-        bills: {
-          include: {
-            items: true,
-          },
-        },
-      },
-    });
+    const getVendor = await prisma.vendors.findMany({});
 
-    if (req.query.search) {
-      const searchVendor = getVendor.filter((vendor) =>
-        vendor.vendor_name
-          .toLowerCase()
-          .includes(req.query.search.toLowerCase())
-      );
-      return res.status(201).json(searchVendor);
-    }
-
-    // Calculate total_pending_amount for each vendor
     const vendorsWithTotalPayment = await Promise.all(
       getVendor.map(async (vendor) => {
+        // Query to calculate the total purchase amount
         const specificData = await prisma.$queryRaw`
-          SELECT SUM(bills.actual_amount) as total_purchase_amount, 
-                 SUM(bills.left_amount) as total_pending_amount 
-          FROM resource.bills 
-          JOIN resource.vendors 
-          ON bills.vendor_ID = vendors.vendor_id 
-          WHERE vendors.vendor_id = ${vendor.vendor_id}`;
+        SELECT 
+          SUM(bi.total_Amount) as total_purchase_amount
+        FROM resource.bills b
+        JOIN resource.BillItems bi ON b.bill_id = bi.bill_id
+        WHERE b.vendor_ID = ${vendor.vendor_id}`;
+
+        // Query to calculate the total pending amount
+        const specificPendingData = await prisma.$queryRaw`
+        SELECT 
+          SUM(b.left_amount) as total_pending_amount 
+        FROM resource.bills b
+        WHERE b.vendor_ID = ${vendor.vendor_id}`;
+
+        // Query to calculate the total TDS
+        const totalTDSData = await prisma.$queryRaw`
+        SELECT
+          COALESCE(SUM(bi.TDS_deduct_amount), 0) AS total_TDS
+        FROM vendors v
+        JOIN bills b ON v.vendor_id = b.vendor_ID
+        JOIN BillItems bi ON b.bill_id = bi.bill_id
+        WHERE v.vendor_id = ${vendor.vendor_id}`;
 
         return {
           ...vendor,
-          pending_payment: specificData[0]?.total_pending_amount || 0,
+          pending_payment: specificPendingData[0]?.total_pending_amount || 0,
           total_amount: specificData[0]?.total_purchase_amount || 0,
+          TDS: totalTDSData[0]?.total_TDS || 0,
         };
       })
     );
 
-    return res.status(201).json({vendor:vendorsWithTotalPayment});
+    return res.status(201).json({
+      vendor: vendorsWithTotalPayment,
+    });
   } catch (error) {
+    console.log(error);
     return res.status(500).json({ error: error.message });
   }
 };
 
-
-
-//get by ID
 const getVendorsByID = async (req, res) => {
   try {
     const vendor_id = req.params.vat;
 
+    // Find vendor by ID
     const VendorById = await prisma.vendors.findUnique({
       where: {
         vendor_id: Number(vendor_id),
       },
       include: {
-        bills: {
-          include: {
-            items: true,
-          },
-        },
+        bills: true,
       },
     });
-    //if vendor is not found this condition is called
+
+    // If vendor is not found
     if (!VendorById) {
-      return res.status(404).json({ error: "Vendor not found !" });
+      return res.status(404).json({ error: "Vendor not found!" });
     }
-  
-        const specificData = await prisma.$queryRaw`
-        SELECT SUM(bills.actual_amount) as total_purchase_amount, 
-               SUM(bills.left_amount) as total_pending_amount 
-        FROM resource.bills 
-        JOIN resource.vendors 
-        ON bills.vendor_ID = vendors.vendor_id 
-        WHERE vendors.vendor_id = ${VendorById.vendor_id}`;
 
-const singleVendorWithDetail = {
-  ...VendorById,
-  pending_payment: specificData[0]?.total_pending_amount || 0,
-  total_amount: specificData[0]?.total_purchase_amount || 0
-};
+    // Calculate total purchase amount and pending payment for the specific vendor
+    const [totalPurchaseAmount, totalPendingAmount] = await Promise.all([
+      prisma.$queryRaw`
+        SELECT 
+          SUM(bi.total_Amount) as total_purchase_amount
+        FROM resource.bills b
+        JOIN resource.BillItems bi ON b.bill_id = bi.bill_id
+        WHERE b.vendor_ID = ${vendor_id}`,
 
-return res.status(200).json(singleVendorWithDetail);
+      prisma.$queryRaw`
+        SELECT 
+          SUM(b.left_amount) as total_pending_amount 
+        FROM resource.bills b
+        WHERE b.vendor_ID = ${vendor_id}`,
+    ]);
+
+    // Respond with vendor details and calculated totals
+    return res.status(200).json({
+      ...VendorById,
+      pending_payment: totalPendingAmount[0]?.total_pending_amount || 0,
+      total_amount: totalPurchaseAmount[0]?.total_purchase_amount || 0,
+    });
   } catch (error) {
-    console.log(error);
-    return res.status(500).json({ error: "Failed to fetch vendor by id" });
+    console.error(error);
+    return res.status(500).json({ error: error.message });
   }
 };
 

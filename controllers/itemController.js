@@ -10,6 +10,19 @@ const addItem = async (req, res) => {
       low_limit,
     } = req.body;
 
+    if (
+      !item_name ||
+      !measuring_unit ||
+      !category ||
+      !itemCategory ||
+      !features ||
+      !low_limit
+    ) {
+      return res.status(400).json({
+        error: "All fields are required !",
+      });
+    }
+
     const categoryRecord = await prisma.category.findUnique({
       where: { category_name: category },
     });
@@ -26,7 +39,7 @@ const addItem = async (req, res) => {
     }
 
     // Process features: convert key-value pairs into feature records
-    const featureEntries = Object.entries(features); // Convert features object to an array of [key, value] pairs
+    const featureEntries = Object.entries(features);
     const featureRecords = await Promise.all(
       featureEntries.map(async ([featureKey, featureValue]) => {
         let featureRecord = await prisma.feature.findFirst({
@@ -64,13 +77,15 @@ const addItem = async (req, res) => {
     return res.status(500).json({ error: "Failed adding item!" });
   }
 };
+
+//get items
+
 const getItems = async (req, res) => {
   try {
     const items = await prisma.items.findMany({
       include: {
         category: true,
         itemCategory: true,
-        bills: true,
         itemsOnFeatures: {
           include: {
             feature: true,
@@ -90,12 +105,11 @@ const getItems = async (req, res) => {
         });
 
         const specificData = await prisma.$queryRaw`
-          SELECT SUM(bills.actual_amount) as total_purchase_amount, 
-                 SUM(bills.left_amount) as total_pending_amount 
-          FROM resource.bills 
-          JOIN resource.items 
-          ON bills.item_id = items.item_id 
-          WHERE items.item_id = ${item.item_id}`;
+        SELECT SUM(bi.total_Amount) as total_purchase_amount
+        FROM resource.billItems bi
+        JOIN resource.items i
+        ON bi.item_id = i.item_id 
+        WHERE i.item_id = ${item.item_id}`;
 
         return {
           ...item,
@@ -103,8 +117,7 @@ const getItems = async (req, res) => {
           itemsOnFeatures: featuresObject,
           category: item.category.category_name,
           itemCategory: item.itemCategory.item_category_name,
-          pending_payment: specificData[0]?.total_pending_amount || 0,
-          total_amount: specificData[0]?.total_purchase_amount || 0,
+          total_Amount: specificData[0]?.total_purchase_amount || 0,
         };
       })
     );
@@ -115,7 +128,6 @@ const getItems = async (req, res) => {
     return res.status(400).json({ error: "Failed to retrieve items!" });
   }
 };
-
 const getItemsById = async (req, res) => {
   try {
     const item_id = Number(req.params.id);
@@ -126,9 +138,13 @@ const getItemsById = async (req, res) => {
       include: {
         category: true,
         itemCategory: true,
-        bills: {
+        BillItems: {
           include: {
-            vendors: true,
+            bill: {
+              include: {
+                vendors: true,
+              },
+            },
           },
         },
         itemsOnFeatures: {
@@ -138,24 +154,25 @@ const getItemsById = async (req, res) => {
         },
       },
     });
+
     if (!itemData) {
       return res.status(404).json({ error: "Item not found!" });
     }
+
     const stockStatus =
       itemData.quantity < itemData.low_limit ? "Low Stock" : "In Stock";
 
     const featuresObject = {};
-    itemData.itemsOnFeatures.map(({ feature, value }) => {
+    itemData.itemsOnFeatures.forEach(({ feature, value }) => {
       featuresObject[feature.feature_name] = value;
     });
 
     const specificData = await prisma.$queryRaw`
-      SELECT SUM(bills.actual_amount) as total_purchase_amount, 
-             SUM(bills.left_amount) as total_pending_amount 
-      FROM resource.bills 
-      JOIN resource.items 
-      ON bills.item_id = items.item_id 
-      WHERE items.item_id = ${item_id}`;
+      SELECT SUM(bi.total_Amount) as total_purchase_amount
+      FROM resource.billItems bi
+      JOIN resource.items i
+      ON bi.item_id = i.item_id 
+      WHERE i.item_id = ${itemData.item_id}`;
 
     const responseData = {
       ...itemData,
@@ -163,8 +180,24 @@ const getItemsById = async (req, res) => {
       itemsOnFeatures: featuresObject,
       category: itemData.category.category_name,
       itemCategory: itemData.itemCategory.item_category_name,
-      pending_payment: specificData[0]?.total_pending_amount || 0,
-      total_amount: specificData[0]?.total_purchase_amount || 0,
+      total_Amount: specificData[0]?.total_purchase_amount || 0,
+      BillItems: itemData.BillItems.map((billItem) => ({
+        id: billItem.id,
+        bill_id: billItem.bill_id,
+        item_id: billItem.item_id,
+        quantity: billItem.quantity,
+        unit_price: billItem.unit_price,
+        withVATAmount: billItem.withVATAmount,
+        TDS_deduct_amount: billItem.TDS_deduct_amount,
+        total_Amount: billItem.total_Amount,
+        TDS: billItem.TDS,
+        bill_no: billItem.bill.bill_no,
+        bill_date: billItem.bill.bill_date,
+        bill_type: billItem.bill.bill_type,
+        created_At: billItem.bill.created_At,
+        vendor_name: billItem.bill.vendors.vendor_name,
+        vat_number: billItem.bill.vendors.vat_number,
+      })),
     };
 
     return res.status(200).json(responseData);
@@ -173,27 +206,114 @@ const getItemsById = async (req, res) => {
     return res.status(400).json({ error: "Failed to retrieve item!" });
   }
 };
-
-//function to update the item data
 const updateItem = async (req, res) => {
   try {
-    const item_id = req.params.id;
-    const itemData = await prisma.items.update({
-      where: {
-        item_id: Number(item_id),
-      },
-      data: req.body,
-    });
-    if (!item_id) {
-      return res.status(500).json({ error: "Items not found !" });
+    const item_id = parseInt(req.params.id);
+    const {
+      item_name, measuring_unit, category, itemCategory, features, low_limit, } = req.body;
+
+    if ( !item_name || !measuring_unit ||!category || !itemCategory || !features || !low_limit) {
+      return res.status(400).json({
+        error: "All fields are required!",
+      });
     }
-    return res
-      .status(201)
-      .json({ message: "Item updated successfully !", itemData });
+
+    const item = await prisma.items.findUnique({
+      where: { item_id },
+    });
+
+    if (!item) {
+      return res.status(404).json({ error: "Item not found!" });
+    }
+
+    const categoryRecord = await prisma.category.findUnique({
+      where: { category_name: category },
+    });
+
+    const itemCategoryRecord = await prisma.itemCategory.findUnique({
+      where: { item_category_name: itemCategory },
+    });
+
+    if (!categoryRecord || !itemCategoryRecord) {
+      return res
+        .status(400)
+        .json({ error: "Invalid category or item category name!" });
+    }
+
+    const featureEntries = Object.entries(features);
+    const featureRecords = await Promise.all(
+      featureEntries.map(async ([featureKey, featureValue]) => {
+        const featureRecord = await prisma.feature.findFirst({
+          where: { feature_name: featureKey },
+        });
+
+        if (!featureRecord) {
+          return res
+            .status(400)
+            .json({ error: `Feature '${featureKey}' not found!` });
+        }
+        return { feature: featureRecord, value: featureValue };
+      })
+    );
+
+    await prisma.itemsOnFeatures.deleteMany({
+      where: {
+        item_id,
+      },
+    });
+
+    const updatedItem = await prisma.items.update({
+      where: {
+        item_id,
+      },
+      data: {
+        item_name,
+        measuring_unit,
+        category_id: categoryRecord.category_id,
+        item_category_id: itemCategoryRecord.item_category_id,
+        low_limit: parseInt(low_limit),
+        itemsOnFeatures: {
+          create: featureRecords.map(({ feature, value }) => ({
+            feature: { connect: { feature_id: feature.feature_id } },
+            value,
+          })),
+        },
+      },
+      include: {
+        category: true,
+        itemsOnFeatures: {
+          include: {
+            feature: true,
+          },
+        },
+        itemCategory: true,
+      },
+    });
+
+    // Creating the featuresObject
+    const featuresObject = {};
+    updatedItem.itemsOnFeatures.map(({ feature, value }) => {
+      featuresObject[feature.feature_name] = value;
+    });
+
+    const responseData = {
+      item_id: updatedItem.item_id,
+      item_name: updatedItem.item_name,
+      measuring_unit: updatedItem.measuring_unit,
+      low_limit: updatedItem.low_limit,
+      category: updatedItem.category.category_name,
+      itemCategory: updatedItem.itemCategory.item_category_name,
+      features: featuresObject,
+      message: "Item updated successfully!",
+    };
+
+    return res.status(200).json(responseData);
   } catch (error) {
-    return res.status(500).json({ error: "Failed to update the items !" });
+    console.error(error.message);
+    return res.status(500).json({ error: "Internal server error!" });
   }
 };
+
 
 //to delete
 const deleteItem = async (req, res) => {

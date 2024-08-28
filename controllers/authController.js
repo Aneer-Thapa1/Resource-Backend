@@ -1,6 +1,8 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const validator = require("validator");
 const { PrismaClient } = require("@prisma/client");
+const { department } = require("../prismaClient");
 
 const prisma = new PrismaClient();
 
@@ -14,6 +16,10 @@ const signup = async (req, res) => {
   const regex = /@iic\.edu\.np$/;
   if (!regex.test(user_email)) {
     return res.status(400).json({ error: "Email is invalid!" });
+  }
+
+  if (!validator.isStrongPassword(password)) {
+    return res.status(400).json({ error: "Password must be a strong!" });
   }
 
   try {
@@ -63,10 +69,17 @@ const login = async (req, res) => {
       where: {
         user_email: user_email,
       },
+      include: {
+        department: true,
+      },
     });
 
     if (!user) {
       return res.status(404).json({ error: "User not found!" });
+    }
+
+    if (!user.isActive) {
+      return res.status(403).json({ error: "You are currently inactive!" });
     }
 
     // Verify password
@@ -82,6 +95,13 @@ const login = async (req, res) => {
       expiresIn: maxAge,
     });
 
+    const userData = {
+      user_id: user.user_id,
+      user_name: user.user_name,
+      user_email: user.user_email,
+      user_role: user.role,
+    };
+
     // Send token in response
     res
       .cookie("token", token, {
@@ -96,6 +116,8 @@ const login = async (req, res) => {
         message: "User logged in successfully",
         token: token,
         role: user.role,
+        user_name: user.user_name,
+        department_name: user.department?.department_name || null,
       });
   } catch (error) {
     console.error(error);

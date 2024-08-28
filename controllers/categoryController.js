@@ -26,8 +26,9 @@ const addCategory = async (req, res) => {
 
     if (existingCategory) {
       const upperCategory = category_name.toUpperCase();
-      const upperExistingCategory = existingCategory.category_name.toUpperCase();
-      
+      const upperExistingCategory =
+        existingCategory.category_name.toUpperCase();
+
       if (upperExistingCategory === upperCategory) {
         return res.status(400).json({ error: "Category already exists!" });
       }
@@ -35,7 +36,7 @@ const addCategory = async (req, res) => {
 
     const addData = await prisma.category.create({
       data: {
-        category_name: category_name
+        category_name: category_name,
       },
     });
 
@@ -43,29 +44,90 @@ const addCategory = async (req, res) => {
       .status(201)
       .json({ message: "Successfully added the category", addData });
   } catch (error) {
-    console.log(error)
+    console.log(error);
     return res.status(500).json({ error: "Failed to add the category!" });
   }
 };
 
-const deleteCategory = async (req, res) => {
+const editCategory = async (req, res) => {
   try {
-    const cate_id = req.params.id;
-    const deleteData = await prisma.category.delete({
-      where: {
-        category_id: Number(cate_id),
-      },
-    });
-    return res
-      .status(201)
-      .json({ message: "Successfully Deleted the category!" });
+    const { type, name } = req.body;
+    console.log(type, name);
+    const id = Number(req.params.id);
+
+    if (type === "category") {
+      const category = await prisma.category.findFirst({
+        where: {
+          category_id: id,
+        },
+      });
+
+      if (!category)
+        return res.status(400).json({ error: "Category not found" });
+
+      const data = await prisma.category.update({
+        where: {
+          category_id: parseInt(id),
+        },
+        data: {
+          category_name: name,
+        },
+      });
+      return res
+        .status(200)
+        .json({ message: "category updated successfully !" });
+    } else if (type == "ItemCategory") {
+      const itemCategory = await prisma.itemCategory.findFirst({
+        where: {
+          item_category_id: parseInt(id),
+        },
+      });
+
+      if (!itemCategory)
+        return res.status(400).json({ error: " Item Category not found" });
+
+      const data = await prisma.itemCategory.update({
+        where: {
+          item_category_id: id,
+        },
+        data: {
+          item_category_name: name,
+        },
+      });
+      return res
+        .status(200)
+        .json({ message: "Item Category updated successfully !" });
+    } else if (type == "Feature") {
+      console.log("hi");
+      const feature = await prisma.feature.findFirst({
+        where: {
+          feature_id: id,
+        },
+      });
+
+      if (!feature) return res.status(400).json({ error: "Feature not found" });
+
+      const data = await prisma.feature.update({
+        where: {
+          feature_id: id,
+        },
+        data: {
+          feature_name: name,
+        },
+      });
+      return res
+        .status(200)
+        .json({ message: "Feature updated successfully !" });
+    } else {
+      return res.status(400).json({ error: "invalid Type!" });
+    }
   } catch (error) {
-    return res.status(500).json({ error: "Failed to delete the category!" });
+    console.log(error);
+    return res.status(500).json({ error: "Internal Sever Error!" });
   }
 };
-
 module.exports = {
   addCategory,
   getCategories,
-  deleteCategory,
+  editCategory,
 };

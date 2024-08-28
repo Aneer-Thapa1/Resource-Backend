@@ -8,52 +8,44 @@ datasource db {
 }
 
 model vendors {
-  vendor_id          Int       @id @default(autoincrement())
-  vendor_name        String?   @db.VarChar(255)
-  vat_number         String?   @db.VarChar(255)
-  vendor_contact     Int?
-  last_purchase_date DateTime? @db.Date
-  last_paid          DateTime? @db.Date
+  vendor_id          Int              @id @default(autoincrement())
+  vendor_name        String?          @db.VarChar(255)
+  vat_number         String?          @db.VarChar(255)
+  vendor_contact     String
+  vendor_profile     String
+  categories         String?
+  last_purchase_date DateTime?        @db.Date
+  last_paid          DateTime?        @db.Date
   payment_duration   Int?
-  next_payment_date  DateTime? @db.Date
+  next_payment_date  DateTime?        @db.Date
   black_list         Boolean?
   bills              bills[]
+  vendorCategory     vendorCategory[]
 }
 
-model bills {
-  bill_ID       Int       @id @default(autoincrement())
-  entry_date    DateTime  @default(now())
-  bill_no       String?   @db.VarChar(255)
-  bill_amount   Float?    @db.Float
-  TDS           Float?    @db.Float
-  bill_date     DateTime? @db.Date
-  invoice_no    String?   @db.VarChar(255)
-  actual_amount Float?    @db.Float
-  paid_amount   Float?    @db.Float
-  left_amount   Float?    @db.Float
-  unit_price    Int?
-  quantity      Int?
-  vendors       vendors?  @relation(fields: [vendor_ID], references: [vendor_id], onDelete: Cascade)
-  vendor_ID     Int?
-  items         items?    @relation(fields: [item_id], references: [item_id], onDelete: Cascade)
-  item_id       Int?
-
-  @@index([vendor_ID, item_id])
+model vendorCategory {
+  id              Int          @id @default(autoincrement())
+  vendor          vendors      @relation(fields: [vendor_id], references: [vendor_id])
+  vendor_id       Int
+  category        itemCategory @relation(fields: [itemCategory_id], references: [item_category_id])
+  itemCategory_id Int
 }
 
 model users {
-  user_id    Int       @id @default(autoincrement())
-  user_name  String    @db.VarChar(95)
-  user_email String    @unique @db.VarChar(65)
-  password   String    @db.VarChar(255)
-  role       String    @default("user")
-  otp        String?
-  otp_expiry DateTime?
-  department String?   @db.VarChar(100)
-
-  request request[]
-
-  notification notification[]
+  user_id          Int                       @id @default(autoincrement())
+  user_name        String                    @db.VarChar(95)
+  user_email       String                    @unique @db.VarChar(65)
+  password         String                    @db.VarChar(255)
+  role             String                    @default("user")
+  otp              String?
+  otp_expiry       DateTime?
+  isActive         Boolean?                  @default(false)
+  department       department?               @relation(fields: [department_id], references: [department_id])
+  department_id    Int?
+  requestsMade     request[]                 @relation("RequestedBy")
+  requestsReceived request[]                 @relation("RequestedFor")
+  notification     notification[]
+  conversations    ConversationParticipant[]
 }
 
 model feature {
@@ -63,47 +55,103 @@ model feature {
 }
 
 model items {
-  item_id          Int           @id @default(autoincrement())
-  item_name        String?       @db.VarChar(255)
-  measuring_unit   String?       @db.VarChar(50)
-  quantity         Int?
-  low_limit        Int?
-  recent_purchase  DateTime?
-  unit_price       Int?
-  Status           Boolean?
-  category         category?     @relation(fields: [category_id], references: [category_id])
-  category_id      Int?
-  itemCategory     itemCategory? @relation(fields: [item_category_id], references: [item_category_id])
-  item_category_id Int?
+  item_id            Int               @id @default(autoincrement())
+  item_name          String?           @db.VarChar(255)
+  measuring_unit     String?           @db.VarChar(50)
+  quantity           Int?
+  remaining_quantity Int?
+  low_limit          Int?
+  recent_purchase    DateTime?
+  unit_price         Int?
+  total_Amount       Float?
+  Status             Boolean?
+  category           category?         @relation(fields: [category_id], references: [category_id])
+  category_id        Int?
+  itemCategory       itemCategory?     @relation(fields: [item_category_id], references: [item_category_id])
+  item_category_id   Int?
+  itemsOnFeatures    itemsOnFeatures[]
+  BillItems          BillItems[]
+  requestItems       requestItems[]
+}
 
-  itemsOnFeatures itemsOnFeatures[]
+model bills {
+  bill_id       Int         @id @default(autoincrement())
+  bill_no       String?     @unique @db.VarChar(255)
+  bill_date     DateTime?   @db.Date
+  invoice_no    String?     @db.VarChar(255)
+  paid_amount   Float?      @db.Float
+  left_amount   Float?      @db.Float
+  actual_Amount Float?
+  vendors       vendors?    @relation(fields: [vendor_ID], references: [vendor_id], onDelete: Cascade)
+  vendor_ID     Int?
+  bill_type     String?
+  created_At    DateTime    @default(now())
+  isApproved    Boolean     @default(false)
+  BillItems     BillItems[]
+}
 
-  bills bills[]
+model BillItems {
+  id                Int    @id @default(autoincrement())
+  bill_id           Int
+  item_id           Int
+  quantity          Int?
+  unit_price        Int?
+  withVATAmount     Float? @db.Float
+  TDS_deduct_amount Float? @db.Float
+  total_Amount      Float?
+  TDS               Float? @db.Float
+  bill              bills  @relation(fields: [bill_id], references: [bill_id], onDelete: Cascade)
+  item              items  @relation(fields: [item_id], references: [item_id], onDelete: Cascade)
 
-  request request[]
+  @@unique([bill_id, item_id])
+}
+
+model request {
+  request_id    Int            @id @default(autoincrement())
+  purpose       String?
+  user          users?         @relation("RequestedBy", fields: [user_id], references: [user_id], onDelete: Cascade)
+  requestedFor  users?         @relation("RequestedFor", fields: [requested_for], references: [user_id], onDelete: Cascade)
+  user_id       Int
+  requested_for Int
+  approved_by   Int?
+  remarks       String?
+  request_date  DateTime       @default(now())
+  status        String
+  isReturned    Boolean        @default(false)
+  requestItems  requestItems[]
+  issue         issue[]
+}
+
+model issue {
+  id         Int      @id @default(autoincrement())
+  issue_item String
+  issue_Date DateTime @default(now())
+  Quantity   Int
+  purpose    String?
+  issue_to String?
+  request    request?  @relation(fields: [request_Id], references: [request_id])
+  request_Id Int?
+}
+
+model requestItems {
+  id         Int     @id @default(autoincrement())
+  quantity   Int?
+  request    request @relation(fields: [request_id], references: [request_id], onDelete: Cascade)
+  request_id Int
+  item       items   @relation(fields: [item_id], references: [item_id], onDelete: Cascade)
+  item_id    Int
+
+  @@unique([request_id, item_id])
 }
 
 model itemsOnFeatures {
   item_id    Int
   feature_id Int
-  value      String? // Added to store the value of the feature
+  value      String?
   item       items   @relation(fields: [item_id], references: [item_id])
   feature    feature @relation(fields: [feature_id], references: [feature_id])
 
   @@id([item_id, feature_id])
-}
-
-model request {
-  request_id        Int      @id @default(autoincrement())
-  request_item_name String
-  request_quantity  Int
-  purpose           String?
-  users             users?   @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
-  user_id           Int
-  item              items?   @relation(fields: [item_id], references: [item_id], onDelete: Cascade)
-  item_id           Int
-  request_date      DateTime @default(now())
-  status            String
 }
 
 model category {
@@ -116,6 +164,8 @@ model itemCategory {
   item_category_id   Int     @id @default(autoincrement())
   item_category_name String  @unique
   items              items[]
+
+  vendorCategory vendorCategory[]
 }
 
 model notification {
@@ -125,4 +175,37 @@ model notification {
   users           users?   @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
   user_id         Int
   created_at      DateTime @default(now())
+}
+
+model Conversation {
+  id           Int                       @id @default(autoincrement())
+  participants ConversationParticipant[]
+  messages     Message[]
+  createdAt    DateTime                  @default(now())
+  updatedAt    DateTime                  @updatedAt
+}
+
+model ConversationParticipant {
+  id             Int          @id @default(autoincrement())
+  conversation   Conversation @relation(fields: [conversationId], references: [id])
+  conversationId Int
+  user           users        @relation(fields: [userId], references: [user_id])
+  userId         Int
+}
+
+model Message {
+  id             Int          @id @default(autoincrement())
+  senderId       Int
+  receiverId     Int
+  message        String
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  conversation   Conversation @relation(fields: [conversationId], references: [id])
+  conversationId Int
+}
+
+model department {
+  department_id   Int     @id @default(autoincrement())
+  department_name String
+  users           users[]
 }
