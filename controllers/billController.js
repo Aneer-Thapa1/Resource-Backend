@@ -43,23 +43,29 @@ const addBill = async (req, res) => {
     const TDS = Number(selectedOptions.split(" ")[1]);
     const bill_type = selectedOptions.split(" ")[0].toUpperCase();
 
-    const existingBill = await prisma.bills.findFirst({
-      where: { bill_no },
-    });
+    let existingBill = null;
+    if (bill_type !== "NOBILL") {
+      existingBill = await prisma.bills.findFirst({
+        where: { bill_no },
+      });
+    }
 
     if (existingBill) {
-      return res
-        .status(400)
-        .json({ error: "Bill with this number already exists" });
+      return res.status(400).json({ error: "Bill with this number already exists" });
     }
 
-    const vendor = await prisma.vendors.findFirst({
-      where: { vat_number },
-    });
+    // Find vendor only if the bill type is not NOBILL
+    let vendor = null;
+    if (bill_type !== "NOBILL") {
+      vendor = await prisma.vendors.findFirst({
+        where: { vat_number },
+      });
 
-    if (!vendor) {
-      return res.status(404).json({ error: "Vendor not found" });
+      if (!vendor) {
+        return res.status(404).json({ error: "Vendor not found" });
+      }
     }
+
 
     const item = await prisma.items.findFirst({
       where: {
@@ -206,6 +212,9 @@ const approveBill = async (req, res) => {
 
     if (bill.isApproved)
       return res.status(400).json({ message: "bill alaready approved !" });
+   
+   
+   
     const result = await prisma.$transaction(async (prisma) => {
       const updatedBill = await prisma.bills.update({
         where: {
@@ -470,6 +479,7 @@ const updateBill = async (req, res) => {
               recent_purchase: updatedBill.bill_date,
               unit_price: item.unit_price,
               quantity: foundItem.quantity + quantityDifference,
+              remaining_quantity: foundItem.quantity + quantityDifference,
             },
           });
         })
