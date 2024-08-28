@@ -43,30 +43,41 @@ const getIssue = async (req, res) => {
 
 const addIssue = async (req, res) => {
   try {
-    const { items, student_name, purpose } = req.body;
+    const { items, issued_to, purpose, issue_date } = req.body;
+
+    if (!items || !Array.isArray(items) || items.length === 0) {
+      return res.status(400).json({ error: "Invalid or missing items" });
+    }
+
+    if (!purpose || !issue_date) {
+      return res.status(400).json({ error: "Missing required fields" });
+    }
+
     const issuePromises = items.map(async (item) => {
+      if (!item.item_name || !item.quantity) {
+        throw new Error("Invalid item data");
+      }
+
       return prisma.issue.create({
         data: {
-          issue_item: item.item_name, 
-          Quantity: item.quantity, 
-          issue_Date: new Date(),
-          student_name:student_name,
-          purpose:purpose
+          issue_item: item.item_name,
+          Quantity: parseInt(item.quantity),
+          issue_Date: new Date(issue_date),
+          purpose: purpose,
+          issued_to:issued_to
         },
       });
     });
 
-    // Wait for all promises to resolve
     const issues = await Promise.all(issuePromises);
 
-    res.status(201).json({issues});
+    res.status(201).json({ message:"Issue added successfully", issues });
   } catch (error) {
-    console.error("Error adding issues:", error);
-    res.status(500).json({
-      error: "Failed to add issues",
-    });
+    console.error(error);
+    return res.status(500).json({ error: "Internal Server Error!" });
   }
 };
+
 
 module.exports = {
   getIssue,

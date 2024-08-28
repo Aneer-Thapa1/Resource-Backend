@@ -128,7 +128,7 @@ model issue {
   issue_Date DateTime @default(now())
   Quantity   Int
   purpose    String?
-  issue_to String?
+  issued_to String?
   request    request?  @relation(fields: [request_Id], references: [request_id])
   request_Id Int?
 }
