@@ -69,6 +69,16 @@ const addIssue = async (req, res) => {
       return res.status(400).json({ error: "Missing required fields" });
     }
 
+    const approvedby = await prisma.users.findFirst({
+      where:{
+        user_id: id
+      }
+    })
+
+    console.log(approvedby);
+
+
+
     const issuePromises = items.map(async (item) => {
       if (!item.item_name || !item.quantity) {
         throw new Error("Invalid item data");
@@ -81,7 +91,7 @@ const addIssue = async (req, res) => {
           issue_Date: new Date(issue_date),
           purpose: purpose,
           issued_to:issued_to,
-          approved_by:id
+          approved_by: approvedby.user_name
         },
       });
     });
