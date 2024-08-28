@@ -365,7 +365,6 @@ const updateBill = async (req, res) => {
       return res.status(404).json({ error: "Vendor not found" });
     }
 
-    console.log("hi");
     // Process each item in the bill
     const billItems = await Promise.all(
       items.map(async (item) => {
@@ -492,7 +491,8 @@ const updateBill = async (req, res) => {
         },
       });
 
-      return { bill:updatedBill, updateVendor };
+      return { bill:updatedBill, vendors:updateVendor, vendor_name: updateVendor.vendor_name,
+        TDS: TDS, };
     });
 
     return res
