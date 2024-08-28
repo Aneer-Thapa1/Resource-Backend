@@ -76,7 +76,7 @@ model items {
 
 model bills {
   bill_id       Int         @id @default(autoincrement())
-  bill_no       String?     @unique @db.VarChar(255)
+  bill_no       String?     @db.VarChar(255)
   bill_date     DateTime?   @db.Date
   invoice_no    String?     @db.VarChar(255)
   paid_amount   Float?      @db.Float
