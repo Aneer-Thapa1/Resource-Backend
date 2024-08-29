@@ -39,12 +39,12 @@ const getIssue = async (req, res) => {
         issue_id: issue.id,
         issue_name: issue.issue_item,
         quantity: issue.Quantity,
-        remarks: issue.request?.remarks || "",
+        remarks: issue.request?.remarks || issue.purpose,
         issueData: issue.issue_Data,
         status: issue.request?.status || "",
-        approved_by: findUser?.user_name || "",
+        approved_by: findUser?.user_name || issue.approved_by,
         requested_by: reqUser?.user_name || issue.issued_to,
-        department: department?.department_name || "",
+        department: department?.department_name || "students",
         isReturned: issue.request?.isReturned || "",
       };
     }));
