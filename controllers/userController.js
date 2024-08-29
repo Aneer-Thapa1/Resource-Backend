@@ -13,6 +13,7 @@ const getUser = async (req, res) => {
         user_email: true,
         department: true,
         role: true,
+        contact: true,
         isActive: true,
       },
     });
@@ -21,6 +22,7 @@ const getUser = async (req, res) => {
       user_id: user.user_id,
       user_name: user.user_name,
       user_email: user.user_email,
+      contact: user.contact,
       role: user.role,
       isActive: user.isActive,
       department_name: user.department.department_name,
@@ -36,7 +38,7 @@ const getUser = async (req, res) => {
 };
 
 const addUser = async (req, res) => {
-  const { user_email, user_name, department } = req.body;
+  const { user_email, user_name, department, contact } = req.body;
 
   if (!user_name || !user_email || !department) {
     return res.status(400).json({ error: "Please fill all the fields!" });
@@ -79,6 +81,7 @@ const addUser = async (req, res) => {
         user_name: user_name,
         user_email: user_email,
         password: hashedPassword,
+        contact: contact,
         isActive: false,
         department: {
           connect: { department_id: checkDepartment.department_id },
@@ -95,6 +98,7 @@ const addUser = async (req, res) => {
         user_id: addUser.user_id,
         user_name: addUser.user_name,
         user_email: addUser.user_email,
+        contact: addUser.contact,
         password: addUser.password,
         role: addUser.role,
         otp: addUser.otp,

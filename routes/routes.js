@@ -74,8 +74,16 @@ router.get(
   requestController.singleRequest
 );
 router.put("/returnRequest/:id", requestController.returnItem);
-router.put("/approveRequest/:id", authMiddleware(), requestController.approveRequest);
-router.put("/deliverRequest/:id", authMiddleware(), requestController.deliverRequest);
+router.put(
+  "/approveRequest/:id",
+  authMiddleware(),
+  requestController.approveRequest
+);
+router.put(
+  "/deliverRequest/:id",
+  // authMiddleware(),
+  requestController.deliverRequest
+);
 
 // role User routes
 router.post("/role/addUser", userController.addUser);
@@ -126,8 +134,6 @@ router.get("/bill/exportBill", exportToExcel.exportBill);
 router.get("/bill/exportItem", exportToExcel.exportItems);
 router.get("/bill/exportVendor", exportToExcel.exportVendors);
 
-
-
 //issue
 router.get("/issue", issueController.getIssue);
 router.post("/addIssue", authMiddleware(), issueController.addIssue);
@@ -135,8 +141,4 @@ router.post("/addIssue", authMiddleware(), issueController.addIssue);
 //issue
 router.get("/dashboard", dashboardController.dashboard);
 
-
-
 module.exports = router;
-
-
