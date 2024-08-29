@@ -42,7 +42,7 @@ const getIssue = async (req, res) => {
         remarks: issue.request?.remarks || "",
         issueData: issue.issue_Data,
         status: issue.request?.status || "",
-        approved_by: findUser?.user_name || "",
+        approved_by: findUser?.user_name || issue.approved_by,
         requested_by: reqUser?.user_name || issue.issued_to,
         department: department?.department_name || "",
         isReturned: issue.request?.isReturned || "",
@@ -76,8 +76,6 @@ const addIssue = async (req, res) => {
     })
 
     console.log(approvedby);
-
-
 
     const issuePromises = items.map(async (item) => {
       if (!item.item_name || !item.quantity) {

@@ -372,9 +372,29 @@ const singleRequest = async (req, res) => {
     return res.status(200).json({ request: response });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ error: "Failed to get all requests!" });
+    return res.status(500).json({ error: "Internal Server Error !" });
   }
 };
+
+
+ const requestHistory  = async(req,res)=>{
+  try {
+    const userId = req.user.user_id;
+
+    const requestData = await prisma.request.findMany({
+      where:{
+        user_id: userId
+      }
+    });
+
+    return res.status(200).json({ request: requestData });
+  
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: "Internal Server Error!" });
+  }
+}
+
 
 module.exports = {
   sentRequest,
@@ -383,4 +403,5 @@ module.exports = {
   returnItem,
   approveRequest,
   deliverRequest,
+  requestHistory
 };
