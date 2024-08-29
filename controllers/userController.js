@@ -247,6 +247,49 @@ const updateUserRole = async (req, res) => {
   }
 };
 
+const editUser = async (req,res)=>{
+  try {
+    const user_Id = Number(req.params.id);
+    const {user_name,user_contact,user_email,department} = req.body;
+
+    const regex = /@iic\.edu\.np$/;
+    if (!regex.test(user_email)) {
+      return res.status(400).json({ error: "Email is invalid!" });
+    }
+
+    if (!user_name || !user_email || !department) {
+      return res.status(400).json({ error: "Please fill all the fields!" });
+    }
+  
+      const checkDepartment = await prisma.department.findFirst({
+        where: {
+          department_name: department,
+        },
+      });
+
+      if(!checkDepartment) return res.status(400).json({error:"department not found !"});
+
+
+    const editData = await prisma.users.update({
+      where:{
+        user_id: user_Id
+      },
+      data:{
+        user_name: user_name,
+        user_email:user_email,
+        contact: user_contact,
+        department: {
+          connect: { department_id: checkDepartment.department_id },
+        },
+      }
+    })
+    return res.status(200).json({user:editData});
+  } catch (error) {
+    console.error("Error updating user role:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+} 
+
 module.exports = {
   getUser,
   addUser,
