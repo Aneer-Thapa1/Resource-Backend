@@ -245,7 +245,7 @@ const updateUserRole = async (req, res) => {
 
 const editUser = async (req,res)=>{
   try {
-    const user_Id = Number(req.params.id);
+    const user_Id = Number(req.params.user_id);
     const {user_name,user_contact,user_email,department} = req.body;
 
     const regex = /@iic\.edu\.np$/;
@@ -293,4 +293,5 @@ module.exports = {
   setInActiveUser,
   allUserForMessage,
   updateUserRole,
+  editUser
 };
