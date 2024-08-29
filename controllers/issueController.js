@@ -77,8 +77,6 @@ const addIssue = async (req, res) => {
 
     console.log(approvedby);
 
-
-
     const issuePromises = items.map(async (item) => {
       if (!item.item_name || !item.quantity) {
         throw new Error("Invalid item data");

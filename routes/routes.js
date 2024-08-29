@@ -68,14 +68,12 @@ router.put(
 // Request routes
 router.post("/addRequest", authMiddleware(), requestController.sentRequest);
 router.get("/request", authMiddleware(), requestController.getRequest);
-router.get(
-  "/singleRequest/:id",
-  authMiddleware(),
-  requestController.singleRequest
-);
+router.get("/requestHistory", authMiddleware(), requestController.requestHistory);
+router.get("/singleRequest/:id", authMiddleware(), requestController.singleRequest);
 router.put("/returnRequest/:id", requestController.returnItem);
 router.put("/approveRequest/:id", authMiddleware(), requestController.approveRequest);
 router.put("/deliverRequest/:id", authMiddleware(), requestController.deliverRequest);
+
 
 // role User routes
 router.post("/role/addUser", userController.addUser);
@@ -135,8 +133,4 @@ router.post("/addIssue", authMiddleware(), issueController.addIssue);
 //issue
 router.get("/dashboard", dashboardController.dashboard);
 
-
-
 module.exports = router;
-
-
