@@ -36,7 +36,7 @@ model users {
   user_name        String                    @db.VarChar(95)
   user_email       String                    @unique @db.VarChar(65)
   password         String                    @db.VarChar(255)
-  contact         Int?
+  contact          Int?
   role             String                    @default("user")
   otp              String?
   otp_expiry       DateTime?
