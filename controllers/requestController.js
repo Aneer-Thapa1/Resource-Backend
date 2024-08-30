@@ -66,7 +66,8 @@ const returnItem = async (req, res) => {
   try {
     const id = Number(req.params.id);
 
-    const findRequest = await prisma.request.findUnique({
+    // Find the request by ID
+    const findRequest = await prisma.request.findFirst({
       where: {
         request_id: id,
       },
@@ -82,16 +83,18 @@ const returnItem = async (req, res) => {
         .json({ message: "Item has already been returned!" });
     }
 
-    const itemData = await prisma.items.findUnique({
+    // Find the item by ID
+    const itemData = await prisma.items.findFirst({
       where: {
         item_id: findRequest.item_id,
       },
     });
-
+console.log(itemData);
     if (!itemData) {
       return res.status(404).json({ error: "Item not found!" });
     }
 
+    // Verify the category
     const category = await prisma.category.findFirst({
       where: { category_id: itemData.category_id },
     });
@@ -100,35 +103,42 @@ const returnItem = async (req, res) => {
       return res.status(404).json({ error: "Category not found!" });
     }
 
-    if (category.category_name !== "pen") {
-      return res.status(500).json({ error: "Item not valid for return!" });
+    if (category.category_name !== "Assets") {
+      return res.status(400).json({ error: "Item not valid for return!" });
     }
 
-    const updatedItem = await prisma.items.update({
-      where: {
-        item_id: itemData.item_id,
-      },
-      data: {
-        quantity: itemData.quantity + findRequest.request_quantity,
-      },
-    });
+    // Use transaction to ensure atomicity
+    const result = await prisma.$transaction(async (prisma) => {
+      // Update the item quantity
+      const updatedItem = await prisma.items.update({
+        where: {
+          item_id: itemData.item_id,
+        },
+        data: {
+          quantity: itemData.remaining_quantity + findRequest.request_quantity,
+        },
+      });
 
-    await prisma.request.update({
-      where: {
-        request_id: id,
-      },
-      data: {
-        isReturned: true,
-      },
+      // Mark the request as returned
+      await prisma.request.update({
+        where: {
+          request_id: id,
+        },
+        data: {
+          isReturned: true,
+        },
+      });
+
+      return updatedItem;
     });
 
     return res.status(200).json({
       message: "Successfully returned the item!",
-      updatedItem,
+      updatedItem: result,
     });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ error: "Failed to send the request!" });
+    return res.status(500).json({ error: "Internal Server Error!" });
   }
 };
 
@@ -137,8 +147,6 @@ const approveRequest = async (req, res) => {
     const id = Number(req.params.id);
     const userId = req.user.user_id;
     const { replaceItems, remarks } = req.body;
-
-    console.log(replaceItems, remarks);
 
     const findRequest = await prisma.request.findFirst({
       where: {
@@ -196,10 +204,11 @@ const approveRequest = async (req, res) => {
         remarks: remarks,
         status: "Holding",
         requestItems: {
-          create: changedItem,
+          create: changedItem,  
         },
       },
     });
+
 
     return res.status(200).json({ message: "Item changed", updateData });
   } catch (error) {
@@ -233,7 +242,7 @@ const deliverRequest = async (req, res) => {
     if (findRequest.status !== "Holding")
       return res.status(400).json({ error: "Request has not been approved!" });
 
-    // Update request status to "Delivered"
+    // Update request status to "Delivered" and adjust item quantities
     const result = await prisma.$transaction(async (prisma) => {
       const updatedRequest = await prisma.request.update({
         where: {
@@ -259,7 +268,20 @@ const deliverRequest = async (req, res) => {
             Quantity: requestItem.quantity,
           },
         });
+
+        // Decrease the remaining quantity of the item
+        await prisma.items.update({
+          where: {
+            item_id: requestItem.item.item_id,
+          },
+          data: {
+            remaining_quantity: {
+              decrement: requestItem.quantity,
+            },
+          },
+        });
       }
+
       return updatedRequest;
     });
 
@@ -271,6 +293,9 @@ const deliverRequest = async (req, res) => {
     return res.status(500).json({ error: "Internal Server Error!" });
   }
 };
+
+
+
 
 const getRequest = async (req, res) => {
   try {
