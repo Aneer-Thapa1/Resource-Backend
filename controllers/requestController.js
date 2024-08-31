@@ -89,7 +89,7 @@ const returnItem = async (req, res) => {
         item_id: findRequest.item_id,
       },
     });
-console.log(itemData);
+
     if (!itemData) {
       return res.status(404).json({ error: "Item not found!" });
     }
@@ -142,6 +142,7 @@ console.log(itemData);
   }
 };
 
+//APPROVE
 const approveRequest = async (req, res) => {
   try {
     const id = Number(req.params.id);
