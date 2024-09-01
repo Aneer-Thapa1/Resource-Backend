@@ -13,6 +13,7 @@ const getUser = async (req, res) => {
         user_email: true,
         department: true,
         role: true,
+        contact: true,
         isActive: true,
       },
     });
@@ -21,6 +22,7 @@ const getUser = async (req, res) => {
       user_id: user.user_id,
       user_name: user.user_name,
       user_email: user.user_email,
+      contact: user.contact,
       role: user.role,
       isActive: user.isActive,
       department_name: user.department.department_name,
@@ -36,7 +38,7 @@ const getUser = async (req, res) => {
 };
 
 const addUser = async (req, res) => {
-  const { user_email, user_name, department } = req.body;
+  const { user_email, user_name, department, contact } = req.body;
 
   if (!user_name || !user_email || !department) {
     return res.status(400).json({ error: "Please fill all the fields!" });
@@ -79,6 +81,7 @@ const addUser = async (req, res) => {
         user_name: user_name,
         user_email: user_email,
         password: hashedPassword,
+        contact: contact,
         isActive: false,
         department: {
           connect: { department_id: checkDepartment.department_id },
@@ -95,6 +98,7 @@ const addUser = async (req, res) => {
         user_id: addUser.user_id,
         user_name: addUser.user_name,
         user_email: addUser.user_email,
+        contact: addUser.contact,
         password: addUser.password,
         role: addUser.role,
         otp: addUser.otp,
@@ -243,6 +247,49 @@ const updateUserRole = async (req, res) => {
   }
 };
 
+const editUser = async (req,res)=>{
+  try {
+    const user_Id = Number(req.params.user_id);
+    const {user_name,user_contact,user_email,department} = req.body;
+
+    const regex = /@iic\.edu\.np$/;
+    if (!regex.test(user_email)) {
+      return res.status(400).json({ error: "Email is invalid!" });
+    }
+
+    if (!user_name || !user_email || !department) {
+      return res.status(400).json({ error: "Please fill all the fields!" });
+    }
+  
+      const checkDepartment = await prisma.department.findFirst({
+        where: {
+          department_name: department,
+        },
+      });
+
+      if(!checkDepartment) return res.status(400).json({error:"department not found !"});
+
+
+    const editData = await prisma.users.update({
+      where:{
+        user_id: user_Id
+      },
+      data:{
+        user_name: user_name,
+        user_email:user_email,
+        contact: user_contact,
+        department: {
+          connect: { department_id: checkDepartment.department_id },
+        },
+      }
+    })
+    return res.status(200).json({user:editData});
+  } catch (error) {
+    console.error("Error updating user role:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+} 
+
 module.exports = {
   getUser,
   addUser,
@@ -250,4 +297,5 @@ module.exports = {
   setInActiveUser,
   allUserForMessage,
   updateUserRole,
+  editUser
 };

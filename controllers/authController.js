@@ -18,9 +18,9 @@ const signup = async (req, res) => {
     return res.status(400).json({ error: "Email is invalid!" });
   }
 
-  if (!validator.isStrongPassword(password)) {
-    return res.status(400).json({ error: "Password must be a strong!" });
-  }
+  // if (!validator.isStrongPassword(password)) {
+  //   return res.status(400).json({ error: "Password must be a strong!" });
+  // }
 
   try {
     // Check if user already exists

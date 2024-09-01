@@ -68,14 +68,20 @@ router.put(
 // Request routes
 router.post("/addRequest", authMiddleware(), requestController.sentRequest);
 router.get("/request", authMiddleware(), requestController.getRequest);
-router.get(
-  "/singleRequest/:id",
-  authMiddleware(),
-  requestController.singleRequest
-);
+router.get("/requestHistory", authMiddleware(), requestController.requestHistory);
+router.get("/singleRequest/:id", authMiddleware(), requestController.singleRequest);
 router.put("/returnRequest/:id", requestController.returnItem);
-router.put("/approveRequest/:id", authMiddleware(), requestController.approveRequest);
-router.put("/deliverRequest/:id", authMiddleware(), requestController.deliverRequest);
+router.put(
+  "/approveRequest/:id",
+  authMiddleware(),
+  requestController.approveRequest
+);
+router.put(
+  "/deliverRequest/:id",
+  // authMiddleware(),
+  requestController.deliverRequest
+);
+
 
 // role User routes
 router.post("/role/addUser", userController.addUser);
@@ -83,6 +89,7 @@ router.get("/role/allUsers", userController.getUser);
 router.put("/role/activateUser/:user_id", userController.setActiveUser);
 router.put("/role/deactivateUser/:user_id", userController.setInActiveUser);
 router.put("/role/updateRole/:user_id", userController.updateUserRole);
+router.put("/role/editUser/:user_id", userController.editUser);
 
 // Feature routes
 router.post("/addFeature", authMiddleware(), featureController.addFeature);
@@ -126,16 +133,13 @@ router.get("/bill/exportBill", exportToExcel.exportBill);
 router.get("/bill/exportItem", exportToExcel.exportItems);
 router.get("/bill/exportVendor", exportToExcel.exportVendors);
 
-
-
 //issue
 router.get("/issue", issueController.getIssue);
+router.post("/addIssue", authMiddleware(), issueController.addIssue);
 
 //issue
 router.get("/dashboard", dashboardController.dashboard);
 
 
-
 module.exports = router;
-
 

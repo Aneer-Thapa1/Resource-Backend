@@ -35,7 +35,9 @@ model users {
   user_id          Int                       @id @default(autoincrement())
   user_name        String                    @db.VarChar(95)
   user_email       String                    @unique @db.VarChar(65)
+  contact          String?                   @unique @db.VarChar(65)
   password         String                    @db.VarChar(255)
+  contact          Int?
   role             String                    @default("user")
   otp              String?
   otp_expiry       DateTime?
@@ -76,7 +78,7 @@ model items {
 
 model bills {
   bill_id       Int         @id @default(autoincrement())
-  bill_no       String?     @unique @db.VarChar(255)
+  bill_no       String?     @db.VarChar(255)
   bill_date     DateTime?   @db.Date
   invoice_no    String?     @db.VarChar(255)
   paid_amount   Float?      @db.Float
@@ -123,12 +125,15 @@ model request {
 }
 
 model issue {
-  id         Int      @id @default(autoincrement())
-  issue_item String
-  issue_Date DateTime @default(now())
-  Quantity   Int
-  request    request  @relation(fields: [request_Id], references: [request_id])
-  request_Id Int
+  id          Int      @id @default(autoincrement())
+  issue_item  String
+  issue_Date  DateTime @default(now())
+  Quantity    Int
+  purpose     String?
+  issued_to   String?
+  request     request? @relation(fields: [request_Id], references: [request_id])
+  request_Id  Int?
+  approved_by String?
 }
 
 model requestItems {
