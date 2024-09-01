@@ -78,6 +78,7 @@ router.put("/deliverRequest/:id", authMiddleware(), requestController.deliverReq
 // role User routes
 router.post("/role/addUser", userController.addUser);
 router.get("/role/allUsers", userController.getUser);
+router.get("/role/activeUser", userController.NoOfActiveUser);
 router.put("/role/activateUser/:user_id", userController.setActiveUser);
 router.put("/role/deactivateUser/:user_id", userController.setInActiveUser);
 router.put("/role/updateRole/:user_id", userController.updateUserRole);

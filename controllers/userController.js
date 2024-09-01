@@ -246,7 +246,7 @@ const updateUserRole = async (req, res) => {
 const editUser = async (req,res)=>{
   try {
     const user_Id = Number(req.params.user_id);
-    const {user_name,user_contact,user_email,department} = req.body;
+    const {user_name,contact,user_email,department} = req.body;
 
     const regex = /@iic\.edu\.np$/;
     if (!regex.test(user_email)) {
@@ -273,7 +273,7 @@ const editUser = async (req,res)=>{
       data:{
         user_name: user_name,
         user_email:user_email,
-        contact: user_contact,
+        contact: contact,
         department: {
           connect: { department_id: checkDepartment.department_id },
         },
@@ -282,9 +282,23 @@ const editUser = async (req,res)=>{
     return res.status(200).json({user:editData});
   } catch (error) {
     console.error("Error updating user role:", error);
-    return res.status(500).json({ message: "Internal server error" });
+    return res.status(500).json({ error: "Internal server error" });
   }
 } 
+
+const NoOfActiveUser = async(req,res)=>{
+try {
+    const ActiveData = await prisma.users.findMany({
+      where:{
+          isActive: true 
+      }
+    })
+    return res.status(201).json({activeUser: ActiveData.length});
+} catch (error) {
+  console.error("Error getting Active user:", error);
+  return res.status(500).json({ error: "Internal server error" });
+}
+}
 
 module.exports = {
   getUser,
@@ -293,5 +307,6 @@ module.exports = {
   setInActiveUser,
   allUserForMessage,
   updateUserRole,
-  editUser
+  editUser,
+  NoOfActiveUser
 };
