@@ -35,6 +35,7 @@ model users {
   user_id          Int                       @id @default(autoincrement())
   user_name        String                    @db.VarChar(95)
   user_email       String                    @unique @db.VarChar(65)
+  contact          String?                   @unique @db.VarChar(65)
   password         String                    @db.VarChar(255)
   contact          Int?
   role             String                    @default("user")
