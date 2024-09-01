@@ -35,7 +35,7 @@ router.delete("/deleteVendor/:id", vendorController.deleteVendor);
 router.get("/vendor", authMiddleware(), vendorController.getAllVendors);
 router.get("/vendor/:vat", vendorController.getVendorsByID);
 router.put("/updateVendor/:id", vendorController.updateVendor);
-router.put("/blacklist/:id", vendorController.balckListVendor);
+router.put("/blacklist/:id", vendorController. blacklistVendor);
 
 // Item routes
 router.post("/addItem", itemController.addItem);
