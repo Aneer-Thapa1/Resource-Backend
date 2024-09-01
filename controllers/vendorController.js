@@ -178,6 +178,11 @@ const getVendorsByID = async (req, res) => {
       },
       include: {
         bills: true,
+        vendorCategory: {
+            include: {
+              category: true,
+            },
+        }
       },
     });
 
@@ -205,6 +210,10 @@ const getVendorsByID = async (req, res) => {
     // Respond with vendor details and calculated totals
     return res.status(200).json({
       ...VendorById,
+      vendorCategory: VendorById.vendorCategory.map(vc => ({
+        item_category_id: vc.category.item_category_id,
+        item_category_name: vc.category.item_category_name,
+      })),
       pending_payment: totalPendingAmount[0]?.total_pending_amount || 0,
       total_amount: totalPurchaseAmount[0]?.total_purchase_amount || 0,
     });
@@ -245,7 +254,10 @@ const blacklistVendor = async (req, res) => {
         vendor_id: vendor_id,
       },
     });
-    
+
+    if (!vendorDetails)
+      return res.status(401).json({ error: "vendor not found !" });
+
     const [totalPendingAmount] = await Promise.all([
       prisma.$queryRaw`
         SELECT 
@@ -257,7 +269,9 @@ const blacklistVendor = async (req, res) => {
     const pending_payment = totalPendingAmount[0]?.total_pending_amount || 0;
 
     if (pending_payment != 0) {
-      return res.status(400).json({ error: `${vendorDetails.vendor_name} pending amount is not clear!` });
+      return res.status(400).json({
+        error: `${vendorDetails.vendor_name} pending amount is not clear!`,
+      });
     }
 
     const blacklistVendor = await prisma.vendors.update({
@@ -269,13 +283,56 @@ const blacklistVendor = async (req, res) => {
       },
     });
 
-    return res.status(200).json({ message: `${vendorDetails.vendor_name} has been blacklisted successfully.` });
+    return res.status(200).json({
+      message: `${vendorDetails.vendor_name} has been blacklisted successfully.`,
+    });
   } catch (error) {
     console.log(error);
-    return res.status(500).json({ error: "An error occurred while blacklisting the vendor." });
+    return res.status(500).json({ error: "Internal Server Error" });
   }
 };
 
+const whitelistVendor = async (req, res) => {
+  try {
+    const vendor_id = Number(req.params.id);
+
+    const vendorDetails = await prisma.vendors.findFirst({
+      where: {
+        vendor_id: vendor_id,
+      },
+    });
+    if (!vendorDetails)
+      return res.status(401).json({ error: "vendor not found !" });
+
+    const checkBlackListed = await prisma.vendors.findFirst({
+      where: {
+        vendor_id: vendorDetails.vendor_id,
+        black_list: true
+      },
+    });
+    if (!checkBlackListed)
+      return res.status(401).json({ error: "vendor is not blacklisted!" });
+
+
+
+    const whitelistVendor = await prisma.vendors.update({
+      where: {
+        vendor_id: Number(vendor_id),
+      },
+      data: {
+        black_list: false,
+      },
+    });
+
+    return res.status(200).json({
+      message: `${vendorDetails.vendor_name} has been whitelisted successfully.`,
+    });
+
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
+};
 module.exports = {
   addVendor,
   getAllVendors,
@@ -283,4 +340,5 @@ module.exports = {
   getVendorsByID,
   updateVendor,
   blacklistVendor,
+  whitelistVendor,
 };

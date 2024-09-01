@@ -304,6 +304,24 @@ try {
 }
 }
 
+const changePassword = async (req,res)=>{
+  try {
+    const user_id = req.user.user_id;
+
+    const userData = await prisma.users.findFirst({
+      where:{
+        user_id:user_id
+      }
+    })
+    if(!userData) return res.status(402).json({error:" user not found !"});
+    console.log(userData);
+  } catch (error) {
+    console.error("Error change password userController:", error);
+  return res.status(500).json({ error: "Internal server error" });
+
+  }
+}
+
 module.exports = {
   getUser,
   addUser,
@@ -312,5 +330,6 @@ module.exports = {
   allUserForMessage,
   updateUserRole,
   editUser,
-  NoOfActiveUser
+  NoOfActiveUser,
+  changePassword
 };
