@@ -236,10 +236,31 @@ const deleteVendor = async (req, res) => {
   }
 };
 
-const balckListVendor = async (req, res) => {
+const blacklistVendor = async (req, res) => {
   try {
-    const vendor_id = req.params.id;
-    const balckListVendor = await prisma.vendors.update({
+    const vendor_id = Number(req.params.id);
+
+    const vendorDetails = await prisma.vendors.findFirst({
+      where: {
+        vendor_id: vendor_id,
+      },
+    });
+    
+    const [totalPendingAmount] = await Promise.all([
+      prisma.$queryRaw`
+        SELECT 
+          SUM(b.left_amount) as total_pending_amount 
+        FROM resource.bills b
+        WHERE b.vendor_ID = ${vendor_id}`,
+    ]);
+
+    const pending_payment = totalPendingAmount[0]?.total_pending_amount || 0;
+
+    if (pending_payment != 0) {
+      return res.status(400).json({ error: `${vendorDetails.vendor_name} pending amount is not clear!` });
+    }
+
+    const blacklistVendor = await prisma.vendors.update({
       where: {
         vendor_id: Number(vendor_id),
       },
@@ -247,8 +268,11 @@ const balckListVendor = async (req, res) => {
         black_list: true,
       },
     });
+
+    return res.status(200).json({ message: `${vendorDetails.vendor_name} has been blacklisted successfully.` });
   } catch (error) {
     console.log(error);
+    return res.status(500).json({ error: "An error occurred while blacklisting the vendor." });
   }
 };
 
@@ -258,5 +282,5 @@ module.exports = {
   deleteVendor,
   getVendorsByID,
   updateVendor,
-  balckListVendor,
+  blacklistVendor,
 };
