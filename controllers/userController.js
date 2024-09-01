@@ -4,6 +4,7 @@ const { getIo } = require("../socket");
 const newUserMail = require("../mail/newUser.skeleton");
 const bcrypt = require("bcrypt");
 
+
 const getUser = async (req, res) => {
   try {
     const allUser = await prisma.users.findMany({
@@ -304,23 +305,64 @@ try {
 }
 }
 
-const changePassword = async (req,res)=>{
+const changePassword = async (req, res) => {
   try {
     const user_id = req.user.user_id;
+    const { current_password, password, confirm_password } = req.body;
 
+    // Check if all fields are provided
+    if (!current_password || !password || !confirm_password) {
+      return res.status(400).json({ error: "Please provide all fields!" });
+    }
+
+    // Find user by ID
     const userData = await prisma.users.findFirst({
-      where:{
-        user_id:user_id
-      }
-    })
-    if(!userData) return res.status(402).json({error:" user not found !"});
-    console.log(userData);
-  } catch (error) {
-    console.error("Error change password userController:", error);
-  return res.status(500).json({ error: "Internal server error" });
+      where: {
+        user_id: user_id,
+      },
+    });
 
+    // Check if user exists
+    if (!userData) {
+      return res.status(404).json({ error: "User not found!" });
+    }
+
+    // Verify current password
+    const isPasswordMatch = await bcrypt.compare(current_password, userData.password);
+    if (!isPasswordMatch) {
+      return res.status(400).json({ error: "Current password is incorrect!" });
+    }
+
+    // Check if new password matches confirm password
+    if (password !== confirm_password) {
+      return res.status(400).json({
+        error: "Passwords do not match. Please ensure both password fields are identical."
+      });
+    }
+
+    // Hash the new password
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+    // Update user's password
+    const updateUser = await prisma.users.update({
+      where: {
+        user_id: user_id,
+      },
+      data: {
+        password: hashedPassword,
+      },
+    });
+
+    // Respond with success
+    return res.status(200).json({ message: "User password changed successfully!", updateUser });
+
+  } catch (error) {
+    console.error("Error in changePassword:", error);
+    return res.status(500).json({ error: "Internal server error" });
   }
-}
+};
+
 
 module.exports = {
   getUser,

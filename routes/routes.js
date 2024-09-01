@@ -69,8 +69,16 @@ router.put(
 // Request routes
 router.post("/addRequest", authMiddleware(), requestController.sentRequest);
 router.get("/request", authMiddleware(), requestController.getRequest);
-router.get("/requestHistory", authMiddleware(), requestController.requestHistory);
-router.get("/singleRequest/:id", authMiddleware(), requestController.singleRequest);
+router.get(
+  "/requestHistory",
+  authMiddleware(),
+  requestController.requestHistory
+);
+router.get(
+  "/singleRequest/:id",
+  authMiddleware(),
+  requestController.singleRequest
+);
 router.put("/returnRequest/:id", requestController.returnItem);
 router.put(
   "/approveRequest/:id",
@@ -83,7 +91,6 @@ router.put(
   requestController.deliverRequest
 );
 
-
 // role User routes
 router.post("/role/addUser", userController.addUser);
 router.get("/role/allUsers", userController.getUser);
@@ -92,6 +99,9 @@ router.put("/role/activateUser/:user_id", userController.setActiveUser);
 router.put("/role/deactivateUser/:user_id", userController.setInActiveUser);
 router.put("/role/updateRole/:user_id", userController.updateUserRole);
 router.put("/role/editUser/:user_id", userController.editUser);
+//change password
+router.put("/changePassword",authMiddleware(),userController.changePassword);
+
 
 // Feature routes
 router.post("/addFeature", authMiddleware(), featureController.addFeature);
@@ -142,6 +152,4 @@ router.post("/addIssue", authMiddleware(), issueController.addIssue);
 //issue
 router.get("/dashboard", dashboardController.dashboard);
 
-
 module.exports = router;
-
