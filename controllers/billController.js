@@ -132,7 +132,7 @@ const addBill = async (req, res) => {
     const calculationMethod = billCalculationMethods[bill_type];
 
     if (typeof calculationMethod !== "function") {
-      return res.status(400).json({ error: "Invalid bill type" });
+      return res.status(400).json({ error: "Invalid bill type"});
     }
 
     // Calculate the total sum amount and pending amount using the selected method
@@ -374,8 +374,8 @@ const updateBill = async (req, res) => {
 
     console.log(`Bill Type: ${bill_type}, TDS: ${TDS}`);
 
-    let existingBill = null;
-    if (bill_type !== "NOBILL") {
+    // let existingBill = null;
+    // if (bill_type !== "NOBILL") {
       existingBill = await prisma.bills.findFirst({
         where: {
           bill_id,
@@ -384,7 +384,7 @@ const updateBill = async (req, res) => {
           BillItems: true,
         },
       });
-    }
+    // }
 
     if (!existingBill) {
       return res.status(400).json({ error: "Invalid Bill " });
