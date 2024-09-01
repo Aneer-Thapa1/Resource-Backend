@@ -365,17 +365,13 @@ const updateBill = async (req, res) => {
       invoice_no,
       paid_amount,
       vat_number,
-      selectedOptions,
+      selectedOption,
       items,
     } = req.body;
 
-    const TDS = Number(selectedOptions.split(" ")[1]);
-    const bill_type = selectedOptions.split(" ")[0].toUpperCase();
+    const TDS = Number(selectedOption.split(" ")[1]);
+    const bill_type = selectedOption.split(" ")[0].toUpperCase();
 
-    console.log(`Bill Type: ${bill_type}, TDS: ${TDS}`);
-
-    // let existingBill = null;
-    // if (bill_type !== "NOBILL") {
       existingBill = await prisma.bills.findFirst({
         where: {
           bill_id,
@@ -384,7 +380,6 @@ const updateBill = async (req, res) => {
           BillItems: true,
         },
       });
-    // }
 
     if (!existingBill) {
       return res.status(400).json({ error: "Invalid Bill " });
