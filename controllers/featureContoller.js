@@ -25,7 +25,7 @@ const addFeature = async (req, res) => {
     // Create new feature with normalized name
     const featuresData = await prisma.feature.create({
       data: {
-        feature_name: normalizedFeatureName,
+        feature_name: feature_name,
       },
     });
 

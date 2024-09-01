@@ -6,6 +6,15 @@ const addDepartment = async (req, res) => {
   if (!department_name) {
     return res.status(400).json({ error: "Please fill all the fields!" });
   }
+
+  //check department
+  const checkDepartment = await prisma.department.findFirst({
+    where:{
+      department_name: department_name
+    }
+  })
+
+  if(checkDepartment) return res.status(402).json({error:"Department already exist !"});
   try {
     const department = await prisma.department.create({
       data: {
