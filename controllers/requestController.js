@@ -44,6 +44,7 @@ const sentRequest = async (req, res) => {
         purpose: purpose,
         isReturned: false,
         status: "pending",
+        isReturned: false,
         requestItems: {
           create: requestItems,
         },
