@@ -43,7 +43,8 @@ router.post("/addItem", itemController.addItem);
 router.get("/items", itemController.getItems);
 router.get("/items/:id", itemController.getItemsById);
 router.put("/updateItem/:id", itemController.updateItem);
-router.delete("/deleteItem/:id", itemController.deleteItem);
+router.delete("/deleteItem/:id", itemController.deleteItem); 
+router.get("/units", itemController.units); 
 
 // Category routes
 router.get("/category", categoryController.getCategories);
