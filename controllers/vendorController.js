@@ -119,15 +119,50 @@ const updateVendor = async (req, res) => {
           })),
         },
       },
+      include: {
+        bills: true,
+        vendorCategory: {
+            include: {
+              category: true,
+            },
+        }
+      },
     });
-    return res
-      .status(201)
-      .json({ message: "Vendor update successfully !", updateData });
+   // Calculate total purchase amount and pending payment for the specific vendor
+   const [totalPurchaseAmount, totalPendingAmount] = await Promise.all([
+    prisma.$queryRaw`
+      SELECT 
+        SUM(bi.total_Amount) as total_purchase_amount
+      FROM resource.bills b
+      JOIN resource.BillItems bi ON b.bill_id = bi.bill_id
+      WHERE b.vendor_ID = ${vendor_id}`,
+
+    prisma.$queryRaw`
+      SELECT 
+        SUM(b.left_amount) as total_pending_amount 
+      FROM resource.bills b
+      WHERE b.vendor_ID = ${vendor_id}`,
+  ]);
+
+  // Respond with vendor details and calculated totals
+  return res.status(200).json({
+    ...updateData,
+    vendorCategory: updateData.vendorCategory.map(vc => ({
+      item_category_id: vc.category.item_category_id,
+      item_category_name: vc.category.item_category_name,
+    })),
+    pending_payment: totalPendingAmount[0]?.total_pending_amount || 0,
+    total_amount: totalPurchaseAmount[0]?.total_purchase_amount || 0,
+  });
+
   } catch (error) {
     console.error("Error updating vendor:", error);
     res.status(500).json({ error: "Error updating vendor" });
   }
 };
+
+
+//all vendor data
 const getAllVendors = async (req, res) => {
   try {
     const getVendor = await prisma.vendors.findMany({});
