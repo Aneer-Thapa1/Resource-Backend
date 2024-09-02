@@ -72,13 +72,20 @@ const addVendor = async (req, res) => {
 
 //update vendor
 const updateVendor = async (req, res) => {
-  const { vendor_name, vendor_contact, vat_number, categories } = req.body;
+  const {
+    vendor_name,
+    vat_number,
+    vendor_contact,
+    payment_duration,
+    vendor_profile,
+    vendorCategory,
+  } = req.body;
+
   try {
-    console.log(categories);
     const vendor_id = Number(req.params.id);
 
     const checkCategory = await Promise.all(
-      categories.map((category) =>
+      vendorCategory.map((category) =>
         prisma.itemCategory.findFirst({
           where: {
             item_category_id: category.item_category_id,
@@ -101,9 +108,11 @@ const updateVendor = async (req, res) => {
         vendor_name,
         vat_number,
         vendor_contact: vendor_contact,
+        payment_duration,
+        vendor_profile,
         vendorCategory: {
           deleteMany: { vendor_id },
-          create: categories.map((category) => ({
+          create: vendorCategory.map((category) => ({
             category: {
               connect: { item_category_id: category.item_category_id },
             },
@@ -214,10 +223,11 @@ const getVendorsByID = async (req, res) => {
       include: {
         bills: true,
         vendorCategory: {
-            include: {
-              category: true,
-            },
-        }
+
+          include: {
+            category: true,
+          },
+        },
       },
     });
 
@@ -245,7 +255,8 @@ const getVendorsByID = async (req, res) => {
     // Respond with vendor details and calculated totals
     return res.status(200).json({
       ...VendorById,
-      vendorCategory: VendorById.vendorCategory.map(vc => ({
+
+      vendorCategory: VendorById.vendorCategory.map((vc) => ({
         item_category_id: vc.category.item_category_id,
         item_category_name: vc.category.item_category_name,
       })),
