@@ -35,7 +35,8 @@ router.delete("/deleteVendor/:id", vendorController.deleteVendor);
 router.get("/vendor", authMiddleware(), vendorController.getAllVendors);
 router.get("/vendor/:vat", vendorController.getVendorsByID);
 router.put("/updateVendor/:id", vendorController.updateVendor);
-router.put("/blacklist/:id", vendorController. blacklistVendor);
+router.put("/blacklist/:id", vendorController.blacklistVendor);
+router.put("/whitelist/:id", vendorController.whitelistVendor);
 
 // Item routes
 router.post("/addItem", itemController.addItem);
@@ -98,6 +99,9 @@ router.put("/role/activateUser/:user_id", userController.setActiveUser);
 router.put("/role/deactivateUser/:user_id", userController.setInActiveUser);
 router.put("/role/updateRole/:user_id", userController.updateUserRole);
 router.put("/role/editUser/:user_id", userController.editUser);
+//change password
+router.put("/changePassword",authMiddleware(),userController.changePassword);
+
 
 // Feature routes
 router.post("/addFeature", authMiddleware(), featureController.addFeature);
