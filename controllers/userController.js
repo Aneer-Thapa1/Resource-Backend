@@ -4,6 +4,7 @@ const { getIo } = require("../socket");
 const newUserMail = require("../mail/newUser.skeleton");
 const bcrypt = require("bcrypt");
 
+
 const getUser = async (req, res) => {
   try {
     const allUser = await prisma.users.findMany({
@@ -250,7 +251,7 @@ const updateUserRole = async (req, res) => {
 const editUser = async (req,res)=>{
   try {
     const user_Id = Number(req.params.user_id);
-    const {user_name,user_contact,user_email,department} = req.body;
+    const {user_name,contact,user_email,department} = req.body;
 
     const regex = /@iic\.edu\.np$/;
     if (!regex.test(user_email)) {
@@ -277,7 +278,7 @@ const editUser = async (req,res)=>{
       data:{
         user_name: user_name,
         user_email:user_email,
-        contact: user_contact,
+        contact: contact,
         department: {
           connect: { department_id: checkDepartment.department_id },
         },
@@ -286,9 +287,82 @@ const editUser = async (req,res)=>{
     return res.status(200).json({user:editData});
   } catch (error) {
     console.error("Error updating user role:", error);
-    return res.status(500).json({ message: "Internal server error" });
+    return res.status(500).json({ error: "Internal server error" });
   }
 } 
+
+const NoOfActiveUser = async(req,res)=>{
+try {
+    const ActiveData = await prisma.users.findMany({
+      where:{
+          isActive: true 
+      }
+    })
+    return res.status(201).json({activeUser: ActiveData.length});
+} catch (error) {
+  console.error("Error getting Active user:", error);
+  return res.status(500).json({ error: "Internal server error" });
+}
+}
+
+const changePassword = async (req, res) => {
+  try {
+    const user_id = req.user.user_id;
+    const { current_password, password, confirm_password } = req.body;
+
+    // Check if all fields are provided
+    if (!current_password || !password || !confirm_password) {
+      return res.status(400).json({ error: "Please provide all fields!" });
+    }
+
+    // Find user by ID
+    const userData = await prisma.users.findFirst({
+      where: {
+        user_id: user_id,
+      },
+    });
+
+    // Check if user exists
+    if (!userData) {
+      return res.status(404).json({ error: "User not found!" });
+    }
+
+    // Verify current password
+    const isPasswordMatch = await bcrypt.compare(current_password, userData.password);
+    if (!isPasswordMatch) {
+      return res.status(400).json({ error: "Current password is incorrect!" });
+    }
+
+    // Check if new password matches confirm password
+    if (password !== confirm_password) {
+      return res.status(400).json({
+        error: "Passwords do not match. Please ensure both password fields are identical."
+      });
+    }
+
+    // Hash the new password
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+    // Update user's password
+    const updateUser = await prisma.users.update({
+      where: {
+        user_id: user_id,
+      },
+      data: {
+        password: hashedPassword,
+      },
+    });
+
+    // Respond with success
+    return res.status(200).json({ message: "User password changed successfully!", updateUser });
+
+  } catch (error) {
+    console.error("Error in changePassword:", error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+};
+
 
 module.exports = {
   getUser,
@@ -297,5 +371,7 @@ module.exports = {
   setInActiveUser,
   allUserForMessage,
   updateUserRole,
-  editUser
+  editUser,
+  NoOfActiveUser,
+  changePassword
 };

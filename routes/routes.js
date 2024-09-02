@@ -35,14 +35,16 @@ router.delete("/deleteVendor/:id", vendorController.deleteVendor);
 router.get("/vendor", authMiddleware(), vendorController.getAllVendors);
 router.get("/vendor/:vat", vendorController.getVendorsByID);
 router.put("/updateVendor/:id", vendorController.updateVendor);
-router.put("/blacklist/:id", vendorController.balckListVendor);
+router.put("/blacklist/:id", vendorController.blacklistVendor);
+router.put("/whitelist/:id", vendorController.whitelistVendor);
 
 // Item routes
 router.post("/addItem", itemController.addItem);
 router.get("/items", itemController.getItems);
 router.get("/items/:id", itemController.getItemsById);
 router.put("/updateItem/:id", itemController.updateItem);
-router.delete("/deleteItem/:id", itemController.deleteItem);
+router.delete("/deleteItem/:id", itemController.deleteItem); 
+router.get("/units", itemController.units); 
 
 // Category routes
 router.get("/category", categoryController.getCategories);
@@ -68,8 +70,16 @@ router.put(
 // Request routes
 router.post("/addRequest", authMiddleware(), requestController.sentRequest);
 router.get("/request", authMiddleware(), requestController.getRequest);
-router.get("/requestHistory", authMiddleware(), requestController.requestHistory);
-router.get("/singleRequest/:id", authMiddleware(), requestController.singleRequest);
+router.get(
+  "/requestHistory",
+  authMiddleware(),
+  requestController.requestHistory
+);
+router.get(
+  "/singleRequest/:id",
+  authMiddleware(),
+  requestController.singleRequest
+);
 router.put("/returnRequest/:id", requestController.returnItem);
 router.put(
   "/approveRequest/:id",
@@ -82,14 +92,17 @@ router.put(
   requestController.deliverRequest
 );
 
-
 // role User routes
 router.post("/role/addUser", userController.addUser);
 router.get("/role/allUsers", userController.getUser);
+router.get("/role/activeUser", userController.NoOfActiveUser);
 router.put("/role/activateUser/:user_id", userController.setActiveUser);
 router.put("/role/deactivateUser/:user_id", userController.setInActiveUser);
 router.put("/role/updateRole/:user_id", userController.updateUserRole);
 router.put("/role/editUser/:user_id", userController.editUser);
+//change password
+router.put("/changePassword",authMiddleware(),userController.changePassword);
+
 
 // Feature routes
 router.post("/addFeature", authMiddleware(), featureController.addFeature);
@@ -140,6 +153,4 @@ router.post("/addIssue", authMiddleware(), issueController.addIssue);
 //issue
 router.get("/dashboard", dashboardController.dashboard);
 
-
 module.exports = router;
-
