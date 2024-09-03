@@ -258,7 +258,7 @@ const editUser = async (req,res)=>{
       return res.status(400).json({ error: "Email is invalid!" });
     }
 
-    if (!user_name || !user_email || !department) {
+    if (!user_name || !user_email || !department || !contact) {
       return res.status(400).json({ error: "Please fill all the fields!" });
     }
   

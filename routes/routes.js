@@ -43,8 +43,8 @@ router.post("/addItem", itemController.addItem);
 router.get("/items", itemController.getItems);
 router.get("/items/:id", itemController.getItemsById);
 router.put("/updateItem/:id", itemController.updateItem);
-router.delete("/deleteItem/:id", itemController.deleteItem); 
-router.get("/units", itemController.units); 
+router.delete("/deleteItem/:id", itemController.deleteItem);
+router.get("/units", itemController.units);
 
 // Category routes
 router.get("/category", categoryController.getCategories);
@@ -62,9 +62,15 @@ router.get("/singleBill/:bill_id", billController.getBillById);
 router.put("/updateBill/:id", authMiddleware(), billController.updateBill);
 router.put(
   "/approveBill/:bill_id",
-  // authMiddleware(),
-  // superAdminMiddleware,
+  authMiddleware(),
+  superAdminMiddleware,
   billController.approveBill
+);
+router.put(
+  "/declineBill/:bill_id",
+  authMiddleware(),
+  // superAdminMiddleware,
+  billController.declineBill
 );
 
 // Request routes
@@ -101,8 +107,7 @@ router.put("/role/deactivateUser/:user_id", userController.setInActiveUser);
 router.put("/role/updateRole/:user_id", userController.updateUserRole);
 router.put("/role/editUser/:user_id", userController.editUser);
 //change password
-router.put("/changePassword",authMiddleware(),userController.changePassword);
-
+router.put("/changePassword", authMiddleware(), userController.changePassword);
 
 // Feature routes
 router.post("/addFeature", authMiddleware(), featureController.addFeature);

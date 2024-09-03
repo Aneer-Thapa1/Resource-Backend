@@ -88,6 +88,7 @@ model bills {
   bill_type     String?
   created_At    DateTime    @default(now())
   isApproved    Boolean     @default(false)
+  remark        String?
   BillItems     BillItems[]
 }
 
