@@ -70,8 +70,6 @@ const requestOTP = async (req, res) => {
 const checkOTP = async (req, res) => {
   try {
     const { email, otp } = req.body;
-
-    console.log(email, otp);
     // Check if user exists
     const user = await prisma.users.findUnique({
       where: {
@@ -127,7 +125,7 @@ const changePassword = async (req, res) => {
         user_email: email,
       },
       data: {
-        password: hashedPassword, // Ensure your user model has a password field
+        password: hashedPassword, 
       },
     });
 
