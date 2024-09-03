@@ -36,8 +36,25 @@ const requestOTP = async (req, res) => {
     // Send the OTP to the user's email
     await transporter.sendMail({
       to: email,
-      subject: "Your OTP Code",
-      text: `Your OTP code is ${otp}. It will expire in 1 minute.`,
+
+      subject: "Important: OTP Code for Verification",
+      text: `
+Dear User,
+
+We have received a request to verify your identity. To complete the verification process, please use the One-Time Password (OTP) provided below.
+
+**OTP Code:** ${otp}
+
+Please note that this OTP code is valid for 1 minute only. If you did not request this OTP or believe it was sent to you in error, please disregard this message.
+
+If you require any assistance, do not hesitate to contact our support team.
+
+Thank you for your attention.
+
+Best regards,
+IIC Resource Department
+  `,
+
     });
 
     // Set a timeout to clear the OTP after 1 minute
@@ -70,6 +87,7 @@ const requestOTP = async (req, res) => {
 const checkOTP = async (req, res) => {
   try {
     const { email, otp } = req.body;
+
     // Check if user exists
     const user = await prisma.users.findUnique({
       where: {
@@ -125,7 +143,9 @@ const changePassword = async (req, res) => {
         user_email: email,
       },
       data: {
+
         password: hashedPassword, 
+
       },
     });
 
