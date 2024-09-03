@@ -102,6 +102,8 @@ const addIssue = async (req, res) => {
     return res.status(500).json({ error: "Internal Server Error!" });
   }
 };
+
+
 const editIssue = async (req, res) => {
   try {
     const id = Number(req.params.id);

@@ -6,18 +6,30 @@ const bcrypt = require("bcrypt");
 
 const getUser = async (req, res) => {
   try {
+    // const { page = 1, limit = 4} = req.query;
+
+    // const skip = (page - 1) * limit; // Calculate how many records to skip
+
+    // Fetch users with pagination
     const allUser = await prisma.users.findMany({
+      // skip: skip,
+      // take: +limit,
       select: {
         user_id: true,
         user_name: true,
         user_email: true,
-        department: true,
+        department: {
+          select: {
+            department_name: true,
+          },
+        },
         role: true,
         contact: true,
         isActive: true,
       },
     });
 
+    // Transform users for response
     const transformedUsers = allUser.map((user) => ({
       user_id: user.user_id,
       user_name: user.user_name,
@@ -30,12 +42,16 @@ const getUser = async (req, res) => {
 
     return res.status(200).json({
       users: transformedUsers,
+      // page: +page,
+      // limit: +limit,
     });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     return res.status(500).json({ error: "Failed to get all the users!" });
   }
 };
+
+
 
 const addUser = async (req, res) => {
   const { user_email, user_name, department, contact } = req.body;
