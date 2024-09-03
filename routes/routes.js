@@ -18,6 +18,7 @@ const NotiController = require("../controllers/notificationController");
 const messageController = require("../controllers/messagesController");
 const departmentController = require("../controllers/departmentController");
 const exportToExcel = require("../controllers/exportToExcel");
+const forgotPassword = require("../controllers/forgotPassword");
 
 // Authentication routes
 router.post("/signup", authController.signup);
@@ -159,5 +160,10 @@ router.put("/editIssue/:id", authMiddleware(), issueController.editIssue);
 
 //dashboard
 router.get("/dashboard", dashboardController.dashboard);
+
+// forgot password
+router.post("/requestOTP", forgotPassword.requestOTP);
+router.post("/submitOTP", forgotPassword.checkOTP);
+router.post("/changePassword", forgotPassword.changePassword);
 
 module.exports = router;
