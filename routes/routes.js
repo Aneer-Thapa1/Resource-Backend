@@ -63,9 +63,15 @@ router.get("/singleBill/:bill_id", billController.getBillById);
 router.put("/updateBill/:id", authMiddleware(), billController.updateBill);
 router.put(
   "/approveBill/:bill_id",
-  // authMiddleware(),
-  // superAdminMiddleware,
+  authMiddleware(),
+  superAdminMiddleware,
   billController.approveBill
+);
+router.put(
+  "/declineBill/:bill_id",
+  authMiddleware(),
+  // superAdminMiddleware,
+  billController.declineBill
 );
 
 // Request routes
@@ -140,6 +146,7 @@ router.post(
 //department
 router.post("/addDepartment", departmentController.addDepartment);
 router.get("/getDepartment", departmentController.getDepartment);
+router.put("/editDepartment/:id", departmentController.editDepartment);
 
 //export excel
 router.get("/bill/exportBill", exportToExcel.exportBill);
@@ -149,8 +156,9 @@ router.get("/bill/exportVendor", exportToExcel.exportVendors);
 //issue
 router.get("/issue", issueController.getIssue);
 router.post("/addIssue", authMiddleware(), issueController.addIssue);
+router.put("/editIssue/:id", authMiddleware(), issueController.editIssue);
 
-//issue
+//dashboard
 router.get("/dashboard", dashboardController.dashboard);
 
 // forgot password

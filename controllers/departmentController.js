@@ -1,4 +1,5 @@
 const prisma = require("../prismaClient");
+const { updateBill } = require("./billController");
 
 const addDepartment = async (req, res) => {
   const { department_name } = req.body;
@@ -38,7 +39,36 @@ const getDepartment = async (req, res) => {
   }
 };
 
+const editDepartment = async (req,res)=>{
+  try {
+    const department_id = Number(req.params.id);
+    const {department_name}= req.body;
+    const checkDepartment = await prisma.department.findFirst({
+      where:{
+        department_id : department_id
+      }
+    });
+
+    if(!checkDepartment) return res.status(402).json({error:"Department not found !"});
+
+    const updateDepartment = await prisma.department.update({
+      where:{
+        department_id: department_id
+      },
+      data:{
+        department_name:  department_name
+      }
+    });
+    return res.status(200).json({message:"Department updated Successfully !"});
+  } catch (error) {
+    console.log(error.message);
+    return res.status(500).json({ error: "Internal Server Error !" })
+  }
+}
+
+
 module.exports = {
   addDepartment,
   getDepartment,
+  editDepartment
 };
