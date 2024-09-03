@@ -18,6 +18,7 @@ const NotiController = require("../controllers/notificationController");
 const messageController = require("../controllers/messagesController");
 const departmentController = require("../controllers/departmentController");
 const exportToExcel = require("../controllers/exportToExcel");
+const forgotPassword = require("../controllers/forgotPassword");
 
 // Authentication routes
 router.post("/signup", authController.signup);
@@ -43,8 +44,8 @@ router.post("/addItem", itemController.addItem);
 router.get("/items", itemController.getItems);
 router.get("/items/:id", itemController.getItemsById);
 router.put("/updateItem/:id", itemController.updateItem);
-router.delete("/deleteItem/:id", itemController.deleteItem); 
-router.get("/units", itemController.units); 
+router.delete("/deleteItem/:id", itemController.deleteItem);
+router.get("/units", itemController.units);
 
 // Category routes
 router.get("/category", categoryController.getCategories);
@@ -101,8 +102,7 @@ router.put("/role/deactivateUser/:user_id", userController.setInActiveUser);
 router.put("/role/updateRole/:user_id", userController.updateUserRole);
 router.put("/role/editUser/:user_id", userController.editUser);
 //change password
-router.put("/changePassword",authMiddleware(),userController.changePassword);
-
+router.put("/changePassword", authMiddleware(), userController.changePassword);
 
 // Feature routes
 router.post("/addFeature", authMiddleware(), featureController.addFeature);
@@ -152,5 +152,10 @@ router.post("/addIssue", authMiddleware(), issueController.addIssue);
 
 //issue
 router.get("/dashboard", dashboardController.dashboard);
+
+// forgot password
+router.post("/requestOTP", forgotPassword.requestOTP);
+router.post("/submitOTP", forgotPassword.checkOTP);
+router.post("/changePassword", forgotPassword.changePassword);
 
 module.exports = router;
