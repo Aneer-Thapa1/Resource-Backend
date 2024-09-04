@@ -486,7 +486,7 @@ const requestHistory = async (req, res) => {
       isReturned: request.isReturned,
       requestItems: request.requestItems.map(requestItem => ({
         id: requestItem.id,
-        item_id: requestItem.item.item_id,
+          item_id: requestItem.item.item_id,
         quantity: requestItem.quantity,
         item_name: requestItem.item.item_name,
       })),
