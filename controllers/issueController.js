@@ -50,7 +50,6 @@ const getIssue = async (req, res) => {
         };
       })
     );
-    console.log(response);
 
     return res.status(200).json({ issue: response });
   } catch (error) {
@@ -108,9 +107,12 @@ const editIssue = async (req, res) => {
   try {
     const id = Number(req.params.id);
     const user_id = req.user.user_id;
-    const { item_name, quantity, issued_to, purpose, issue_date } = req.body;
+    const { issue_name, quantity, requested_by, purpose, issue_date, remarks } =
+      req.body;
 
-    if (!purpose || !issue_date || !issued_to) {
+    console.log(issue_name, quantity, requested_by, remarks, issue_date);
+
+    if (!remarks || !requested_by) {
       return res.status(400).json({ error: "Missing required fields" });
     }
 
@@ -127,11 +129,11 @@ const editIssue = async (req, res) => {
         id: id,
       },
       data: {
-        issue_item: item_name,
+        issue_item: issue_name,
         Quantity: parseInt(quantity),
         issue_Date: new Date(issue_date),
         purpose: purpose,
-        issued_to: issued_to,
+        issued_to: requested_by,
         approved_by: approvedBy.user_name,
       },
     });
