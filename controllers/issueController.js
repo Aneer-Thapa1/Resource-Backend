@@ -89,7 +89,7 @@ const addIssue = async (req, res) => {
         data: {
           issue_item: item.item_name,
           Quantity: parseInt(item.quantity),
-          issue_Date: issue_date,
+          issue_Date:  new Date(issue_date),
           purpose: purpose,
           issued_to: issued_to,
           approved_by: approvedby.user_name,
@@ -172,6 +172,7 @@ const editIssue = async (req, res) => {1
           const notifyMessage = await prisma.notification.create({
             data: {
               message: `${updatedIssue.request.requestItems[0]?.item.item_name} has been returned`,
+              
               user_id: user_id  ,
               created_at: new Date(),
             },
