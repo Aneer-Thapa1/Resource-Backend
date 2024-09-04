@@ -1,170 +1,237 @@
-// script.js
-
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
 async function main() {
-  // Insert sample data into `department`
-  for (let i = 1; i <= 4; i++) {
-    await prisma.department.create({
-      data: {
-        department_name: `Department ${i}`,
-      },
-    });
-  }
+  // Departments
+  const departments = await Promise.all([
+    prisma.department.create({ data: { department_name: 'Engineering' } }),
+    prisma.department.create({ data: { department_name: 'Sales' } }),
+    prisma.department.create({ data: { department_name: 'Human Resources' } }),
+    prisma.department.create({ data: { department_name: 'Finance' } }),
+    prisma.department.create({ data: { department_name: 'Marketing' } }),
+  ]);
 
-  // Insert sample data into `users`
-  for (let i = 1; i <= 4; i++) {
-    await prisma.users.create({
+  // Users
+  const users = await Promise.all([
+    prisma.users.create({
       data: {
-        user_name: `User ${i}`,
-        user_email: `user${i}@example.com`,
-        password: `password${i}`,
-        role: i % 2 === 0 ? 'admin' : 'user',
-        department_id: i, // Assuming department IDs start from 1
+        user_name: 'John Doe',
+        user_email: 'john.doe@example.com',
+        contact: '1234567890',
+        password: 'securepassword',
+        role: 'admin',
+        department_id: departments[0].department_id,
       },
-    });
-  }
-
-  // Insert sample data into `category`
-  for (let i = 1; i <= 4; i++) {
-    await prisma.category.create({
+    }),
+    prisma.users.create({
       data: {
-        category_name: `Category ${i}`,
+        user_name: 'Jane Smith',
+        user_email: 'jane.smith@example.com',
+        contact: '2345678901',
+        password: 'securepassword',
+        role: 'user',
+        department_id: departments[1].department_id,
       },
-    });
-  }
-
-  // Insert sample data into `itemCategory`
-  for (let i = 1; i <= 4; i++) {
-    await prisma.itemCategory.create({
+    }),
+    prisma.users.create({
       data: {
-        item_category_name: `Item Category ${i}`,
+        user_name: 'Michael Johnson',
+        user_email: 'michael.johnson@example.com',
+        contact: '3456789012',
+        password: 'securepassword',
+        role: 'user',
+        department_id: departments[2].department_id,
       },
-    });
-  }
-
-  // Insert sample data into `items`
-  for (let i = 1; i <= 4; i++) {
-    await prisma.items.create({
+    }),
+    prisma.users.create({
       data: {
-        item_name: `Item ${i}`,
-        measuring_unit: 'Piece',
-        quantity: 10 * i,
-        remaining_quantity: 10 * i,
-        low_limit: 2,
-        unit_price: 100 * i,
-        total_Amount: 1000 * i,
-        category_id: i, // Assuming category IDs start from 1
-        item_category_id: i, // Assuming item category IDs start from 1
+        user_name: 'Emily Davis',
+        user_email: 'emily.davis@example.com',
+        contact: '4567890123',
+        password: 'securepassword',
+        role: 'user',
+        department_id: departments[3].department_id,
       },
-    });
-  }
-
-  // Insert sample data into `vendors`
-  for (let i = 1; i <= 4; i++) {
-    await prisma.vendors.create({
+    }),
+    prisma.users.create({
       data: {
-        vendor_name: `Vendor ${i}`,
-        vat_number: `VAT${i}`,
-        vendor_contact: `123-456-78${i}`,
-        vendor_profile: `Profile ${i}`,
+        user_name: 'David Wilson',
+        user_email: 'david.wilson@example.com',
+        contact: '5678901234',
+        password: 'securepassword',
+        role: 'user',
+        department_id: departments[4].department_id,
+      },
+    }),
+  ]);
+
+  // Vendors
+  const vendors = await Promise.all([
+    prisma.vendors.create({
+      data: {
+        vendor_name: 'Tech Supplies Inc.',
+        vat_number: 'TS123456',
+        vendor_contact: '6789012345',
+        vendor_profile: 'Technology and Office Supplies',
         last_purchase_date: new Date(),
         last_paid: new Date(),
         payment_duration: 30,
         next_payment_date: new Date(),
-        black_list: i % 2 === 0,
+        black_list: false,
       },
-    });
-  }
-
-  // Insert sample data into `bills`
-  for (let i = 1; i <= 4; i++) {
-    await prisma.bills.create({
+    }),
+    prisma.vendors.create({
       data: {
-        bill_no: `BILL${i}`,
-        bill_date: new Date(),
-        invoice_no: `INV${i}`,
-        paid_amount: 1000 * i,
-        left_amount: 500 * i,
-        actual_Amount: 1500 * i,
-        vendor_ID: i, // Assuming vendor IDs start from 1
-        bill_type: i % 2 === 0 ? 'VAT' : 'PAN',
+        vendor_name: 'Office Essentials LLC',
+        vat_number: 'OE123456',
+        vendor_contact: '7890123456',
+        vendor_profile: 'Office Equipment and Furniture',
+        last_purchase_date: new Date(),
+        last_paid: new Date(),
+        payment_duration: 45,
+        next_payment_date: new Date(),
+        black_list: false,
       },
-    });
-  }
-
-  // Insert sample data into `BillItems`
-  for (let i = 1; i <= 4; i++) {
-    await prisma.BillItems.create({
+    }),
+    prisma.vendors.create({
       data: {
-        bill_id: i, // Assuming bill IDs start from 1
-        item_id: i, // Assuming item IDs start from 1
-        quantity: 5 * i,
-        unit_price: 100 * i,
-        withVATAmount: 1000 * i,
-        TDS_deduct_amount: 50 * i,
-        total_Amount: 1050 * i,
-        TDS: 50 * i,
+        vendor_name: 'Stationery World',
+        vat_number: 'SW123456',
+        vendor_contact: '8901234567',
+        vendor_profile: 'Stationery and Paper Products',
+        last_purchase_date: new Date(),
+        last_paid: new Date(),
+        payment_duration: 30,
+        next_payment_date: new Date(),
+        black_list: false,
       },
-    });
-  }
-
-  // Insert sample data into `request`
-  for (let i = 1; i <= 4; i++) {
-    await prisma.request.create({
+    }),
+    prisma.vendors.create({
       data: {
-        purpose: `Request Purpose ${i}`,
-        user_id: i, // Assuming user IDs start from 1
-        requested_for: i,
-        approved_by: i,
-        remarks: `Remarks ${i}`,
-        status: i % 2 === 0 ? 'Approved' : 'Pending',
-        isReturned: i % 2 === 0,
+        vendor_name: 'Office Solutions',
+        vat_number: 'OS123456',
+        vendor_contact: '9012345678',
+        vendor_profile: 'Office Supplies and Accessories',
+        last_purchase_date: new Date(),
+        last_paid: new Date(),
+        payment_duration: 60,
+        next_payment_date: new Date(),
+        black_list: false,
       },
-    });
-  }
-
-  // Insert sample data into `requestItems`
-  for (let i = 1; i <= 4; i++) {
-    await prisma.requestItems.create({
+    }),
+    prisma.vendors.create({
       data: {
-        request_id: i, // Assuming request IDs start from 1
-        item_id: i, // Assuming item IDs start from 1
-        quantity: 3 * i,
+        vendor_name: 'Tech Gear Co.',
+        vat_number: 'TG123456',
+        vendor_contact: '0123456789',
+        vendor_profile: 'Technology and Gadgets',
+        last_purchase_date: new Date(),
+        last_paid: new Date(),
+        payment_duration: 30,
+        next_payment_date: new Date(),
+        black_list: false,
       },
-    });
-  }
+    }),
+  ]);
 
-  // Insert sample data into `issue`
-  for (let i = 1; i <= 4; i++) {
-    await prisma.issue.create({
+  // Categories
+  const categories = await Promise.all([
+    prisma.category.create({ data: { category_name: 'Electronics' } }),
+    prisma.category.create({ data: { category_name: 'Furniture' } }),
+    prisma.category.create({ data: { category_name: 'Stationery' } }),
+    prisma.category.create({ data: { category_name: 'Office Supplies' } }),
+    prisma.category.create({ data: { category_name: 'Gadgets' } }),
+  ]);
+
+  // Item Categories
+  const itemCategories = await Promise.all([
+    prisma.itemCategory.create({ data: { item_category_name: 'Office Equipment' } }),
+    prisma.itemCategory.create({ data: { item_category_name: 'Electronics' } }),
+    prisma.itemCategory.create({ data: { item_category_name: 'Furniture' } }),
+    prisma.itemCategory.create({ data: { item_category_name: 'Stationery' } }),
+    prisma.itemCategory.create({ data: { item_category_name: 'Gadgets' } }),
+  ]);
+
+  // Items
+  const items = await Promise.all([
+    prisma.items.create({
       data: {
-        issue_item: `Issue Item ${i}`,
-        Quantity: 2 * i,
-        request_Id: i, // Assuming request IDs start from 1
+        item_name: 'Laptop',
+        measuring_unit: 'piece',
+        quantity: 10,
+        remaining_quantity: 10,
+        low_limit: 5,
+        unit_price: 1000,
+        total_Amount: 10000,
+        Status: true,
+        category_id: categories[0].category_id,
+        item_category_id: itemCategories[1].item_category_id,
       },
-    });
-  }
-
-  // Insert sample data into `notification`
-  for (let i = 1; i <= 4; i++) {
-    await prisma.notification.create({
+    }),
+    prisma.items.create({
       data: {
-        message: `Notification Message ${i}`,
-        state: i % 2 === 0,
-        user_id: i, // Assuming user IDs start from 1
+        item_name: 'Office Chair',
+        measuring_unit: 'piece',
+        quantity: 20,
+        remaining_quantity: 20,
+        low_limit: 10,
+        unit_price: 150,
+        total_Amount: 3000,
+        Status: true,
+        category_id: categories[1].category_id,
+        item_category_id: itemCategories[2].item_category_id,
       },
-    });
-  }
+    }),
+    prisma.items.create({
+      data: {
+        item_name: 'Notebook',
+        measuring_unit: 'piece',
+        quantity: 50,
+        remaining_quantity: 50,
+        low_limit: 20,
+        unit_price: 5,
+        total_Amount: 250,
+        Status: true,
+        category_id: categories[2].category_id,
+        item_category_id: itemCategories[3].item_category_id,
+      },
+    }),
+    prisma.items.create({
+      data: {
+        item_name: 'Printer',
+        measuring_unit: 'piece',
+        quantity: 5,
+        remaining_quantity: 5,
+        low_limit: 2,
+        unit_price: 200,
+        total_Amount: 1000,
+        Status: true,
+        category_id: categories[0].category_id,
+        item_category_id: itemCategories[1].item_category_id,
+      },
+    }),
+    prisma.items.create({
+      data: {
+        item_name: 'Desk Lamp',
+        measuring_unit: 'piece',
+        quantity: 15,
+        remaining_quantity: 15,
+        low_limit: 5,
+        unit_price: 30,
+        total_Amount: 450,
+        Status: true,
+        category_id: categories[1].category_id,
+        item_category_id: itemCategories[2].item_category_id,
+      },
+    }),
+  ]);
 
-  console.log('Sample data inserted successfully');
+  console.log('Dummy data created successfully!');
 }
 
 main()
   .catch(e => {
-    console.error(e);
-    process.exit(1);
+    throw e;
   })
   .finally(async () => {
     await prisma.$disconnect();

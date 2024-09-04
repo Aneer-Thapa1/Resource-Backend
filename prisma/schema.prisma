@@ -47,6 +47,8 @@ model users {
   requestsReceived request[]                 @relation("RequestedFor")
   conversations    ConversationParticipant[]
   UserNotification UserNotification[]
+
+  Notification Notification[]
 }
 
 model feature {
@@ -172,18 +174,21 @@ model itemCategory {
 }
 
 model Notification {
-  notification_id   Int                @id @default(autoincrement())
-  message           String
-  created_at        DateTime           @default(now())
+  notification_id Int      @id @default(autoincrement())
+  message         String
+  created_at      DateTime @default(now())
+  user_id    Int
+  user            users    @relation(fields: [user_id], references: [user_id])
+
   userNotifications UserNotification[]
 }
 
 model UserNotification {
   user_id         Int
   notification_id Int
-  state             Boolean            @default(false)
-  notification   Notification @relation(fields: [notification_id], references: [notification_id])
-  user           users         @relation(fields: [user_id], references: [user_id])
+  state           Boolean      @default(false)
+  notification    Notification @relation(fields: [notification_id], references: [notification_id])
+  user            users        @relation(fields: [user_id], references: [user_id])
 
   @@id([user_id, notification_id])
   @@index([notification_id])
