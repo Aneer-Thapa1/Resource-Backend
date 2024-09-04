@@ -139,11 +139,11 @@ const editIssue = async (req, res) => {
           issue_item: issue_name,
           Quantity: parseInt(quantity),
           issue_Date: new Date(issue_date),
-          purpose: purpose,
+          purpose: remarks,
           issued_to: requested_by,
           approved_by: approver.user_name,
           isReturned: isReturned,
-          remarks: remarks
+          remarks: purpose
         },
         include: {
           request: {
