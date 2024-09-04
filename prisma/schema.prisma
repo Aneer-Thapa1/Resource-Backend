@@ -121,7 +121,6 @@ model request {
   remarks       String?
   request_date  DateTime       @default(now())
   status        String
-  isReturned    Boolean        @default(false)
   requestItems  requestItems[]
   issue         issue[]
 }
@@ -133,6 +132,7 @@ model issue {
   Quantity    Int
   purpose     String?
   issued_to   String?
+  isReturned    Boolean        @default(false)
   request     request? @relation(fields: [request_Id], references: [request_id])
   request_Id  Int?
   approved_by String?
