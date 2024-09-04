@@ -54,7 +54,6 @@ Thank you for your attention.
 Best regards,
 IIC Resource Department
   `,
-
     });
 
     // Set a timeout to clear the OTP after 1 minute
@@ -143,9 +142,7 @@ const changePassword = async (req, res) => {
         user_email: email,
       },
       data: {
-
-        password: hashedPassword, 
-
+        password: hashedPassword,
       },
     });
 

@@ -5,7 +5,10 @@ const authMiddleware = (roles = []) => {
   return async (req, res, next) => {
     const authorizationHeaderValue = req.headers["authorization"];
 
-    if (!authorizationHeaderValue || !authorizationHeaderValue.startsWith("Bearer ")) {
+    if (
+      !authorizationHeaderValue ||
+      !authorizationHeaderValue.startsWith("Bearer ")
+    ) {
       return res.status(401).json({ error: "Access Denied" });
     }
 
@@ -35,7 +38,7 @@ const authMiddleware = (roles = []) => {
       if (roles.length && !roles.includes(req.user.role)) {
         return res.status(403).send("Forbidden");
       }
-      
+
       next();
     } catch (err) {
       console.error("Token validation error:", err);

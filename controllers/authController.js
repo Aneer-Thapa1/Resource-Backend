@@ -100,6 +100,8 @@ const login = async (req, res) => {
       user_name: user.user_name,
       user_email: user.user_email,
       user_role: user.role,
+      user_contact: user.contact,
+      token,
     };
 
     // Send token in response
@@ -114,10 +116,8 @@ const login = async (req, res) => {
       .status(200)
       .json({
         message: "User logged in successfully",
-        token: token,
-        role: user.role,
-        user_name: user.user_name,
-        department_name: user.department?.department_name || null,
+
+        userData,
       });
   } catch (error) {
     console.error(error);
