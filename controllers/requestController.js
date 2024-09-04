@@ -404,23 +404,102 @@ const singleRequest = async (req, res) => {
 };
 
 
- const requestHistory  = async(req,res)=>{
+const requestHistory = async (req, res) => {
   try {
     const userId = req.user.user_id;
 
-    const requestData = await prisma.request.findMany({
-      where:{
-        user_id: userId
-      }
+    // Fetch pending requests
+    const requestsPending = await prisma.request.findMany({
+      where: {
+        user_id: userId,
+        status: "Pending",
+      },
+      include: {
+        user: {
+          include: {
+            department: true,
+          },
+        },
+        requestedFor: true,
+        requestItems: {
+          include: {
+            item: {
+              include: {
+                itemsOnFeatures: true,
+              },
+            },
+          },
+        },
+      },
     });
 
-    return res.status(200).json({ request: requestData });
-  
+    // Format response for pending requests
+    const responsePending = requestsPending.map(request => ({
+      request_id: request.request_id,
+      purpose: request.purpose,
+      user_name: request.user.user_name,
+      requested_for: request.requestedFor.user_name,
+      request_date: request.request_date,
+      status: request.status,
+      isReturned: request.isReturned,
+      requestItems: request.requestItems.map(requestItem => ({
+        id: requestItem.id,
+        item_id: requestItem.item.item_id,
+        quantity: requestItem.quantity,
+        item_name: requestItem.item.item_name,
+      })),
+    }));
+
+    // Fetch approved requests
+    const requestsApproved = await prisma.request.findMany({
+      where: {
+        user_id: userId,
+        status: "Approved",
+      },
+      include: {
+        user: {
+          include: {
+            department: true,
+          },
+        },
+        requestedFor: true,
+        requestItems: {
+          include: {
+            item: {
+              include: {
+                itemsOnFeatures: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    // Format response for approved requests
+    const responseApproved = requestsApproved.map(request => ({
+      request_id: request.request_id,
+      purpose: request.purpose,
+      user_name: request.user.user_name,
+      requested_for: request.requestedFor.user_name,
+      request_date: request.request_date,
+      status: request.status,
+      isReturned: request.isReturned,
+      requestItems: request.requestItems.map(requestItem => ({
+        id: requestItem.id,
+        item_id: requestItem.item.item_id,
+        quantity: requestItem.quantity,
+        item_name: requestItem.item.item_name,
+      })),
+    }));
+
+    return res.status(200).json({ requestApproved: responseApproved, requestPending: responsePending });
+
   } catch (error) {
     console.error(error);
     return res.status(500).json({ error: "Internal Server Error!" });
   }
-}
+};
+
 
 
 module.exports = {

@@ -4,16 +4,19 @@ const { getIo } = require("../socket");
 const getNotification = async (req, res) => {
   try {
     const id = req.user.user_id;
-    // Fetch notifications with related userNotifications
-    const notifications = await prisma.notification.findMany({
+    const { page = 1, limit = 30 } = req.query;
 
+    const skip = (page - 1) * limit;
+
+    const notifications = await prisma.notification.findMany({
+      skip: skip,
+      take: +limit,
       include: {
         userNotifications: {
           where: {
-            user_id:id
+            user_id: id,
           },
         },
-        
       },
     });
 
@@ -30,7 +33,13 @@ const getNotification = async (req, res) => {
       };
     });
 
-    return res.status(200).json({ notifications: transformedNotifications });
+    return res
+      .status(200)
+      .json({
+        notifications: transformedNotifications,
+        page: +page,
+        limit: +limit,
+      });
   } catch (error) {
     console.log(error);
     return res.status(500).json({ error: "Failed to get notifications!" });
@@ -39,28 +48,53 @@ const getNotification = async (req, res) => {
 
 const updateNotification = async (req, res) => {
   try {
-    // //  const id = Number(req.params.id);
-    // const result = await prisma.notification.updateMany({
-    //   //  where:{
-    //   //      notification_id: id
-    //   //  },
-    //   data: {
-    //     is: Boolean("true"),
-    //   },
-    // });
-    // const all = await prisma.notification.findMany({});
-    // const io = getIo();
-    // io.emit("all_request", {
-    //   message: all,
-    // });
-    // return res.status(200).json({ message: "successfuly updated !" });
+    const user_id = req.user.user_id;
+
+    const allNotifications = await prisma.notification.findMany();
+
+    const notificationsToUpsert = allNotifications.map((notification) => {
+      return prisma.userNotification.upsert({
+        where: {
+          user_id_notification_id: {
+            user_id: user_id,
+            notification_id: notification.notification_id,
+          },
+        },
+        update: {
+          state: true,
+        },
+        create: {
+          user_id: user_id,
+          notification_id: notification.notification_id,
+          state: true,
+        },
+      });
+    });
+
+    // Execute all the upserts in a transaction
+    await prisma.$transaction(notificationsToUpsert);
+
+    const updatedUserNotifications = await prisma.userNotification.findMany({
+      where: { user_id: user_id },
+      include: { notification: true },
+    });
+
+    const io = getIo();
+    io.emit("all_request", {
+      message: updatedUserNotifications,
+    });
+
+    return res
+      .status(200)
+      .json({ message: "Successfully marked all as read!" });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     return res
       .status(500)
-      .json({ error: "failed to update the notification !" });
+      .json({ error: "Failed to mark notifications as read!" });
   }
 };
+
 const singleUpdateNotification = async (req, res) => {
   try {
     const notificationId = Number(req.params.id);
