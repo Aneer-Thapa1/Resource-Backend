@@ -24,7 +24,7 @@ const addBill = async (req, res) => {
       bill_date,
       invoice_no,
       paid_amount,
-      vat_number, // Explicitly include vat_number
+      vat_number,
       items,
       selectedOptions,
     } = req.body;

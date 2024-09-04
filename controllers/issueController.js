@@ -1,4 +1,6 @@
 const prisma = require("../prismaClient");
+const { getIo } = require("../socket");
+
 
 const getIssue = async (req, res) => {
   try {
@@ -86,7 +88,7 @@ const addIssue = async (req, res) => {
         data: {
           issue_item: item.item_name,
           Quantity: parseInt(item.quantity),
-          issue_Date: issue_date,
+          issue_Date:  new Date(issue_date),
           purpose: purpose,
           issued_to: issued_to,
           approved_by: approvedby.user_name,
@@ -102,26 +104,21 @@ const addIssue = async (req, res) => {
     return res.status(500).json({ error: "Internal Server Error!" });
   }
 };
-
-const editIssue = async (req, res) => {
+const editIssue = async (req, res) => {1
   try {
     const id = Number(req.params.id);
     const user_id = req.user.user_id;
+
     const { issue_name, quantity, requested_by, purpose, issue_date, remarks } =
       req.body;
 
-    console.log(issue_name, quantity, requested_by, remarks, issue_date);
-
-    if (!remarks || !requested_by) {
-      return res.status(400).json({ error: "Missing required fields" });
-    }
-
-    // Fetch the user who is approving the issue
+  
     const approvedBy = await prisma.users.findFirst({
       where: {
         user_id: user_id,
       },
     });
+
 
     // Update the issue
     const updatedIssue = await prisma.issue.update({
@@ -136,20 +133,86 @@ const editIssue = async (req, res) => {
         issued_to: requested_by,
         approved_by: approvedBy.user_name,
       },
+
+    if (!approvedBy) {
+      return res.status(404).json({ error: "Approver not found" });
+    }
+
+    const result = await prisma.$transaction(async (prisma) => {
+      // Update the issue
+      const updatedIssue = await prisma.issue.update({
+        where: {
+          id: id,
+        },
+        data: {
+          issue_item: item_name,
+          Quantity: parseInt(quantity),
+          issue_Date: new Date(issue_date),
+          purpose: purpose,
+          issued_to: issued_to,
+          approved_by: approvedBy.user_name,
+          isReturned: isReturned
+        },
+        include: {
+          request: {
+            include: {
+              requestItems: {
+                include: {
+                  item: true,
+                },
+              },
+            }
+          },
+        },
+      });
+
+     
+      const itemQuantity = updatedIssue.Quantity;
+      const item = updatedIssue.request.requestItems[0]?.item.item_id;
+
+      if (isReturned) {
+          const uppdateItem = await prisma.items.update({
+            where:{
+              item_id: item
+            },
+            data:{
+              remaining_quantity: {
+                increment: itemQuantity,
+              },
+            }
+          })
+          const notifyMessage = await prisma.notification.create({
+            data: {
+              message: `${updatedIssue.request.requestItems[0]?.item.item_name} has been returned`,
+              
+              user_id: user_id  ,
+              created_at: new Date(),
+            },
+          });
+    
+          const io = getIo();
+          io.emit("newBill", {
+            message: notifyMessage,
+          }); 
+      }
+
+      return updatedIssue;
     });
 
-    // Respond with the updated issue
-    return res
-      .status(200)
-      .json({ message: "Issue updated successfully", updatedIssue });
+    return res.status(200).json({ message: "Issue updated successfully", result });
   } catch (error) {
-    console.error(error);
+    console.error("Error updating issue:", error);
     return res.status(500).json({ error: "Internal Server Error!" });
   }
 };
 
+
+
+
 module.exports = {
   getIssue,
   addIssue,
-  editIssue,
+  editIssue
+
+
 };
