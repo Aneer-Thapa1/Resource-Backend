@@ -126,8 +126,10 @@ router.put(
   authMiddleware(),
   NotiController.updateNotification
 );
+
 router.put("/updateNotification",  authMiddleware(), NotiController.updateNotification);
 router.put("/singleNotification/:id",authMiddleware(), NotiController.singleUpdateNotification);
+
 
 //message
 
