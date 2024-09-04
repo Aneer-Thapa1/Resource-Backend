@@ -41,7 +41,7 @@ const getIssue = async (req, res) => {
           issue_name: issue.issue_item,
           quantity: issue.Quantity,
           remarks: issue.request?.remarks || issue.purpose,
-          issueData: issue.issue_Data,
+          issueDate: issue.issue_Date,
           status: issue.request?.status || "",
           approved_by: findUser?.user_name || issue.approved_by,
           requested_by: reqUser?.user_name || issue.issued_to,
@@ -50,6 +50,7 @@ const getIssue = async (req, res) => {
         };
       })
     );
+    console.log(response);
 
     return res.status(200).json({ issue: response });
   } catch (error) {
@@ -86,7 +87,7 @@ const addIssue = async (req, res) => {
         data: {
           issue_item: item.item_name,
           Quantity: parseInt(item.quantity),
-          issue_Date: new Date(issue_date),
+          issue_Date: issue_date,
           purpose: purpose,
           issued_to: issued_to,
           approved_by: approvedby.user_name,
@@ -102,7 +103,6 @@ const addIssue = async (req, res) => {
     return res.status(500).json({ error: "Internal Server Error!" });
   }
 };
-
 
 const editIssue = async (req, res) => {
   try {
@@ -145,7 +145,6 @@ const editIssue = async (req, res) => {
     return res.status(500).json({ error: "Internal Server Error!" });
   }
 };
-
 
 module.exports = {
   getIssue,
