@@ -1,7 +1,6 @@
 const prisma = require("../prismaClient");
 const { getIo } = require("../socket");
 
-
 const getIssue = async (req, res) => {
   try {
     const issueData = await prisma.issue.findMany({
@@ -48,7 +47,7 @@ const getIssue = async (req, res) => {
           approved_by: findUser?.user_name || issue.approved_by,
           requested_by: reqUser?.user_name || issue.issued_to,
           department: department?.department_name || "students",
-          isReturned: issue.isReturned
+          isReturned: issue.isReturned,
         };
       })
     );
@@ -88,7 +87,7 @@ const addIssue = async (req, res) => {
         data: {
           issue_item: item.item_name,
           Quantity: parseInt(item.quantity),
-          issue_Date:  new Date(issue_date),
+          issue_Date: new Date(issue_date),
           purpose: purpose,
           issued_to: issued_to,
           approved_by: approvedby.user_name,
@@ -109,7 +108,7 @@ const editIssue = async (req, res) => {
     const id = Number(req.params.id);
     const user_id = req.user.user_id;
 
-    const { issue_name, quantity, requested_by, purpose, issue_date, remarks } =
+    const { issue_name, quantity, requested_by, purpose, issue_date, remarks,isReturned } =
       req.body;
 
     // Check if the issue exists
@@ -120,13 +119,16 @@ const editIssue = async (req, res) => {
 
     // If the item has already been returned
     if (existingIssue.isReturned) {
-      return res.status(400).json({ message: "Item has already been returned" });
+      return res
+        .status(400)
+        .json({ message: "Item has already been returned" });
     }
 
     // Find the approver by user_id
     const approver = await prisma.users.findFirst({ where: { user_id } });
-    if (!approver) {
-      return res.status(404).json({ error: "Approver not found!" });
+
+    if (!approver)   return res.status(404).json({ error: "Approver not found!" });
+
 
 
     const result = await prisma.$transaction(async (prisma) => {
@@ -135,11 +137,13 @@ const editIssue = async (req, res) => {
         where: { id },
         data: {
           issue_item: issue_name,
-        Quantity: parseInt(quantity),
-        issue_Date: new Date(issue_date),
-        purpose: purpose,
-        issued_to: requested_by,
-        approved_by: approvedBy.user_name,
+          Quantity: parseInt(quantity),
+          issue_Date: new Date(issue_date),
+          purpose: purpose,
+          issued_to: requested_by,
+          approved_by: approver.user_name,
+          isReturned: isReturned,
+          remarks: remarks
         },
         include: {
           request: {
@@ -153,7 +157,7 @@ const editIssue = async (req, res) => {
       });
 
       // If the item is returned, update the item's remaining quantity
-      if (Boolean(isReturned)) { 
+      if (Boolean(isReturned)) {
         const itemId = updatedIssue.request.requestItems[0]?.item.item_id;
         if (itemId) {
           await prisma.items.update({
@@ -184,22 +188,17 @@ const editIssue = async (req, res) => {
       return updatedIssue;
     });
 
-    return res.status(200).json({ message: "Issue updated successfully", result });
+    return res
+      .status(200)
+      .json({ message: "Issue updated successfully", result });
   } catch (error) {
     console.error("Error updating issue:", error);
     return res.status(500).json({ error: "Internal Server Error!" });
   }
 };
 
-
-
-
-
-
 module.exports = {
   getIssue,
   addIssue,
-  editIssue
-
-
+  editIssue,
 };
