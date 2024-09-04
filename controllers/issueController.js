@@ -48,7 +48,7 @@ const getIssue = async (req, res) => {
           approved_by: findUser?.user_name || issue.approved_by,
           requested_by: reqUser?.user_name || issue.issued_to,
           department: department?.department_name || "students",
-          isReturned: issue.request?.isReturned || "",
+          isReturned: issue.isReturned
         };
       })
     );
@@ -104,7 +104,7 @@ const addIssue = async (req, res) => {
     return res.status(500).json({ error: "Internal Server Error!" });
   }
 };
-const editIssue = async (req, res) => {1
+const editIssue = async (req, res) => {
   try {
     const id = Number(req.params.id);
     const user_id = req.user.user_id;
@@ -112,88 +112,73 @@ const editIssue = async (req, res) => {1
     const { issue_name, quantity, requested_by, purpose, issue_date, remarks } =
       req.body;
 
-  
-    const approvedBy = await prisma.users.findFirst({
-      where: {
-        user_id: user_id,
-      },
-    });
+    // Check if the issue exists
+    const existingIssue = await prisma.issue.findFirst({ where: { id } });
+    if (!existingIssue) {
+      return res.status(404).json({ error: "Issue not found!" });
+    }
+
+    // If the item has already been returned
+    if (existingIssue.isReturned) {
+      return res.status(400).json({ message: "Item has already been returned" });
+    }
+
+    // Find the approver by user_id
+    const approver = await prisma.users.findFirst({ where: { user_id } });
+    if (!approver) {
+      return res.status(404).json({ error: "Approver not found!" });
 
 
-    // Update the issue
-    const updatedIssue = await prisma.issue.update({
-      where: {
-        id: id,
-      },
-      data: {
-        issue_item: issue_name,
+    const result = await prisma.$transaction(async (prisma) => {
+      // Update the issue
+      const updatedIssue = await prisma.issue.update({
+        where: { id },
+        data: {
+          issue_item: issue_name,
         Quantity: parseInt(quantity),
         issue_Date: new Date(issue_date),
         purpose: purpose,
         issued_to: requested_by,
         approved_by: approvedBy.user_name,
-      },
-
-    if (!approvedBy) {
-      return res.status(404).json({ error: "Approver not found" });
-    }
-
-    const result = await prisma.$transaction(async (prisma) => {
-      // Update the issue
-      const updatedIssue = await prisma.issue.update({
-        where: {
-          id: id,
-        },
-        data: {
-          issue_item: item_name,
-          Quantity: parseInt(quantity),
-          issue_Date: new Date(issue_date),
-          purpose: purpose,
-          issued_to: issued_to,
-          approved_by: approvedBy.user_name,
-          isReturned: isReturned
         },
         include: {
           request: {
             include: {
               requestItems: {
-                include: {
-                  item: true,
-                },
+                include: { item: true },
               },
-            }
+            },
           },
         },
       });
 
-     
-      const itemQuantity = updatedIssue.Quantity;
-      const item = updatedIssue.request.requestItems[0]?.item.item_id;
-
-      if (isReturned) {
-          const uppdateItem = await prisma.items.update({
-            where:{
-              item_id: item
-            },
-            data:{
+      // If the item is returned, update the item's remaining quantity
+      if (Boolean(isReturned)) { 
+        const itemId = updatedIssue.request.requestItems[0]?.item.item_id;
+        if (itemId) {
+          await prisma.items.update({
+            where: { item_id: itemId },
+            data: {
               remaining_quantity: {
-                increment: itemQuantity,
+                increment: updatedIssue.Quantity,
               },
-            }
-          })
+            },
+          });
+
+          // Create a notification
+          const notificationMessage = `${updatedIssue.request.requestItems[0].item.item_name} has been returned`;
           const notifyMessage = await prisma.notification.create({
             data: {
-              message: `${updatedIssue.request.requestItems[0]?.item.item_name} has been returned`,
-              
-              user_id: user_id  ,
+              message: notificationMessage,
+              user_id,
               created_at: new Date(),
             },
           });
-    
+
+          // Emit the notification
           const io = getIo();
-          io.emit("newBill", {
-            message: notifyMessage,
-          }); 
+          io.emit("newBill", { message: notifyMessage });
+        }
       }
 
       return updatedIssue;
@@ -205,6 +190,8 @@ const editIssue = async (req, res) => {1
     return res.status(500).json({ error: "Internal Server Error!" });
   }
 };
+
+
 
 
 
