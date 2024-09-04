@@ -343,8 +343,9 @@ const deleteItem = async (req, res) => {
 };
 
 const units = async (req, res) => {
+      
   try {
-    const data = await prisma.items.findMany({});
+    const data = await prisma.items.findMany({}); 
     const measuringUnits = data.map(item => item.measuring_unit);
     const uniqueUnits = [...new Set(measuringUnits)];    
     return res.status(200).json({ measuring_unit: uniqueUnits });
@@ -360,7 +361,7 @@ module.exports = {
   addItem,
   getItemsById,
   getItems,
-  updateItem,
+  updateItem,              
   deleteItem,
   units
 };
