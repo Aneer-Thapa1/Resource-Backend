@@ -52,7 +52,6 @@ const getIssue = async (req, res) => {
         };
       })
     );
-    console.log(response);
 
     return res.status(200).json({ issue: response });
   } catch (error) {
@@ -109,18 +108,31 @@ const editIssue = async (req, res) => {1
   try {
     const id = Number(req.params.id);
     const user_id = req.user.user_id;
-    const { item_name, quantity, issued_to, purpose, issue_date, isReturned } = req.body;
 
-    // Validate required fields
-    if (!item_name || !quantity || !purpose || !issue_date || !issued_to) {
-      return res.status(400).json({ error: "Missing required fields" });
-    }
+    const { issue_name, quantity, requested_by, purpose, issue_date, remarks } =
+      req.body;
 
+  
     const approvedBy = await prisma.users.findFirst({
       where: {
         user_id: user_id,
       },
     });
+
+
+    // Update the issue
+    const updatedIssue = await prisma.issue.update({
+      where: {
+        id: id,
+      },
+      data: {
+        issue_item: issue_name,
+        Quantity: parseInt(quantity),
+        issue_Date: new Date(issue_date),
+        purpose: purpose,
+        issued_to: requested_by,
+        approved_by: approvedBy.user_name,
+      },
 
     if (!approvedBy) {
       return res.status(404).json({ error: "Approver not found" });
