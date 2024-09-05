@@ -108,6 +108,8 @@ const addIssue = async (req, res) => {
         throw new Error(`Item with id ${item.item_id} not found`);
       }
 
+
+
       // Create issue record for each item
       return prisma.issue.create({
         data: {
@@ -146,14 +148,15 @@ const addIssue = async (req, res) => {
 
 const editIssue = async (req, res) => {
   try {
-    const id = Number(req.params.id);
+    const id = Number(req.params.issue_id);
+    console.log(id);
     const user_id = req.user.user_id;
 
     const { issue_name, quantity, requested_by, purpose, issue_date, remarks,isReturned } =
       req.body;
 
     // Check if the issue exists
-    const existingIssue = await prisma.issue.findFirst({ where: { id } });
+    const existingIssue = await prisma.issue.findFirst({ where: {issue_id :id } });
     if (!existingIssue) {
       return res.status(404).json({ error: "Issue not found!" });
     }
