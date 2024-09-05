@@ -75,6 +75,8 @@ model items {
   itemsOnFeatures    itemsOnFeatures[]
   BillItems          BillItems[]
   requestItems       requestItems[]
+
+  issue issue[]
 }
 
 model bills {
@@ -132,10 +134,12 @@ model issue {
   Quantity    Int
   purpose     String?
   issued_to   String?
-  isReturned    Boolean        @default(false)
+  isReturned  Boolean  @default(false)
   request     request? @relation(fields: [request_Id], references: [request_id])
   request_Id  Int?
   approved_by String?
+  item       items   @relation(fields: [item_id], references: [item_id], onDelete: Cascade)
+  item_id    Int
 }
 
 model requestItems {
@@ -177,7 +181,7 @@ model Notification {
   notification_id Int      @id @default(autoincrement())
   message         String
   created_at      DateTime @default(now())
-  user_id    Int
+  user_id         Int
   user            users    @relation(fields: [user_id], references: [user_id])
 
   userNotifications UserNotification[]

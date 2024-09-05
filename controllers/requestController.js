@@ -223,7 +223,6 @@ const approveRequest = async (req, res) => {
 const deliverRequest = async (req, res) => {
   try {
     const id = Number(req.params.id);
-
     const findRequest = await prisma.request.findFirst({
       where: {
         request_id: id,
@@ -264,14 +263,19 @@ const deliverRequest = async (req, res) => {
       });
 
       for (const requestItem of updatedRequest.requestItems) {
-        await prisma.issue.create({
+        // const findItem = await prisma.items.findFirst({
+        //   where: {
+        //   item_id: requestItem.item_id
+        //   }
+        // })
+      const update=  await prisma.issue.create({
           data: {
+            item_id: requestItem.item.item_id,
             issue_item: requestItem.item.item_name,
             request_Id: updatedRequest.request_id,
             Quantity: requestItem.quantity,
           },
         });
-
         // Decrease the remaining quantity of the item
         await prisma.items.update({
           where: {
