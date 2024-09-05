@@ -83,7 +83,6 @@ const addIssue = async (req, res) => {
         department:true
       }
     });
-      console.log(approvedby);
     if (!approvedby) {
       return res.status(404).json({ error: "Approving user not found" });
     }
@@ -137,7 +136,6 @@ const addIssue = async (req, res) => {
       department: approvedby.department.department_name,
       isReturned: issue.isReturned,
     }));
-    console.log(response)
 
     res.status(201).json({ message: "Issue added successfully", response });
   } catch (error) {

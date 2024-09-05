@@ -40,15 +40,26 @@ const signup = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Create new user
+  const result = await prisma.$transaction(async(prisma)=>{
+    const createDepartment = await prisma.department.create({
+      data:{
+        department_name: "Resource"
+      }
+    }) 
+
     const newUser = await prisma.users.create({
       data: {
         user_name,
         user_email,
         password: hashedPassword,
+        isActive: true,
+        department_id: createDepartment.department_id
       },
     });
+    return {createDepartment, newUser};
+  });
 
-    return res.status(201).json({ message: "User signed up successfully" });
+    return res.status(201).json({ message: "User signed up successfully", result });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ error: "Internal Server Error!" });
