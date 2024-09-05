@@ -12,6 +12,7 @@ const sentRequest = async (req, res) => {
       });
     }
 
+    // Fetch the user making the request
     const user = await prisma.users.findFirst({
       where: { user_id: userId },
       select: { user_name: true, department: true },
@@ -21,6 +22,7 @@ const sentRequest = async (req, res) => {
       return res.status(404).json({ error: "User not found!" });
     }
 
+    // Fetch the user to whom the request is made
     const forUser = await prisma.users.findFirst({
       where: { user_id: for_UserId },
     });
@@ -29,22 +31,20 @@ const sentRequest = async (req, res) => {
       return res.status(404).json({ error: "User not found!" });
     }
 
-    const requestItems = items.map((item) => {
-      return {
-        item_id: item.item_id,
-        quantity: parseInt(item.quantity),
-      };
-    });
+    // Map the items to match Prisma schema
+    const requestItems = items.map((item) => ({
+      item: { connect: { item_id: item.item_id } }, 
+      quantity: parseInt(item.quantity),
+    }));
 
     // Create the request with associated requestItems
     const requestData = await prisma.request.create({
       data: {
-        user_id: userId,
-        requested_for: Number(forUser.user_id),
+        user: { connect: { user_id: userId } }, 
+        requestedFor: { connect: { user_id: for_UserId } }, 
         purpose: purpose,
-        isReturned: false,
         status: "pending",
-        isReturned: false,
+
         requestItems: {
           create: requestItems,
         },
@@ -59,9 +59,10 @@ const sentRequest = async (req, res) => {
       .json({ message: "Successfully requested the items", requestData });
   } catch (error) {
     console.error(error.message);
-    return res.status(500).json({ error: "Internal Sever Error!!" });
+    return res.status(500).json({ error: "Internal Server Error!!" });
   }
 };
+
 
 const returnItem = async (req, res) => {
   try {
@@ -327,7 +328,6 @@ const getRequest = async (req, res) => {
       request_date: request.request_date,
       status: request.status,
       remarks: request.remarks,
-      isReturned: request.isReturned,
       requestItems: request.requestItems.map((requestItem) => ({
         id: requestItem.id,
         quantity: requestItem.quantity,

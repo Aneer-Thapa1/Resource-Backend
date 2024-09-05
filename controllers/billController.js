@@ -24,7 +24,7 @@ const addBill = async (req, res) => {
       bill_date,
       invoice_no,
       paid_amount,
-      vat_number, // Explicitly include vat_number
+      vat_number,
       items,
       selectedOptions,
     } = req.body;
@@ -204,6 +204,7 @@ const addBill = async (req, res) => {
 const approveBill = async (req, res) => {
   try {
     const bill_id = req.params.bill_id;
+    const user_id = req.user.user_id; 
 
     const bill = await prisma.bills.findFirst({
       where: {
@@ -293,6 +294,19 @@ const approveBill = async (req, res) => {
           });
         })
       );
+      const notifyMessage = await prisma.notification.create({
+        data: {
+          message: `${updatedBill.bill_no} bill_no has been approved !`,
+          user_id: Number(user_id),
+          created_at: new Date(),
+        },
+      });
+
+      const io = getIo();
+      io.emit("newBill", {
+        message: notifyMessage,
+      });
+
 
       return { updatedBill, updatedVendor };
     });
@@ -338,14 +352,20 @@ const approveBill = async (req, res) => {
           isApproved: false
         }
       })
-
-      const billNotification = await prisma.notification.create({
-        data:{
-          message:`${bill.bill_no} has been declined re-check it.`,
-          user_id: user_id
-        }
-      })
       
+      const notifyMessage = await prisma.notification.create({
+        data: {
+          message:`${bill.bill_no} has been declined re-check it.`,
+          user_id: Number(user_id),
+          created_at: new Date(),
+        },
+      });
+
+      const io = getIo();
+      io.emit("newBill", {
+        message: notifyMessage,
+      });
+
       return res
         .status(200)
         .json({ message: "Bill has declined !", declineBillData});
