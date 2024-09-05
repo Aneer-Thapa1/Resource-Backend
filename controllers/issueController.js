@@ -79,13 +79,24 @@ const addIssue = async (req, res) => {
     });
 
     const issuePromises = items.map(async (item) => {
-      if (!item.item_name || !item.quantity) {
+      if (!item.item_id) {
         throw new Error("Invalid item data");
       }
+      if ( !item.quantity) {
+        throw new Error("Invalid quantity data");
+      }
+      const findItem = await prisma.items.findFirst({
+        where:{
+          item_id: item.item_id
+        }
+      })
+
+      console.log(findItem);
 
       return prisma.issue.create({
         data: {
-          issue_item: item.item_name,
+          issue_item: findItem.item_name,
+          item_id: findItem.item_id,
           Quantity: parseInt(item.quantity),
           issue_Date: new Date(issue_date),
           purpose: purpose,
@@ -139,11 +150,10 @@ const editIssue = async (req, res) => {
           issue_item: issue_name,
           Quantity: parseInt(quantity),
           issue_Date: new Date(issue_date),
-          purpose: remarks,
+          purpose: purpose,
           issued_to: requested_by,
           approved_by: approver.user_name,
-          isReturned: isReturned,
-          remarks: purpose
+          isReturned: isReturned
         },
         include: {
           request: {
@@ -158,19 +168,25 @@ const editIssue = async (req, res) => {
 
       // If the item is returned, update the item's remaining quantity
       if (Boolean(isReturned)) {
-        const itemId = updatedIssue.request.requestItems[0]?.item.item_id;
+        const itemId = updatedIssue.item_id;
         if (itemId) {
           await prisma.items.update({
             where: { item_id: itemId },
             data: {
               remaining_quantity: {
-                increment: updatedIssue.Quantity,
+                decrement: updatedIssue.Quantity,
               },
             },
           });
 
+          const item_name = await prisma.items.findFirst({
+            where:{
+              item_id:updatedIssue.item_id
+            }
+          })
+
           // Create a notification
-          const notificationMessage = `${updatedIssue.request.requestItems[0].item.item_name} has been returned`;
+          const notificationMessage = `${item_name.item_name} has been returned`;
           const notifyMessage = await prisma.notification.create({
             data: {
               message: notificationMessage,
