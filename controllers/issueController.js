@@ -37,15 +37,16 @@ const getIssue = async (req, res) => {
           }
         }
 
+      
         return {
-          issue_id: issue.id,
-          issue_name: issue.issue_item,
-          quantity: issue.Quantity,
-          remarks: issue.request?.remarks || issue.purpose,
-          issueDate: issue.issue_Date,
+          id: issue.id,
+          issue_item: issue.issue_item,
+          Quantity: issue.Quantity,
+          purpose: issue.request?.remarks || issue.purpose,
+          issue_Date: issue.issue_Date,
           status: issue.request?.status || "",
           approved_by: findUser?.user_name || issue.approved_by,
-          requested_by: reqUser?.user_name || issue.issued_to,
+          request_Id: reqUser?.user_name || issue.issued_to,
           department: department?.department_name || "students",
           isReturned: issue.isReturned,
         };
@@ -64,35 +65,51 @@ const addIssue = async (req, res) => {
     const id = req.user.user_id;
     const { items, issued_to, purpose, issue_date } = req.body;
 
+    console.log(req.body);
+    // Validate input
     if (!items || !Array.isArray(items) || items.length === 0) {
       return res.status(400).json({ error: "Invalid or missing items" });
     }
-
     if (!purpose || !issue_date) {
       return res.status(400).json({ error: "Missing required fields" });
     }
 
+    // Find the approved user
     const approvedby = await prisma.users.findFirst({
       where: {
         user_id: id,
       },
+      include:{
+        department:true
+      }
     });
+      console.log(approvedby);
+    if (!approvedby) {
+      return res.status(404).json({ error: "Approving user not found" });
+    }
 
+    // Loop through each item and create issue records
     const issuePromises = items.map(async (item) => {
+      // Check item validity
       if (!item.item_id) {
         throw new Error("Invalid item data");
       }
-      if ( !item.quantity) {
+      if (!item.quantity) {
         throw new Error("Invalid quantity data");
       }
+
+      // Find the item
       const findItem = await prisma.items.findFirst({
-        where:{
-          item_id: item.item_id
-        }
-      })
+        where: {
+          item_id: item.item_id,
+        },
+      });
 
-      console.log(findItem);
+      if (!findItem) {
+        throw new Error(`Item with id ${item.item_id} not found`);
+      }
 
+      // Create issue record for each item
       return prisma.issue.create({
         data: {
           issue_item: findItem.item_name,
@@ -108,12 +125,27 @@ const addIssue = async (req, res) => {
 
     const issues = await Promise.all(issuePromises);
 
-    res.status(201).json({ message: "Issue added successfully", issues });
+    // Construct a response object for all issues
+    const response = issues.map((issue) => ({
+      id: issue.id,
+      issue_item: issue.issue_item,
+      Quantity: issue.Quantity,
+      purpose: issue.purpose,
+      issue_Date: issue.issue_Date,
+      approved_by: issue.approved_by,
+      requested_by: issued_to,
+      department: approvedby.department.department_name,
+      isReturned: issue.isReturned,
+    }));
+    console.log(response)
+
+    res.status(201).json({ message: "Issue added successfully", response });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ error: "Internal Server Error!" });
   }
 };
+
 const editIssue = async (req, res) => {
   try {
     const id = Number(req.params.id);
