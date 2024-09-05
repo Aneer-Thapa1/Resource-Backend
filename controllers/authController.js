@@ -101,9 +101,11 @@ const login = async (req, res) => {
       user_email: user.user_email,
       user_role: user.role,
       user_contact: user.contact,
+      department: user.department.department_name,
       token,
     };
 
+    console.log(user);
     // Send token in response
     res
       .cookie("token", token, {
