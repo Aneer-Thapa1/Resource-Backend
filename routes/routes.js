@@ -165,7 +165,7 @@ router.get("/bill/exportVendor", exportToExcel.exportVendors);
 //issue
 router.get("/issue", issueController.getIssue);
 router.post("/addIssue", authMiddleware(), issueController.addIssue);
-router.put("/editIssue/:issue_id", authMiddleware(), issueController.editIssue);
+router.put("/editIssue/:id", authMiddleware(), issueController.editIssue);
 
 //dashboard
 router.get("/dashboard", dashboardController.dashboard);
