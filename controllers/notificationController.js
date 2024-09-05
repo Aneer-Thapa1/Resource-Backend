@@ -79,10 +79,6 @@ const updateNotification = async (req, res) => {
       include: { notification: true },
     });
 
-    const io = getIo();
-    io.emit("all_request", {
-      message: updatedUserNotifications,
-    });
 
     return res
       .status(200)
