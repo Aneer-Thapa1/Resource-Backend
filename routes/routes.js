@@ -70,7 +70,7 @@ router.put(
 router.put(
   "/declineBill/:bill_id",
   authMiddleware(),
-  // superAdminMiddleware,
+  superAdminMiddleware,
   billController.declineBill
 );
 
@@ -127,9 +127,16 @@ router.put(
   NotiController.updateNotification
 );
 
-router.put("/updateNotification",  authMiddleware(), NotiController.updateNotification);
-router.put("/singleNotification/:id",authMiddleware(), NotiController.singleUpdateNotification);
-
+router.put(
+  "/updateNotification",
+  authMiddleware(),
+  NotiController.updateNotification
+);
+router.put(
+  "/singleNotification/:id",
+  authMiddleware(),
+  NotiController.singleUpdateNotification
+);
 
 //message
 

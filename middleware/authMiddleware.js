@@ -24,7 +24,7 @@ const authMiddleware = (roles = []) => {
         return res.status(401).json({ error: "Invalid Token" });
       }
 
-      const user = await users.findUnique({
+      const user = await users.findFirst({
         where: {
           user_id: decoded.id,
         },
