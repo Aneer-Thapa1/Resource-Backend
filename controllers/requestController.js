@@ -1,10 +1,13 @@
 const prisma = require("../prismaClient");
 const { getIo } = require("../socket");
+const { ADToBS } = require('bikram-sambat-js');
 
 const sentRequest = async (req, res) => {
   try {
     const userId = req.user.user_id;
     const { items, for_UserId, purpose } = req.body;
+    const default_Date = new Date();
+    const bsDate = ADToBS(default_Date);
 
     if (!items || !purpose) {
       return res.status(400).json({
@@ -12,7 +15,6 @@ const sentRequest = async (req, res) => {
       });
     }
 
-    // Fetch the user making the request
     const user = await prisma.users.findFirst({
       where: { user_id: userId },
       select: { user_name: true, department: true },
@@ -22,7 +24,6 @@ const sentRequest = async (req, res) => {
       return res.status(404).json({ error: "User not found!" });
     }
 
-    // Fetch the user to whom the request is made
     const forUser = await prisma.users.findFirst({
       where: { user_id: for_UserId },
     });
@@ -33,18 +34,17 @@ const sentRequest = async (req, res) => {
 
     // Map the items to match Prisma schema
     const requestItems = items.map((item) => ({
-      item: { connect: { item_id: item.item_id } }, 
+      item: { connect: { item_id: item.item_id } },
       quantity: parseInt(item.quantity),
     }));
 
-    // Create the request with associated requestItems
     const requestData = await prisma.request.create({
       data: {
-        user: { connect: { user_id: userId } }, 
-        requestedFor: { connect: { user_id: for_UserId } }, 
+        user: { connect: { user_id: userId } },
+        requestedFor: { connect: { user_id: for_UserId } },
         purpose: purpose,
         status: "pending",
-
+        request_date: new Date(bsDate), 
         requestItems: {
           create: requestItems,
         },
@@ -58,8 +58,8 @@ const sentRequest = async (req, res) => {
       .status(200)
       .json({ message: "Successfully requested the items", requestData });
   } catch (error) {
-    console.error(error.message);
-    return res.status(500).json({ error: "Internal Server Error!!" });
+    console.error("Error:", error.message);
+    return res.status(500).json({ error: "Internal Server Error!" });
   }
 };
 
@@ -207,11 +207,10 @@ const approveRequest = async (req, res) => {
         remarks: remarks,
         status: "Holding",
         requestItems: {
-          create: changedItem,  
+          create: changedItem,
         },
       },
     });
-
 
     return res.status(200).json({ message: "Item changed", updateData });
   } catch (error) {
@@ -268,7 +267,7 @@ const deliverRequest = async (req, res) => {
         //   item_id: requestItem.item_id
         //   }
         // })
-      const update=  await prisma.issue.create({
+        const update = await prisma.issue.create({
           data: {
             item_id: requestItem.item.item_id,
             issue_item: requestItem.item.item_name,
@@ -300,9 +299,6 @@ const deliverRequest = async (req, res) => {
     return res.status(500).json({ error: "Internal Server Error!" });
   }
 };
-
-
-
 
 const getRequest = async (req, res) => {
   try {
@@ -406,7 +402,6 @@ const singleRequest = async (req, res) => {
   }
 };
 
-
 const requestHistory = async (req, res) => {
   try {
     const userId = req.user.user_id;
@@ -437,7 +432,7 @@ const requestHistory = async (req, res) => {
     });
 
     // Format response for pending requests
-    const responsePending = requestsPending.map(request => ({
+    const responsePending = requestsPending.map((request) => ({
       request_id: request.request_id,
       purpose: request.purpose,
       user_name: request.user.user_name,
@@ -445,7 +440,7 @@ const requestHistory = async (req, res) => {
       request_date: request.request_date,
       status: request.status,
       isReturned: request.isReturned,
-      requestItems: request.requestItems.map(requestItem => ({
+      requestItems: request.requestItems.map((requestItem) => ({
         id: requestItem.id,
         item_id: requestItem.item.item_id,
         quantity: requestItem.quantity,
@@ -479,7 +474,7 @@ const requestHistory = async (req, res) => {
     });
 
     // Format response for approved requests
-    const responseApproved = requestsApproved.map(request => ({
+    const responseApproved = requestsApproved.map((request) => ({
       request_id: request.request_id,
       purpose: request.purpose,
       user_name: request.user.user_name,
@@ -487,23 +482,25 @@ const requestHistory = async (req, res) => {
       request_date: request.request_date,
       status: request.status,
       isReturned: request.isReturned,
-      requestItems: request.requestItems.map(requestItem => ({
+      requestItems: request.requestItems.map((requestItem) => ({
         id: requestItem.id,
-          item_id: requestItem.item.item_id,
+        item_id: requestItem.item.item_id,
         quantity: requestItem.quantity,
         item_name: requestItem.item.item_name,
       })),
     }));
 
-    return res.status(200).json({ requestApproved: responseApproved, requestPending: responsePending });
-
+    return res
+      .status(200)
+      .json({
+        requestApproved: responseApproved,
+        requestPending: responsePending,
+      });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ error: "Internal Server Error!" });
   }
 };
-
-
 
 module.exports = {
   sentRequest,
@@ -512,5 +509,5 @@ module.exports = {
   returnItem,
   approveRequest,
   deliverRequest,
-  requestHistory
+  requestHistory,
 };
