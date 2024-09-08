@@ -12,7 +12,7 @@ model vendors {
   vendor_name        String?          @db.VarChar(255)
   vat_number         String?          @db.VarChar(255)
   vendor_contact     String
-  vendor_profile     String
+  vendor_profile     String 
   categories         String?
   last_purchase_date DateTime?        @db.Date
   last_paid          DateTime?        @db.Date
@@ -122,6 +122,7 @@ model request {
   approved_by   Int?
   remarks       String?
   request_date  DateTime       @default(now())
+  created_at    DateTime        @default(now())
   status        String
   requestItems  requestItems[]
   issue         issue[]
