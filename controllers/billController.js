@@ -25,7 +25,7 @@ const addBill = async (req, res) => {
       invoice_no,
       paid_amount,
       vat_number,
-      items,
+      items,   
       selectedOptions,
     } = req.body;
 
@@ -307,68 +307,71 @@ const approveBill = async (req, res) => {
         message: notifyMessage,
       });
 
+
       return { updatedBill, updatedVendor };
     });
 
     return res
       .status(200)
       .json({ message: "Bill approved successfully", result });
-  } catch (error) {
-    console.log("Error:", error.message);
-    return res.status(500).json({ error: "Internal Server Error!" });
-  }
-};
+    } catch (error) {
+      console.log("Error:", error.message);
+      return res.status(500).json({ error: "Internal Server Error!" });
+    }
+  };
+  
+  const declineBill = async (req, res) => {
+    try {
+      const bill_id = Number(req.params.bill_id);
+      const user_id = req.user.user_id; 
+      const { remark } = req.body;
+      if (!remark)
+        return res.status(402).json({ error: "please provide all field !" });
+      const bill = await prisma.bills.findFirst({
+        where: {
+          bill_id: Number(bill_id),
+        },
+        include: {
+          vendors: true,
+          BillItems: true,
+        },
+      });
+      
+      if (!bill) return res.status(400).json({ error: "Bill not found" });
+      
+      // If the bill is already approved
+      if (bill.isApproved)
+        return res.status(400).json({ message: "Bill already approved!" });
+      
+      const declineBillData = await prisma.bills.update({
+        where:{
+          bill_id: bill_id
+        },
+        data:{
+          remark: remark,
+          isApproved: false
+        }
+      })
+      
+      const notifyMessage = await prisma.notification.create({
+        data: {
+          message:`${bill.bill_no} has been declined re-check it.`,
+          user_id: Number(user_id),
+          created_at: new Date(),
+        },
+      });
 
-const declineBill = async (req, res) => {
-  try {
-    const bill_id = Number(req.params.bill_id);
-    const user_id = req.user.user_id;
-    const { remark } = req.body;
-    if (!remark)
-      return res.status(402).json({ error: "please provide all field !" });
-    const bill = await prisma.bills.findFirst({
-      where: {
-        bill_id: Number(bill_id),
-      },
-      include: {
-        vendors: true,
-        BillItems: true,
-      },
-    });
+      const io = getIo();
+      io.emit("newBill", {
+        message: notifyMessage,
+      });
 
-    if (!bill) return res.status(400).json({ error: "Bill not found" });
+      return res
+        .status(200)
+        .json({ message: "Bill has declined !", declineBillData});
 
-    // If the bill is already approved
-    if (bill.isApproved)
-      return res.status(400).json({ message: "Bill already approved!" });
-
-    const declineBillData = await prisma.bills.update({
-      where: {
-        bill_id: bill_id,
-      },
-      data: {
-        remark: remark,
-        isApproved: false,
-      },
-    });
-
-    const notifyMessage = await prisma.notification.create({
-      data: {
-        message: `${bill.bill_no} has been declined re-check it.`,
-        user_id: Number(user_id),
-        created_at: new Date(),
-      },
-    });
-
-    const io = getIo();
-    io.emit("newBill", {
-      message: notifyMessage,
-    });
-
-    return res
-      .status(200)
-      .json({ message: "Bill has declined !", declineBillData });
-  } catch (error) {
+      
+    } catch (error) {
     console.log("Error:", error.message);
     return res.status(500).json({ error: "Internal Server Error!" });
   }
@@ -646,5 +649,5 @@ module.exports = {
   updateBill,
   getBillById,
   approveBill,
-  declineBill,
+  declineBill
 };

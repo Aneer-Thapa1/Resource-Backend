@@ -133,7 +133,6 @@ const addUser = async (req, res) => {
 
 const setActiveUser = async (req, res) => {
   const user_id = Number(req.params.user_id);
-  console.log(user_id);
   try {
     const user = await prisma.users.findFirst({
       where: {
@@ -163,7 +162,6 @@ const setActiveUser = async (req, res) => {
 
 const setInActiveUser = async (req, res) => {
   const user_id = Number(req.params.user_id);
-  console.log(user_id);
   try {
     const user = await prisma.users.findFirst({
       where: {
@@ -219,10 +217,6 @@ const updateUserRole = async (req, res) => {
   try {
     const user_id = parseInt(req.params.user_id, 10);
     const { role } = req.body;
-
-    console.log("User ID received:", user_id);
-    console.log("Role received:", role);
-
     // Validate input
     if (isNaN(user_id)) {
       return res.status(400).json({ message: "Invalid user ID" });
