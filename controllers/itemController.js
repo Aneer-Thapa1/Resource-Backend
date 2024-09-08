@@ -9,7 +9,6 @@ const addItem = async (req, res) => {
       features,
       low_limit,
     } = req.body;
-
     if (
       !item_name ||
       !measuring_unit ||
@@ -343,11 +342,11 @@ const deleteItem = async (req, res) => {
 };
 
 const units = async (req, res) => {
-      
+
   try {
-    const data = await prisma.items.findMany({}); 
+    const data = await prisma.items.findMany({});
     const measuringUnits = data.map(item => item.measuring_unit);
-    const uniqueUnits = [...new Set(measuringUnits)];    
+    const uniqueUnits = [...new Set(measuringUnits)];
     return res.status(200).json({ measuring_unit: uniqueUnits });
   } catch (error) {
     return res.status(500).json({ error: "Internal Server Error !" });
@@ -361,8 +360,7 @@ module.exports = {
   addItem,
   getItemsById,
   getItems,
-  updateItem,              
+  updateItem,
   deleteItem,
   units
 };
-           
