@@ -9,7 +9,6 @@ const addVendor = async (req, res) => {
     categories,
   } = req.body;
 
-  console.log(categories);
 
   if (!vendor_name || !vat_number || !vendor_contact) {
     return res

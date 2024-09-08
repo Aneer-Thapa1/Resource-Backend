@@ -94,9 +94,7 @@ const updateNotification = async (req, res) => {
 const singleUpdateNotification = async (req, res) => {
   try {
     const notificationId = Number(req.params.id);
-    console.log(notificationId);
     const user_id = req.user.user_id;
-    console.log(user_id);
     // Ensure the userId is a alid number
     if (!user_id || !notificationId) {
       return res

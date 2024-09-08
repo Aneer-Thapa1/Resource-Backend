@@ -348,7 +348,6 @@ const getRequest = async (req, res) => {
 const singleRequest = async (req, res) => {
   try {
     const req_id = Number(req.params.id);
-    console.log(req_id);
 
     const requestData = await prisma.request.findFirst({
       where: {

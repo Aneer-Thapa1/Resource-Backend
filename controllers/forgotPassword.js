@@ -6,8 +6,6 @@ const requestOTP = async (req, res) => {
   try {
     const { email } = req.body;
 
-    console.log(email);
-
     // Check if user exists
     const user = await prisma.users.findUnique({
       where: {
