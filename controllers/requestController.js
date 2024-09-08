@@ -458,7 +458,7 @@ const requestHistory = async (req, res) => {
     const requestsApproved = await prisma.request.findMany({
       where: {
         user_id: userId,
-        status: "Delivered",
+        status: "Holding",
       },
       include: {
         user: {
