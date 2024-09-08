@@ -156,7 +156,7 @@ router.post(
 router.post("/addDepartment", departmentController.addDepartment);
 router.get("/getDepartment", departmentController.getDepartment);
 router.put("/editDepartment/:id", departmentController.editDepartment);
-router.put("/getissueDepartment", departmentController.editDepartment);
+router.get("/getissueDepartment", departmentController.getissueDepartment);
 
 //export excel
 router.get("/bill/exportBill", exportToExcel.exportBill);
