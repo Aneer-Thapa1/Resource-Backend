@@ -83,6 +83,7 @@ const updateVendor = async (req, res) => {
   try {
     const vendor_id = Number(req.params.id);
 
+    // Check if vendor categories exist
     const checkCategory = await Promise.all(
       vendorCategory.map((category) =>
         prisma.itemCategory.findFirst({
@@ -99,6 +100,20 @@ const updateVendor = async (req, res) => {
         .json({ error: "One or more categories not found!" });
     }
 
+    // Fetch the last payment date for the vendor
+    const vendorDetails = await prisma.vendors.findUnique({
+      where: { vendor_id },
+      select: { last_paid: true },
+    });
+
+    // Calculate next payment date based on last paid date and payment duration
+    let next_payment_date = null;
+    if (vendorDetails?.last_paid) {
+      next_payment_date = new Date(vendorDetails.last_paid);
+      next_payment_date.setDate(next_payment_date.getDate() + Number(payment_duration));
+    }
+
+    // Update vendor details
     const updateData = await prisma.vendors.update({
       where: {
         vendor_id: vendor_id,
@@ -106,9 +121,10 @@ const updateVendor = async (req, res) => {
       data: {
         vendor_name,
         vat_number,
-        vendor_contact: vendor_contact,
-        payment_duration,
+        vendor_contact,
+        payment_duration: Number(payment_duration),
         vendor_profile,
+        next_payment_date,
         vendorCategory: {
           deleteMany: { vendor_id },
           create: vendorCategory.map((category) => ({
@@ -127,6 +143,7 @@ const updateVendor = async (req, res) => {
         }
       },
     });
+
     // Calculate total purchase amount and pending payment for the specific vendor
     const [totalPurchaseAmount, totalPendingAmount] = await Promise.all([
       prisma.$queryRaw`
@@ -159,6 +176,7 @@ const updateVendor = async (req, res) => {
     res.status(500).json({ error: "Error updating vendor" });
   }
 };
+
 
 
 //all vendor data
