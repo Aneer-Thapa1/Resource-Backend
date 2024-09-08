@@ -150,7 +150,7 @@ const approveRequest = async (req, res) => {
     const id = Number(req.params.id);
     const userId = req.user.user_id;
     const { replaceItems, remarks } = req.body;
-
+    console.log(req.body);
     const findRequest = await prisma.request.findFirst({
       where: {
         request_id: id,
@@ -452,7 +452,7 @@ const requestHistory = async (req, res) => {
     const requestsApproved = await prisma.request.findMany({
       where: {
         user_id: userId,
-        status: "Approved",
+        status: "Delivered",
       },
       include: {
         user: {
