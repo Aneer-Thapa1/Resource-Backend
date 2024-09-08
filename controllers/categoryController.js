@@ -52,7 +52,7 @@ const addCategory = async (req, res) => {
 const editCategory = async (req, res) => {
   try {
     const { type, name } = req.body;
-    console.log(type, name);
+   
     const id = Number(req.params.id);
 
     if (type === "category") {
@@ -98,7 +98,6 @@ const editCategory = async (req, res) => {
         .status(200)
         .json({ message: "Item Category updated successfully !" });
     } else if (type == "Feature") {
-      console.log("hi");
       const feature = await prisma.feature.findFirst({
         where: {
           feature_id: id,

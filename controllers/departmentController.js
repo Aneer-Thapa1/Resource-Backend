@@ -66,7 +66,6 @@ const editDepartment = async (req,res)=>{
   }
 }
 
-
 module.exports = {
   addDepartment,
   getDepartment,
