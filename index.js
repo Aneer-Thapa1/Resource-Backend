@@ -4,8 +4,13 @@ const routes = require("./routes/routes");
 const cookieParser = require("cookie-parser");
 require("dotenv").config();
 const nodemailer = require("nodemailer");
+const http = require("http");
+const { logger, morganMiddleware } = require("./middleware/logger");
 
 const app = express();
+
+// Use Morgan middleware for logging
+app.use(morganMiddleware);
 
 // Middleware to parse JSON
 app.use(express.json());
@@ -37,7 +42,6 @@ const transporter = nodemailer.createTransport({
 });
 
 // Start the server
-const http = require("http");
 const server = http.createServer(app);
 
 // Import and setup socket
@@ -47,11 +51,11 @@ setupSocket(server);
 const port = process.env.PORT || 3000; // Fallback to 3000 if PORT is not set
 
 server.listen(port, () => {
-  console.log(`Server is running on http://localhost:${port}`);
+  logger.info(`Server is running on http://localhost:${port}`);
 });
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-  console.error(err.stack);
+  logger.error("Error", { error: err.message, stack: err.stack });
   res.status(500).send("Something broke!");
 });
