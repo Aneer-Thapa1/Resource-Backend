@@ -17,7 +17,10 @@ app.use(express.json());
 
 // Enable CORS with specific options
 const corsOptions = {
-  origin: "http://localhost:5173",
+  origin: ["http://localhost:5173",
+
+    "https://localdomain","https://www.localdomain"
+  ],
   methods: ["GET", "POST", "PUT", "DELETE"],
   allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true,
