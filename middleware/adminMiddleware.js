@@ -29,7 +29,6 @@ const adminMiddleware = async (req, res, next) => {
     if (user.role === "admin" || user.role == "superadmin") {
       next();
     } else {
-   
       return res.status(403).json({ message: "Unauthorized access" });
     }
   } catch (err) {

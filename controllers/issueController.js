@@ -37,7 +37,6 @@ const getIssue = async (req, res) => {
           }
         }
 
-      
         return {
           id: issue.id,
           issue_name: issue.issue_item,
@@ -77,9 +76,9 @@ const addIssue = async (req, res) => {
       where: {
         user_id: id,
       },
-      include:{
-        department:true
-      }
+      include: {
+        department: true,
+      },
     });
     if (!approvedby) {
       return res.status(404).json({ error: "Approving user not found" });
@@ -105,8 +104,6 @@ const addIssue = async (req, res) => {
       if (!findItem) {
         throw new Error(`Item with id ${item.item_id} not found`);
       }
-
-
 
       // Create issue record for each item
       return prisma.issue.create({
@@ -146,10 +143,10 @@ const addIssue = async (req, res) => {
 
 const editIssue = async (req, res) => {
   try {
-    const id = Number(req.params.issue_id);
     const user_id = req.user.user_id;
 
     const {
+      id,
       issue_name,
       quantity,
       requested_by,
@@ -157,10 +154,12 @@ const editIssue = async (req, res) => {
       issue_date,
       remarks,
       isReturned,
-    } = req.body;      req.body;
+    } = req.body;
+
+    console.log(id);
 
     // Check if the issue exists
-    const existingIssue = await prisma.issue.findFirst({ where: {issue_id :id } });
+    const existingIssue = await prisma.issue.findFirst({ where: { id: id } });
     if (!existingIssue) {
       return res.status(404).json({ error: "Issue not found!" });
     }
@@ -175,9 +174,8 @@ const editIssue = async (req, res) => {
     // Find the approver by user_id
     const approver = await prisma.users.findFirst({ where: { user_id } });
 
-    if (!approver)   return res.status(404).json({ error: "Approver not found!" });
-
-
+    if (!approver)
+      return res.status(404).json({ error: "Approver not found!" });
 
     const result = await prisma.$transaction(async (prisma) => {
       // Update the issue
@@ -190,7 +188,7 @@ const editIssue = async (req, res) => {
           purpose: purpose,
           issued_to: requested_by,
           approved_by: approver.user_name,
-          isReturned: Boolean(isReturned)
+          isReturned: Boolean(isReturned),
         },
         include: {
           request: {
@@ -217,10 +215,10 @@ const editIssue = async (req, res) => {
           });
 
           const item_name = await prisma.items.findFirst({
-            where:{
-              item_id:updatedIssue.item_id
-            }
-          })
+            where: {
+              item_id: updatedIssue.item_id,
+            },
+          });
 
           // Create a notification
           const notificationMessage = `${item_name.item_name} has been returned`;
