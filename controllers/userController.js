@@ -68,7 +68,7 @@ const addUser = async (req, res) => {
     });
 
     // Check if the user already exists
-    const existingUser = await prisma.users.findUnique({
+    const existingUser = await prisma.users.findFirst({
       where: {
         user_email: user_email,
       },

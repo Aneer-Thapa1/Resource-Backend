@@ -105,7 +105,7 @@ const getItems = async (req, res) => {
 
         const specificData = await prisma.$queryRaw`
         SELECT SUM(bi.total_Amount) as total_purchase_amount
-        FROM resource.billItems bi
+        FROM resource.BillItems bi
         JOIN resource.items i
         ON bi.item_id = i.item_id 
         WHERE i.item_id = ${item.item_id}`;
@@ -168,7 +168,7 @@ const getItemsById = async (req, res) => {
 
     const specificData = await prisma.$queryRaw`
       SELECT SUM(bi.total_Amount) as total_purchase_amount
-      FROM resource.billItems bi
+      FROM resource.BillItems bi
       JOIN resource.items i
       ON bi.item_id = i.item_id 
       WHERE i.item_id = ${itemData.item_id}`;
