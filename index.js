@@ -19,7 +19,7 @@ app.use(express.json());
 const corsOptions = {
   origin: ["http://localhost:5173",
 
-    "https://localdomain","https://www.localdomain"
+    "https://localdomain", "https://www.localdomain"
   ],
   methods: ["GET", "POST", "PUT", "DELETE"],
   allowedHeaders: ["Content-Type", "Authorization"],
