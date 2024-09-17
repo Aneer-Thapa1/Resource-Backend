@@ -39,6 +39,28 @@ const getDepartment = async (req, res) => {
   }
 };
 
+
+const getissueDepartment = async (req, res) => {
+  try {
+    
+    const data = await prisma.department.findMany({});
+
+    
+    const modifiedData = [
+      ...data, 
+      {
+        department_id: 222,   
+        department_name: "student", 
+      }
+    ];
+
+    return res.status(200).json({ department: modifiedData });
+  } catch (error) {
+    console.log(error.message);
+    return res.status(500).json({ error: "Internal Server Error !" });
+  }
+};
+
 const editDepartment = async (req,res)=>{
   try {
     const department_id = Number(req.params.id);
@@ -69,5 +91,6 @@ const editDepartment = async (req,res)=>{
 module.exports = {
   addDepartment,
   getDepartment,
-  editDepartment
+  editDepartment,
+  getissueDepartment
 };

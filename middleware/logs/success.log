@@ -1,0 +1,30 @@
+{"level":"info","message":"Server is running on http://localhost:8898","timestamp":"2024-09-12T04:02:45.594Z"}
+{"level":"info","message":"OPTIONS /api/logout 204 0.873 ms - 0 -","timestamp":"2024-09-12T04:02:49.328Z"}
+{"level":"info","message":"POST /api/logout 200 19.669 ms - 37 -","timestamp":"2024-09-12T04:02:49.350Z"}
+{"level":"info","message":"OPTIONS /api/login 204 0.190 ms - 0 -","timestamp":"2024-09-12T04:03:13.961Z"}
+{"email":"np05cp4a220015@iic.edu.np","ip":"::1","level":"info","message":"Login attempt","timestamp":"2024-09-12T04:03:13.965Z"}
+{"department":"Resource","email":"np05cp4a220015@iic.edu.np","ip":"::1","level":"info","message":"Login successful","role":"superadmin","timestamp":"2024-09-12T04:03:14.061Z","userId":1,"username":"Anir Jung Thapa"}
+{"level":"info","message":"POST /api/login 200 99.168 ms - 362 -","timestamp":"2024-09-12T04:03:14.063Z"}
+{"level":"info","message":"OPTIONS /api/notificaiton 204 0.308 ms - 0 -","timestamp":"2024-09-12T04:03:14.160Z"}
+{"level":"info","message":"OPTIONS /api/dashboard 204 0.339 ms - 0 -","timestamp":"2024-09-12T04:03:14.164Z"}
+{"level":"info","message":"GET /api/notificaiton 304 40.801 ms - - -","timestamp":"2024-09-12T04:03:14.217Z"}
+{"level":"info","message":"GET /api/dashboard 304 55.017 ms - - -","timestamp":"2024-09-12T04:03:14.244Z"}
+{"level":"info","message":"OPTIONS /api/logout 204 0.164 ms - 0 -","timestamp":"2024-09-12T04:03:20.893Z"}
+{"level":"info","message":"POST /api/logout 200 1.577 ms - 37 -","timestamp":"2024-09-12T04:03:20.897Z"}
+{"level":"info","message":"OPTIONS /api/login 204 0.202 ms - 0 -","timestamp":"2024-09-12T04:03:27.136Z"}
+{"email":"np05cp4a220015@iic.edu.np","ip":"::1","level":"info","message":"Login attempt","timestamp":"2024-09-12T04:03:27.139Z"}
+{"email":"np05cp4a220015@iic.edu.np","ip":"::1","level":"warn","message":"Login failed: Invalid password","timestamp":"2024-09-12T04:03:27.196Z","userId":1}
+{"level":"error","message":"POST /api/login 401 58.161 ms - 29 -","timestamp":"2024-09-12T04:03:27.197Z"}
+{"level":"info","message":"OPTIONS /api/login 204 0.144 ms - 0 -","timestamp":"2024-09-12T04:03:35.687Z"}
+{"email":"np05cp4a220015@iic.edu.np","ip":"::1","level":"info","message":"Login attempt","timestamp":"2024-09-12T04:03:35.689Z"}
+{"email":"np05cp4a220015@iic.edu.np","ip":"::1","level":"warn","message":"Login failed: Invalid password","timestamp":"2024-09-12T04:03:35.745Z","userId":1}
+{"level":"error","message":"POST /api/login 401 57.844 ms - 29 -","timestamp":"2024-09-12T04:03:35.747Z"}
+{"email":"np05cp4a220015@iic.edu.np","ip":"::1","level":"info","message":"Login attempt","timestamp":"2024-09-12T04:03:37.880Z"}
+{"department":"Resource","email":"np05cp4a220015@iic.edu.np","ip":"::1","level":"info","message":"Login successful","role":"superadmin","timestamp":"2024-09-12T04:03:37.939Z","userId":1,"username":"Anir Jung Thapa"}
+{"level":"info","message":"POST /api/login 200 59.319 ms - 362 -","timestamp":"2024-09-12T04:03:37.940Z"}
+{"level":"info","message":"OPTIONS /api/notificaiton 204 0.205 ms - 0 -","timestamp":"2024-09-12T04:03:38.004Z"}
+{"level":"info","message":"OPTIONS /api/dashboard 204 0.336 ms - 0 -","timestamp":"2024-09-12T04:03:38.006Z"}
+{"level":"info","message":"GET /api/notificaiton 304 11.258 ms - - -","timestamp":"2024-09-12T04:03:38.019Z"}
+{"level":"info","message":"GET /api/dashboard 304 25.576 ms - - -","timestamp":"2024-09-12T04:03:38.034Z"}
+{"level":"info","message":"Server is running on http://localhost:8898","timestamp":"2024-09-12T04:03:50.549Z"}
+{"level":"info","message":"Server is running on http://localhost:8898","timestamp":"2024-09-12T04:03:58.701Z"}
